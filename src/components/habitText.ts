@@ -1,7 +1,7 @@
 import type { AppData, Habit, Lang } from '../types';
 import type { Dict } from '../lib/i18n';
 import type { DateKey } from '../lib/date';
-import { todayKey } from '../lib/date';
+import { todayKey, weekdayName } from '../lib/date';
 import { getEntry, progressOf, softStreak, targetOf, weekProgress } from '../lib/habits';
 
 function minuteUnit(habit: Habit, lang: Lang): string {
@@ -42,16 +42,31 @@ export function habitStatus(
   return lang === 'ru' ? `${clean} чисто` : `${clean} clean`;
 }
 
-/** Second line for the management list: kind and target. */
+/** "пн, ср, пт" — the schedule as it reads in a list. */
+export function daysLabel(habit: Habit, dict: Dict, lang: Lang): string | null {
+  const days = habit.days;
+  if (!days || days.length === 0 || days.length >= 7) return null;
+  if (days.length === 5 && days.every((day) => day <= 4)) return dict['habits.onWeekdays'];
+  if (days.length === 2 && days.includes(5) && days.includes(6)) return dict['habits.onWeekend'];
+  return days.map((day) => weekdayName(day, lang)).join(', ');
+}
+
+/** Second line for the management list: kind, goal and schedule. */
 export function habitSubtitle(habit: Habit, dict: Dict, lang: Lang): string {
   const kind = dict[`habits.kind.${habit.kind}`];
+  const parts: string[] = [];
   if (habit.kind === 'counter' || habit.kind === 'duration') {
     const unit = habit.unit ? ` ${habit.unit}` : habit.kind === 'duration' ? ` ${minuteUnit(habit, lang)}` : '';
-    return `${kind} · ${targetOf(habit)}${unit}`;
+    parts.push(`${kind} · ${targetOf(habit)}${unit}`);
+  } else if (habit.kind === 'flex') {
+    parts.push(`${kind} · ${habit.perWeek ?? 3}/7`);
+  } else {
+    parts.push(kind);
+    if (habit.pinned) parts.push(dict['habits.inMain']);
   }
-  if (habit.kind === 'flex') return `${kind} · ${habit.perWeek ?? 3}/7`;
-  if (habit.pinned) return `${kind} · ${dict['habits.inMain']}`;
-  return kind;
+  const schedule = daysLabel(habit, dict, lang);
+  if (schedule) parts.push(schedule);
+  return parts.join(' · ');
 }
 
 /** Units for the chips: 5/10/15/20 beats tapping +1 twenty times. */

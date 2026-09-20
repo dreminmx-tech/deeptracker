@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Habit, HabitKind } from '../types';
 import { useStore } from '../store';
 import { t } from '../lib/i18n';
+import { WEEKDAY_ORDER, weekdayName } from '../lib/date';
 import { deleteHabit, saveHabit, toggleArchive, type HabitInput } from '../lib/actions';
 import Modal from './Modal';
 
@@ -14,19 +15,27 @@ interface HabitFormProps {
 
 export default function HabitForm({ habit, onClose }: HabitFormProps) {
   const { data, update } = useStore();
-  const dict = t(data.settings.lang);
+  const lang = data.settings.lang;
+  const dict = t(lang);
 
   const [name, setName] = useState(habit?.name ?? '');
   const [kind, setKind] = useState<HabitKind>(habit?.kind ?? 'check');
   const [target, setTarget] = useState(String(habit?.target ?? (habit?.kind === 'duration' ? 20 : 6)));
   const [unit, setUnit] = useState(habit?.unit ?? '');
   const [perWeek, setPerWeek] = useState(String(habit?.perWeek ?? 3));
+  const [days, setDays] = useState<number[]>(habit?.days ?? [0, 1, 2, 3, 4, 5, 6]);
   const [tiny, setTiny] = useState(habit?.tiny ?? '');
   const [pinned, setPinned] = useState(habit?.pinned ?? false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const needsTarget = kind === 'counter' || kind === 'duration';
   const canSave = name.trim().length > 0;
+
+  function toggleDay(index: number) {
+    setDays((current) =>
+      current.includes(index) ? current.filter((day) => day !== index) : [...current, index].sort(),
+    );
+  }
 
   function save() {
     if (!canSave) return;
@@ -36,6 +45,7 @@ export default function HabitForm({ habit, onClose }: HabitFormProps) {
       target: needsTarget ? Number(target) || 1 : undefined,
       unit: kind === 'counter' || kind === 'duration' ? unit : undefined,
       perWeek: kind === 'flex' ? Number(perWeek) || 3 : undefined,
+      days: kind === 'flex' ? undefined : days,
       tiny,
       pinned,
     };
@@ -128,7 +138,27 @@ export default function HabitForm({ habit, onClose }: HabitFormProps) {
             onChange={(event) => setPerWeek(event.target.value)}
           />
         </label>
-      ) : null}
+      ) : (
+        <div className="field">
+          <span className="field-label">{dict['habits.days']}</span>
+          <div className="wick-grid">
+            {WEEKDAY_ORDER.map((index) => (
+              <button
+                key={index}
+                type="button"
+                className="wick"
+                data-on={days.includes(index) ? 'true' : 'false'}
+                aria-pressed={days.includes(index)}
+                title={weekdayName(index, lang)}
+                onClick={() => toggleDay(index)}
+              >
+                {weekdayName(index, lang)}
+              </button>
+            ))}
+          </div>
+          <p className="muted small">{dict['habits.daysHint']}</p>
+        </div>
+      )}
 
       <label className="field">
         <span className="field-label">{dict['habits.tiny']}</span>

@@ -172,6 +172,8 @@ export interface HabitInput {
   unit?: string;
   perWeek?: number;
   step?: number;
+  /** Weekdays the habit is expected, 0 = Monday. Empty or all seven = every day. */
+  days?: number[];
   tiny?: string;
   pinned?: boolean;
 }
@@ -181,6 +183,13 @@ function normalizeOrder(habits: Habit[]): Habit[] {
   return [...habits]
     .sort((a, b) => a.order - b.order)
     .map((habit, index) => ({ ...habit, order: index }));
+}
+
+/** "Every day" is stored as nothing at all — no list to keep in sync. */
+function normalizeDays(days?: number[]): number[] | undefined {
+  if (!days) return undefined;
+  const clean = [...new Set(days.filter((day) => day >= 0 && day <= 6))].sort((a, b) => a - b);
+  return clean.length === 0 || clean.length >= 7 ? undefined : clean;
 }
 
 /** Creates a habit when `id` is omitted, otherwise updates it in place. */
@@ -193,6 +202,7 @@ export function saveHabit(data: AppData, input: HabitInput, id?: string): AppDat
     unit: input.unit?.trim().slice(0, 16) || undefined,
     perWeek: input.kind === 'flex' ? Math.max(1, Math.min(7, Math.round(input.perWeek ?? 3))) : undefined,
     step: input.kind === 'counter' ? Math.max(1, Math.round(input.step ?? 1)) : undefined,
+    days: normalizeDays(input.days),
     tiny: input.tiny?.trim().slice(0, 120) || undefined,
     pinned: input.pinned,
     archived: false,

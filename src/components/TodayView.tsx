@@ -22,6 +22,7 @@ import {
   isComplete,
   mainHabits,
   missedYesterday,
+  scheduledOn,
 } from '../lib/habits';
 import Checkbox from './Checkbox';
 import CountStepper from './CountStepper';
@@ -49,16 +50,19 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
   const today = todayKey();
 
   const [open, setOpen] = useState<DateKey>(initialDay ?? today);
+  const [showAll, setShowAll] = useState(false);
   const [dumpText, setDumpText] = useState('');
   const [dialog, setDialog] = useState<{ habit: Habit; mode: LogMode } | null>(null);
 
   const isToday = open === today;
 
   const active = activeHabits(data);
-  // A habit is not asked for a day before it existed.
-  const shown = habitsUpTo(active, open);
+  // A habit is not asked for a day before it existed, nor on a day off its schedule.
+  const due = habitsUpTo(active, open);
+  const shown = showAll ? due : due.filter((habit) => scheduledOn(habit, open));
+  const hidden = due.length - shown.length;
   const actionable = shown.filter(isActionable);
-  const main = mainHabits(data).filter((habit) => habitsUpTo([habit], open).length > 0);
+  const main = mainHabits(data).filter((habit) => shown.some((item) => item.id === habit.id));
   const mainIds = new Set(main.map((habit) => habit.id));
   const rest = shown.filter((habit) => !mainIds.has(habit.id) && habit.kind !== 'negative');
   const negatives = shown.filter((habit) => habit.kind === 'negative');
@@ -215,7 +219,9 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
           ) : null}
 
           {shown.length === 0 ? (
-            <p className="muted small">{dict['today.pastEmpty']}</p>
+            <p className="muted small">
+              {due.length === 0 ? dict['today.pastEmpty'] : dict['today.offSchedule']}
+            </p>
           ) : (
             <>
               <div className="rows">
@@ -231,6 +237,14 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
               ) : null}
             </>
           )}
+
+          {hidden > 0 || showAll ? (
+            <button type="button" className="link" onClick={() => setShowAll((value) => !value)}>
+              {showAll
+                ? dict['today.hideOffSchedule']
+                : fill(dict['today.showOffSchedule'], { n: hidden })}
+            </button>
+          ) : null}
 
           <section className="block">
             <p className="label">{dict['today.dump']}</p>

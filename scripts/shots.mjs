@@ -52,6 +52,7 @@ function demoData(theme) {
     { id: 'h3', name: 'Прогулка', kind: 'duration', target: 20, unit: 'мин', tiny: 'Выйти на улицу на 2 минуты', pinned: true, createdAt, order: 2 },
     { id: 'h4', name: 'Спорт', kind: 'flex', perWeek: 3, tiny: 'Размяться 2 минуты', createdAt, order: 3 },
     { id: 'h5', name: 'Не листать телефон в постели', kind: 'negative', tiny: 'Оставить телефон на столе', createdAt, order: 4 },
+    { id: 'h6', name: 'Бассейн', kind: 'check', days: [0, 2, 4], tiny: 'Собрать сумку', createdAt, order: 5 },
   ];
 
   const days = {};
@@ -62,6 +63,7 @@ function demoData(theme) {
     if (i % 4 === 0) entries.h3 = { value: 20, done: true };
     if (i % 5 === 0) entries.h4 = { done: true, value: 1 };
     if (i % 9 === 0) entries.h5 = { value: 1, done: false };
+    if (i % 6 === 0) entries.h6 = { done: true, value: 1 };
     if (Object.keys(entries).length > 0) days[shift(i)] = { entries, dump: [] };
   }
 
@@ -191,9 +193,18 @@ try {
       // второе значение — «Прогулка»: окно быстрого ввода минут с чипами и таймером
       clickJs: "document.querySelectorAll('.stepper-value')[1]?.click()",
     },
-    { name: 'habits', tab: 'habits', theme: 'dark', width: 390, height: 520 },
+    { name: 'habits', tab: 'habits', theme: 'dark', width: 390, height: 620 },
+    {
+      name: 'habit-form',
+      tab: 'habits',
+      theme: 'dark',
+      width: 390,
+      height: 1000,
+      // «+ Привычка»: форма с выбором дней недели
+      click: '.view-head .btn',
+    },
     { name: 'habits-actions', tab: 'habits', theme: 'dark', width: 390, height: 620, click: '.row-act' },
-    { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 1560 },
+    { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 1760 },
     { name: 'settings', tab: 'settings', theme: 'dark', width: 390, height: 1420 },
     { name: 'today-light', tab: 'today', theme: 'light', width: 390, height: 900 },
   ];

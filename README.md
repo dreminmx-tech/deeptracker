@@ -11,11 +11,11 @@
 [![Deploy](https://github.com/dreminmx-tech/deeptracker/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/dreminmx-tech/deeptracker/actions/workflows/deploy.yml)
 [![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square&labelColor=141418)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-offline--first-0070f3?style=flat-square&labelColor=141418)](docs/technical.md#pwa)
-[![Tests](https://img.shields.io/badge/tests-46%20passing-22c55e?style=flat-square&labelColor=141418)](docs/technical.md#tests)
+[![Tests](https://img.shields.io/badge/tests-52%20passing-22c55e?style=flat-square&labelColor=141418)](docs/technical.md#tests)
 [![React](https://img.shields.io/badge/React-19-0070f3?style=flat-square&labelColor=141418)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7-0070f3?style=flat-square&labelColor=141418)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8-0070f3?style=flat-square&labelColor=141418)](https://vite.dev)
-[![Bundle](https://img.shields.io/badge/бандл-89%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
+[![Bundle](https://img.shields.io/badge/бандл-90%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
 
 <table>
   <tr>
@@ -25,7 +25,7 @@
   </tr>
   <tr>
     <td align="center"><img src="docs/screenshots/stats.png" alt="Статистика" width="200"><br><sub>Статистика</sub></td>
-    <td align="center"><img src="docs/screenshots/habits.png" alt="Привычки" width="200"><br><sub>Привычки</sub></td>
+    <td align="center"><img src="docs/screenshots/habit-form.png" alt="Расписание по дням недели" width="200"><br><sub>Расписание</sub></td>
     <td align="center"><img src="docs/screenshots/today-light.png" alt="Светлая тема" width="200"><br><sub>Светлая тема</sub></td>
   </tr>
 </table>
@@ -43,7 +43,7 @@
 ```bash
 npm install
 npm run dev      # http://127.0.0.1:5173
-npm test         # 46 тестов: логика + рендер всех экранов
+npm test         # 52 теста: логика + рендер всех экранов
 ```
 
 Сборка и просмотр продакшн-версии:
@@ -65,6 +65,7 @@ npm run preview  # http://127.0.0.1:4173
 - ✅ **Пять типов привычек** — отметка, счётчик с целью, минуты с таймером, «не делать» и гибкая частота вроде «3 раза в неделю».
 - 🪶 **Мягкие серии** — «не пропускай дважды»: один пропущенный день не обнуляет прогресс, ломают только два подряд, а сегодняшний незакрытый день вообще не считается пропуском. Если вчера всё-таки было пусто, приложение скажет об этом одной спокойной фразой — не уведомлением и не красным.
 - 🗓 **Любой день недели** — полоса недели над списком: листаешь назад и заполняешь то, что забыл отметить вчера. Прошлое редактируется, будущее — нет, а привычки, которых в тот день ещё не было, не показываются.
+- 📆 **Расписание по дням** — «по будням», «пн, ср, пт»: день вне расписания не считается пропуском и не рвёт серию. На экране «Сегодня» такая привычка не мешает, но одной ссылкой её можно показать и отметить.
 - 📅 **По дням недели** — в статистике видно, какой день у тебя проваливается: «Реже всего закрыто: чт.» Считается доля закрытых привычек, а не целых дней — так график вообще о чём-то говорит.
 - 🧾 **Итоги недели** — семь дней одной карточкой: сколько дней было с делами, что закрывалось лучше всего, что хуже, и одна фраза вывода. Первое, что стоит прочитать, — и без единого упрёка.
 - 🎯 **«Главное сегодня»** — максимум три привычки наверху, остальные ниже: меньше паралича выбора.
@@ -88,6 +89,8 @@ npm run preview  # http://127.0.0.1:4173
 | ⏳ Минуты | Цель по времени: таймер или быстрый выбор «20 мин» одним тапом |
 | 🚫 Не делать | Чисто по умолчанию, отмечаются только срывы |
 | 🔄 Гибкая частота | Например, 3 раза в неделю, с чипом `1/3 за неделю` |
+
+У любой привычки можно оставить только нужные дни недели — остальные станут выходными и не попадут в статистику как пропуски.
 
 ## 📱 Установка на телефон
 

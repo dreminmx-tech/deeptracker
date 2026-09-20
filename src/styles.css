@@ -931,12 +931,44 @@ button.stepper-value:hover {
   align-items: center;
   gap: var(--s3);
   min-height: var(--tap);
-}
-
-.switch input {
+}.switch input {
   width: 20px;
   height: 20px;
   accent-color: var(--accent);
+}
+
+/* ---------- weekday picker (HabitForm) ---------- */
+
+.wick-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--s1);
+}
+
+.wick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control);
+  padding: 0;
+  font-size: var(--t-sm);
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.wick[data-on='true'] {
+  color: var(--action-ink);
+  background: var(--action-bg);
+  border-color: var(--action-bg);
+  font-weight: var(--w-strong);
+}
+
+@media (hover: hover) {
+  .wick[data-on='false']:hover {
+    color: var(--fg);
+  }
 }
 
 .form-danger {

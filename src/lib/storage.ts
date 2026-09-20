@@ -81,6 +81,20 @@ function normalizeDump(raw: unknown): DumpItem[] {
   return items;
 }
 
+/** Weekdays a habit is expected (0 = Monday). All seven or none means "every day". */
+function normalizeDays(raw: unknown): number[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const days = [
+    ...new Set(
+      raw.filter(
+        (value): value is number =>
+          typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 6,
+      ),
+    ),
+  ].sort((a, b) => a - b);
+  return days.length === 0 || days.length === 7 ? undefined : days;
+}
+
 function normalizeHabit(raw: unknown, index: number): Habit | null {
   const record = asRecord(raw);
   const name = str(record.name, 80);
@@ -94,6 +108,7 @@ function normalizeHabit(raw: unknown, index: number): Habit | null {
     unit: str(record.unit, 16),
     perWeek: num(record.perWeek),
     step: num(record.step),
+    days: normalizeDays(record.days),
     tiny: str(record.tiny, 120),
     pinned: record.pinned === true,
     archived: record.archived === true,

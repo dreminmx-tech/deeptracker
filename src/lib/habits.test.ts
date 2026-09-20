@@ -220,6 +220,65 @@ describe('days before a habit existed', () => {
   });
 });
 
+/** The most recent day with the given weekday, 0 = Monday. */
+function lastOn(weekday: number): DateKey {
+  for (let i = 0; i < 7; i += 1) {
+    const key = addDays(TODAY, -i);
+    if (weekdayIndex(key) === weekday) return key;
+  }
+  throw new Error('unreachable');
+}
+
+describe('schedule', () => {
+  it('turns off days into rest days that never break a run', () => {
+    const habit = makeHabit({ days: [0, 2, 4] }); // пн, ср, пт
+    const monday = lastOn(0);
+    const tuesday = addDays(monday, 1);
+    const data = makeData(habit, {
+      [monday]: { entries: { h1: { done: true, value: 1 } }, dump: [] },
+    });
+
+    expect(dayStatus(data, habit, monday)).toBe('done');
+    expect(dayStatus(data, habit, tuesday)).toBe('rest');
+    expect(softStreak(data, habit, tuesday)).toBe(1);
+  });
+
+  it('leaves off days out of the daily ring', () => {
+    const habit = makeHabit({ days: [0, 2, 4] });
+    const monday = lastOn(0);
+    expect(dayProgress(makeData(habit), [habit], addDays(monday, 1))).toEqual({ done: 0, total: 0 });
+    expect(dayProgress(makeData(habit), [habit], monday)).toEqual({ done: 0, total: 1 });
+  });
+
+  it('does not count an off day as a missed yesterday', () => {
+    const habit = makeHabit({ days: [(weekdayIndex(TODAY) + 3) % 7] });
+    expect(missedYesterday(makeData(habit), [habit], TODAY)).toBe(0);
+  });
+
+  it('stores a schedule, and "every day" as nothing at all', () => {
+    let data = makeData(null);
+    data = saveHabit(data, { name: 'Зарядка', kind: 'check', days: [4, 0, 0, 2] });
+    data = saveHabit(data, { name: 'Вода', kind: 'check', days: [0, 1, 2, 3, 4, 5, 6] });
+    data = saveHabit(data, { name: 'Сон', kind: 'check' });
+
+    expect(data.habits.find((habit) => habit.name === 'Зарядка')?.days).toEqual([0, 2, 4]);
+    expect(data.habits.find((habit) => habit.name === 'Вода')?.days).toBeUndefined();
+    expect(data.habits.find((habit) => habit.name === 'Сон')?.days).toBeUndefined();
+  });
+
+  it('keeps only real weekdays from an imported file', () => {
+    const habit = makeHabit();
+    const raw = {
+      ...makeData(habit),
+      habits: [{ ...habit, days: [7, -1, 2, 2, 5] }],
+    };
+    expect(parseImport(JSON.stringify(raw)).habits[0]?.days).toEqual([2, 5]);
+
+    const everyDay = { ...raw, habits: [{ ...habit, days: [0, 1, 2, 3, 4, 5, 6] }] };
+    expect(parseImport(JSON.stringify(everyDay)).habits[0]?.days).toBeUndefined();
+  });
+});
+
 describe('export stays a real backup', () => {
   it('keeps the last backup date through export and import', () => {
     const base = makeData(makeHabit());

@@ -16,6 +16,11 @@ export interface Habit {
   perWeek?: number;
   /** counter: step used by the +/- buttons (default 1). */
   step?: number;
+  /**
+   * Weekdays the habit is expected, 0 = Monday.
+   * Missing or all seven days means "every day"; other days become rest days.
+   */
+  days?: number[];
   /** The 2-minute "just start" version of the habit. */
   tiny?: string;
   /** Shown in the "top 3" block on the Today screen. */

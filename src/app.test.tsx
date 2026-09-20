@@ -11,7 +11,7 @@ import HabitsView from './components/HabitsView';
 import StatsView from './components/StatsView';
 import SettingsView from './components/SettingsView';
 import { STORAGE_KEY, type AppData } from './types';
-import { addDays, todayKey } from './lib/date';
+import { addDays, todayKey, weekdayIndex } from './lib/date';
 import { freshData } from './lib/storage';
 import { addDump, addMinutes, tapHabit } from './lib/actions';
 import { getEntry, isComplete } from './lib/habits';
@@ -192,6 +192,29 @@ describe('views render', () => {
     const html = render(<SettingsView />);
     expect(html).toContain('Бэкапа ещё не было.');
     expect(html).toContain('Пора сделать первый.');
+  });
+
+  it('hides habits that are not due today and says how many', () => {
+    const data = agedHistory();
+    const weekdayOnly = {
+      ...data,
+      habits: data.habits.map((habit) => ({ ...habit, days: [0, 1, 2, 3, 4] })),
+    };
+    seedStorage(weekdayOnly);
+
+    // ближайшее воскресенье, не позже сегодняшнего дня
+    let sunday = todayKey();
+    for (let i = 0; i < 7; i += 1) {
+      const key = addDays(todayKey(), -i);
+      if (weekdayIndex(key) === 6) {
+        sunday = key;
+        break;
+      }
+    }
+
+    const html = render(<TodayView onGoToHabits={() => {}} initialDay={sunday} />);
+    expect(html).toContain('Показать не по расписанию (5)');
+    expect(html).not.toContain('hrow-name');
   });
 
   it('renders the action sheet as a plain text list', () => {

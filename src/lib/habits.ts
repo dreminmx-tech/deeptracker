@@ -36,6 +36,13 @@ export function stepOf(habit: Habit): number {
   return Math.max(1, Math.round(habit.step ?? 1));
 }
 
+/** Day of the week the habit lives on. No list (or all seven) means every day. */
+export function scheduledOn(habit: Habit, key: DateKey): boolean {
+  const days = habit.days;
+  if (!days || days.length === 0 || days.length >= 7) return true;
+  return days.includes(weekdayIndex(key));
+}
+
 /** Raw amount logged: counters/minutes use `value`, everything else is 0 or 1. */
 export function progressOf(habit: Habit, entry?: Entry): number {
   if (!entry) return 0;
@@ -97,7 +104,8 @@ export type DayStatus = 'done' | 'partial' | 'missed' | 'rest' | 'future';
 
 /**
  * Status of a single habit on a single day.
- * `rest` = nothing was expected (before the habit existed, or a flex habit's day off).
+ * `rest` = nothing was expected: before the habit existed, on a day off its schedule,
+ * or a flex habit's free day.
  */
 export function dayStatus(
   data: AppData,
@@ -107,6 +115,7 @@ export function dayStatus(
 ): DayStatus {
   if (key > today) return 'future';
   if (key < startKey(habit)) return 'rest';
+  if (!scheduledOn(habit, key)) return 'rest';
   const entry = getEntry(data, key, habit.id);
   if (habit.kind === 'negative') return (entry?.value ?? 0) > 0 ? 'missed' : 'done';
   if (habit.kind === 'flex') return entry?.done ? 'done' : 'rest';
@@ -225,7 +234,8 @@ export function dayProgress(
   let total = 0;
   for (const habit of habits) {
     const status = dayStatus(data, habit, key);
-    if (status === 'future') continue;
+    // A day off (schedule, or the habit did not exist yet) is not part of the ring at all.
+    if (status === 'future' || status === 'rest') continue;
     total += 1;
     if (status === 'done') done += 1;
   }
