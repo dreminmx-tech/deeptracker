@@ -69,14 +69,14 @@ if (html) {
 
   console.log('— SEO —');
   expect('<title>', /<title>.{10,}<\/title>/.test(html));
-  expect('meta description', /<meta name="description" content=".{60,}"/.test(html));
-  expect('link canonical', /<link rel="canonical" href="https?:\/\/[^"]+"/.test(html));
+  expect('meta description', /<meta\s+name="description"\s+content="[^"]{60,}"/.test(html));
+  expect('link canonical', /<link\s+rel="canonical"\s+href="https?:\/\/[^"]+"/.test(html));
   expect('og:title / og:description', /property="og:title"/.test(html) && /property="og:description"/.test(html));
-  expect('og:image (абсолютный)', /property="og:image" content="https?:\/\/[^"]+"/.test(html));
-  expect('twitter:card', /name="twitter:card" content="summary_large_image"/.test(html));
+  expect('og:image (абсолютный)', /property="og:image"\s+content="https?:\/\/[^"]+"/.test(html));
+  expect('twitter:card', /name="twitter:card"\s+content="summary_large_image"/.test(html));
   expect('JSON-LD SoftwareApplication', /application\/ld\+json/.test(html) && /"@type": "SoftwareApplication"/.test(html));
 
-  const ogImage = (html.match(/property="og:image" content="(https?:\/\/[^"]+)"/) || [])[1];
+  const ogImage = (html.match(/property="og:image"\s+content="(https?:\/\/[^"]+)"/) || [])[1];
   if (ogImage && !isLocal) await check('og:image', ogImage);
 }
 
