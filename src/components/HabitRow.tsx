@@ -5,18 +5,14 @@ import Checkbox from './Checkbox';
 
 export interface HabitRowProps {
   habit: Habit;
-  /** Right-aligned muted value (today's progress). */
-  status?: string;
-  /** Replaces that value with a real control — the ± stepper of counter/minutes habits. */
-  statusSlot?: ReactNode;
-  /** Optional second line, used by the management list. */
+  /** Optional second line. Only the schedule uses it now. */
   sub?: string;
   /** The main three get a heavier name — the only emphasis in the list. */
   pinned?: boolean;
   /** When set, the row body completes the habit. */
   onToggle?: () => void;
   done?: boolean;
-  /** Inline daily actions (icon buttons) — Today. */
+  /** Inline daily actions (icon buttons) — only «не делать» has one. */
   actions?: ReactNode;
   /** Management list: opens the sheet instead. */
   onOpen?: () => void;
@@ -24,13 +20,12 @@ export interface HabitRowProps {
 }
 
 /**
- * One row pattern for every list: checkbox, name, one value, then either inline
- * actions (today) or a chevron into the sheet (management).
+ * One row pattern for every list: checkbox, name, one action.
+ * There is no value column any more: a habit is done or it is not, so the row
+ * never asks «сколько?» — that question was the friction, not the answer.
  */
 export default function HabitRow({
   habit,
-  status,
-  statusSlot,
   sub,
   pinned,
   onToggle,
@@ -49,12 +44,6 @@ export default function HabitRow({
     </>
   );
 
-  const right = statusSlot ? (
-    statusSlot
-  ) : status ? (
-    <span className="hrow-status">{status}</span>
-  ) : null;
-
   return (
     <div className="hrow" data-done={done ? 'true' : 'false'} data-pinned={pinned ? 'true' : 'false'}>
       {onToggle ? (
@@ -70,8 +59,6 @@ export default function HabitRow({
       ) : (
         <div className="hrow-main hrow-static">{label}</div>
       )}
-
-      {right}
 
       {actions ? (
         <div className="hrow-actions">{actions}</div>

@@ -5,7 +5,6 @@ import App from './App';
 import { StoreProvider } from './store';
 import { ToastProvider } from './components/Toast';
 import ActionSheet from './components/ActionSheet';
-import LogDialog from './components/LogDialog';
 import TodayView from './components/TodayView';
 import HabitsView from './components/HabitsView';
 import StatsView from './components/StatsView';
@@ -80,58 +79,40 @@ describe('views render', () => {
     expect(html).toContain('Вода');
   });
 
-  it('renders Today with the brain dump and one quiet status per row', () => {
+  it('renders Today as a list of checkboxes and the brain dump', () => {
     seedStorage(dataWithHistory());
     const html = render(<TodayView onGoToHabits={() => {}} />);
     expect(html).toContain('Мысли на сегодня');
     expect(html).toContain('Позвонить в поликлинику');
-    expect(html).toContain('0/6');
-    expect(html).toContain('25/20 мин');
-    // ежедневные действия — инлайн-иконки, читать ничего не нужно
-    expect(html).toContain('aria-label="Прибавить"');
-    expect(html).toContain('aria-label="Просто начни"');
-    // у счётчика и минут − значение + собраны в один прибор, а не в три элемента
-    expect(html.match(/class="stepper"/g)).toHaveLength(2);
-    expect(html).toContain('aria-label="0/6 — изменить"');
-    expect(html).toContain('aria-label="25/20 мин — изменить"');
+    // привычка — это галочка: ни «сколько», ни кнопок «+ / −» в строке нет
+    expect(html).toContain('class="hrow-main"');
+    expect(html).not.toContain('stepper');
+    expect(html).not.toContain('Просто начни');
+    expect(html).not.toContain('0/6');
   });
 
-  it('logs a whole amount in one tap instead of twenty', () => {
-    const walk = freshData('ru').habits[2];
-    if (!walk) throw new Error('seeds missing');
-    seedStorage(freshData('ru'));
-    const html = render(
-      <LogDialog habit={walk} mode="quick" day={todayKey()} onClose={() => {}} />,
-    );
+  it('opens yesterday from the notice instead of a week strip', () => {
+    seedStorage(agedHistory());
+    const html = render(<TodayView onGoToHabits={() => {}} />);
 
-    expect(html).toContain('Сколько всего, мин?');
-    expect(html).toContain('Цель — 20 мин');
-    expect(html).toContain('aria-label="Записать 20 мин"');
-    expect(html.match(/class="chip"/g)).toHaveLength(4);
-    // в окне есть и точная подстройка по единице, и таймер
-    expect(html.match(/class="stepper"/g)).toHaveLength(1);
-    expect(html).toContain('Засечь время');
-    expect(html).toContain('20:00');
+    expect(html).toContain('Открыть вчера');
+    expect(html).not.toContain('day-chip');
   });
 
-  it('lets a past day be filled in from the week strip', () => {
+  it('lets a past day be filled in', () => {
     seedStorage(agedHistory());
     const past = addDays(todayKey(), -3);
     const html = render(<TodayView onGoToHabits={() => {}} initialDay={past} />);
 
     expect(html).toContain('Прошлый день');
     expect(html).toContain('Вернуться к сегодня');
-    expect(html).toContain('aria-current="date"');
-    // последние семь дней, без листания недель: сегодня — всегда последний день
-    expect(html.match(/class="day-chip"/g)).toHaveLength(7);
-    expect(html).not.toContain('daystrip-shift');
-    expect(html).toContain('data-today="true"');
+    expect(html).not.toContain('day-chip');
   });
 
   it('says one calm thing about the day', () => {
     seedStorage(agedHistory());
     const atRisk = render(<TodayView onGoToHabits={() => {}} />);
-    expect(atRisk).toContain('Вчера был пропуск');
+    expect(atRisk).toContain('Вчера было пусто');
 
     let closed = agedHistory();
     for (const habit of closed.habits) {
@@ -142,7 +123,7 @@ describe('views render', () => {
     seedStorage(closed);
     const html = render(<TodayView onGoToHabits={() => {}} />);
     expect(html).toContain('На сегодня всё');
-    expect(html).not.toContain('Вчера был пропуск');
+    expect(html).not.toContain('Вчера было пусто');
   });
 
   it('renders the habits list', () => {
@@ -153,17 +134,19 @@ describe('views render', () => {
     expect(html).toContain('Добавить');
   });
 
-  it('renders stats with a trend strip once there is data', () => {
+  it('renders stats as two numbers, a week of dots and a list of streaks', () => {
     seedStorage(dataWithHistory());
     const html = render(<StatsView />);
     expect(html).toContain('Эта неделя');
-    expect(html).toContain('class="weekday-labels"');
-    expect(html).toContain('class="trend"');
-    expect(html).toContain('данные, а не оценка');
-    // заголовок — такая же карточка, как всё остальное, а привычки живут одним списком
+    // семь точек: точка — это день, расшифровывать нечего
+    expect(html.match(/class="dot"/g)).toHaveLength(7);
+    expect(html).toContain('class="hstat hstat-one"');
+    // заголовок — такая же карточка, как всё остальное
     expect(html).toContain('class="card stat"');
     expect(html).toContain('class="rows"');
-    expect(html).toContain('class="hstat"');
+    // никаких полос, легенд и процентов
+    expect(html).not.toContain('class="trend"');
+    expect(html).not.toContain('legend');
     expect(html).toContain('По привычкам');
   });
 

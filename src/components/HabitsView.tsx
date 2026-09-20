@@ -9,7 +9,7 @@ import ActionSheet, { type SheetAction } from './ActionSheet';
 import HabitForm from './HabitForm';
 import HabitRow from './HabitRow';
 import { useToast } from './Toast';
-import { habitStatus, habitSubtitle } from './habitText';
+import { habitMeta } from './habitText';
 
 const ICON = 18;
 
@@ -105,8 +105,7 @@ export default function HabitsView() {
             key={habit.id}
             habit={habit}
             pinned={habit.pinned}
-            sub={habitSubtitle(habit, dict, lang)}
-            status={habitStatus(data, habit, lang)}
+            sub={habitMeta(habit, dict, lang)}
             onOpen={() => setOpenHabit(habit)}
             openLabel={dict['sheet.more']}
           />
@@ -121,7 +120,7 @@ export default function HabitsView() {
               <HabitRow
                 key={habit.id}
                 habit={habit}
-                sub={habitSubtitle(habit, dict, lang)}
+                sub={habitMeta(habit, dict, lang)}
                 onOpen={() => setOpenHabit(habit)}
                 openLabel={dict['sheet.more']}
               />
@@ -133,7 +132,7 @@ export default function HabitsView() {
       {openHabit ? (
         <ActionSheet
           title={openHabit.name}
-          subtitle={habitSubtitle(openHabit, dict, lang)}
+          subtitle={habitMeta(openHabit, dict, lang)}
           actions={actionsFor(openHabit)}
           onClose={() => setOpenHabit(null)}
           closeLabel={dict['common.close']}

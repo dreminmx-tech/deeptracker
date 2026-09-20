@@ -18,7 +18,6 @@ import {
   weekdayRates,
 } from './habits';
 import { freshData, normalizeData, parseImport, toJson } from './storage';
-import { quickSteps } from '../components/habitText';
 
 const TODAY = todayKey();
 
@@ -195,20 +194,6 @@ describe('counters and durations', () => {
     const habit = makeHabit({ kind: 'check' });
     const data = makeData(habit);
     expect(setProgress(data, 'h1', 5, TODAY)).toBe(data);
-  });
-});
-
-describe('quickSteps', () => {
-  it('offers every unit for small goals', () => {
-    expect(quickSteps(6)).toEqual([1, 2, 3, 4, 5, 6]);
-    expect(quickSteps(1)).toEqual([1]);
-  });
-
-  it('offers even jumps that always end on the goal', () => {
-    expect(quickSteps(20)).toEqual([5, 10, 15, 20]);
-    expect(quickSteps(30)).toEqual([10, 20, 30]);
-    expect(quickSteps(90)).toEqual([30, 60, 90]);
-    expect(quickSteps(120)).toEqual([30, 60, 90, 120]);
   });
 });
 

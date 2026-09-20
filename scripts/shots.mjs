@@ -46,24 +46,28 @@ function demoData(theme) {
   created.setDate(created.getDate() - 24);
   const createdAt = created.toISOString();
 
+  /* Все привычки — галочки: ни счётчиков, ни минут, ни целей. */
   const habits = [
-    { id: 'h1', name: 'Выпить таблетки', kind: 'check', tiny: 'Достать упаковку и налить воды', pinned: true, createdAt, order: 0 },
-    { id: 'h2', name: 'Вода', kind: 'counter', target: 6, unit: 'стаканов', pinned: true, createdAt, order: 1 },
-    { id: 'h3', name: 'Прогулка', kind: 'duration', target: 20, unit: 'мин', tiny: 'Выйти на улицу на 2 минуты', pinned: true, createdAt, order: 2 },
-    { id: 'h4', name: 'Спорт', kind: 'flex', perWeek: 3, tiny: 'Размяться 2 минуты', createdAt, order: 3 },
-    { id: 'h5', name: 'Не листать телефон в постели', kind: 'negative', tiny: 'Оставить телефон на столе', createdAt, order: 4 },
-    { id: 'h6', name: 'Бассейн', kind: 'check', days: [0, 2, 4], tiny: 'Собрать сумку', createdAt, order: 5 },
+    { id: 'h1', name: 'Выпить таблетки', kind: 'check', pinned: true, createdAt, order: 0 },
+    { id: 'h2', name: 'Вода', kind: 'check', pinned: true, createdAt, order: 1 },
+    { id: 'h3', name: 'Прогулка', kind: 'check', pinned: true, createdAt, order: 2 },
+    { id: 'h4', name: 'Спорт', kind: 'check', createdAt, order: 3 },
+    { id: 'h5', name: 'Не листать телефон в постели', kind: 'negative', createdAt, order: 4 },
+    { id: 'h6', name: 'Бассейн', kind: 'check', days: [0, 2, 4], createdAt, order: 5 },
   ];
 
   const days = {};
   for (let i = 1; i <= 24; i += 1) {
     const entries = {};
-    if (i % 7 !== 3) entries.h1 = { done: true, value: 1 };
-    if (i % 3 !== 0) entries.h2 = { value: 4 + (i % 3), done: false };
-    if (i % 4 === 0) entries.h3 = { value: 20, done: true };
-    if (i % 5 === 0) entries.h4 = { done: true, value: 1 };
-    if (i % 9 === 0) entries.h5 = { value: 1, done: false };
-    if (i % 6 === 0) entries.h6 = { done: true, value: 1 };
+    // вчера намеренно пусто: на «Сегодня» должна быть подсказка про вчерашний пропуск
+    if (i !== 1) {
+      if (i % 7 !== 3) entries.h1 = { done: true, value: 1 };
+      if (i % 3 !== 0) entries.h2 = { done: true, value: 1 };
+      if (i % 4 === 0) entries.h3 = { done: true, value: 1 };
+      if (i % 5 === 0) entries.h4 = { done: true, value: 1 };
+      if (i % 9 === 0) entries.h5 = { value: 1, done: false };
+      if (i % 6 === 0) entries.h6 = { done: true, value: 1 };
+    }
     if (Object.keys(entries).length > 0) days[shift(i)] = { entries, dump: [] };
   }
 
@@ -71,8 +75,7 @@ function demoData(theme) {
   days[shift(0)] = {
     entries: {
       h1: { done: true, value: 1 },
-      h2: { value: 3, done: false },
-      h3: { value: 20, done: true },
+      h3: { done: true, value: 1 },
     },
     dump: [
       { id: 'd1', text: 'Позвонить в поликлинику', done: false, createdAt: now },
@@ -181,17 +184,9 @@ try {
       theme: 'dark',
       width: 390,
       height: 900,
-      // третий день в полосе: «последние 7 дней» открывает любой из них для правки
-      clickJs: "document.querySelectorAll('.day-chip')[2]?.click()",
-    },
-    {
-      name: 'today-log',
-      tab: 'today',
-      theme: 'dark',
-      width: 390,
-      height: 820,
-      // второе значение — «Прогулка»: окно быстрого ввода минут с чипами и таймером
-      clickJs: "document.querySelectorAll('.stepper-value')[1]?.click()",
+      // прошлое открывается только тогда, когда оно важно: подсказка про вчера
+      clickJs:
+        "[...document.querySelectorAll('.day-head .link')].find((el) => el.textContent.includes('вчера'))?.click()",
     },
     {
       name: 'today-undo',
@@ -199,8 +194,8 @@ try {
       theme: 'dark',
       width: 390,
       height: 900,
-      // случайный тап по строке счётчика: видно, что приложение предлагает отмену
-      clickJs: "document.querySelectorAll('.hrow')[1]?.querySelector('.hrow-main')?.click()",
+      // срыв у «не делать»: приложение сразу предлагает отмену
+      clickJs: "document.querySelector('.hrow-actions .row-act')?.click()",
     },
     { name: 'habits', tab: 'habits', theme: 'dark', width: 390, height: 620 },
     {
@@ -208,13 +203,13 @@ try {
       tab: 'habits',
       theme: 'dark',
       width: 390,
-      height: 1000,
-      // «+ Привычка»: форма с выбором дней недели
+      height: 720,
+      // «Добавить»: форма из четырёх полей
       click: '.view-head .btn',
     },
     { name: 'habits-actions', tab: 'habits', theme: 'dark', width: 390, height: 620, click: '.row-act' },
-    { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 1150 },
-    { name: 'settings', tab: 'settings', theme: 'dark', width: 390, height: 1330 },
+    { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 820 },
+    { name: 'settings', tab: 'settings', theme: 'dark', width: 390, height: 1120 },
     { name: 'today-light', tab: 'today', theme: 'light', width: 390, height: 900 },
   ];
 

@@ -31,11 +31,6 @@ export default function SettingsView() {
   const backupAge = lastExport ? diffDays(dateKey(new Date(lastExport)), todayKey()) : null;
   const backupStale = hasAnyData(data) && (backupAge === null || backupAge >= 21);
 
-  const offlineReady =
-    typeof navigator !== 'undefined' &&
-    'serviceWorker' in navigator &&
-    navigator.serviceWorker.controller !== null;
-
   function applyImport(text: string) {
     try {
       const next = parseImport(text);
@@ -112,7 +107,6 @@ export default function SettingsView() {
 
       <section className="card">
         <h2>{dict['settings.data']}</h2>
-        <p className="muted small">{dict['settings.exportHint']}</p>
 
         {/* Two identical actions. Settings has no main button — so nothing here is blue,
             and the line below says whether a backup is due. */}
@@ -175,7 +169,6 @@ export default function SettingsView() {
 
         <div className="zone zone-danger">
           <p className="label">{dict['settings.dangerZone']}</p>
-          <p className="muted small">{dict['settings.wipeHint']}</p>
           <button type="button" className="btn btn-danger" onClick={() => setConfirmWipe(true)}>
             <Trash2 size={ICON} strokeWidth={1.8} aria-hidden="true" />
             {dict['settings.wipe']}
@@ -188,31 +181,17 @@ export default function SettingsView() {
         {installed ? (
           <p className="muted small">{dict['settings.installed']}</p>
         ) : canInstall ? (
-          <>
-            <p className="muted small">{dict['settings.installHint']}</p>
-            <button type="button" className="btn" onClick={() => void install()}>
-              {dict['settings.install']}
-            </button>
-          </>
+          <button type="button" className="btn" onClick={() => void install()}>
+            {dict['settings.install']}
+          </button>
         ) : (
           <p className="muted small">{dict['settings.installIos']}</p>
         )}
-        <p className="muted small">
-          {dict['settings.offline']}: {offlineReady ? dict['common.yes'] : dict['common.no']}
-        </p>
       </section>
 
       <section className="card">
         <h2>{dict['settings.about']}</h2>
         <p className="muted small">{dict['settings.aboutText']}</p>
-        {/* Reference text, not something to read every time: folded into a row. */}
-        <details className="disclosure">
-          <summary>
-            {dict['settings.help']}
-            <ChevronRight className="disclosure-mark" size={18} strokeWidth={1.8} aria-hidden="true" />
-          </summary>
-          <p className="muted small">{dict['settings.helpBody']}</p>
-        </details>
       </section>
 
       <p className="muted small center">{fill(dict['settings.version'], { v: APP_VERSION })}</p>

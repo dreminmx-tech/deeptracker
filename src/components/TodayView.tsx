@@ -1,20 +1,12 @@
 import { useState, type ReactNode } from 'react';
-import { Ban, Play, Undo2, X } from 'lucide-react';
+import { Ban, Undo2, X } from 'lucide-react';
 import type { AppData, Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
-import { formatDay, todayKey, type DateKey } from '../lib/date';
-import {
-  addDump,
-  bumpCounter,
-  clearDoneDump,
-  removeDump,
-  tapHabit,
-  toggleDump,
-} from '../lib/actions';
+import { addDays, formatDay, todayKey, type DateKey } from '../lib/date';
+import { addDump, clearDoneDump, removeDump, tapHabit, toggleDump } from '../lib/actions';
 import {
   activeHabits,
-  dayHeatStatus,
   dayProgress,
   getDay,
   getEntry,
@@ -26,12 +18,8 @@ import {
   scheduledOn,
 } from '../lib/habits';
 import Checkbox from './Checkbox';
-import CountStepper from './CountStepper';
-import DayStrip from './DayStrip';
 import HabitRow from './HabitRow';
-import LogDialog, { type LogMode } from './LogDialog';
 import { useToast } from './Toast';
-import { habitStatus } from './habitText';
 
 interface TodayViewProps {
   onGoToHabits: () => void;
@@ -42,8 +30,9 @@ interface TodayViewProps {
 const ICON = 19;
 
 /**
- * One list, any day. Today by default; the week strip lets you look back and fill in
- * what you forgot to mark yesterday. Every action writes to the day that is open.
+ * Один список галочек. Тап по строке = сделано, ещё тап = снять.
+ * Никаких «сколько стаканов» и «сколько минут»: приложение спрашивает только
+ * «сделал или нет», потому что всё остальное — это трение, а не привычка.
  */
 export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) {
   const { data, update, replace } = useStore();
@@ -55,9 +44,9 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
   const [open, setOpen] = useState<DateKey>(initialDay ?? today);
   const [showAll, setShowAll] = useState(false);
   const [dumpText, setDumpText] = useState('');
-  const [dialog, setDialog] = useState<{ habit: Habit; mode: LogMode } | null>(null);
 
   const isToday = open === today;
+  const yesterday = addDays(today, -1);
 
   const active = activeHabits(data);
   // A habit is not asked for a day before it existed, nor on a day off its schedule.
@@ -92,12 +81,9 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
         ? dict['today.atRisk']
         : null;
 
-  const startTiny = (habit: Habit) => setDialog({ habit, mode: 'tiny' });
-  const openLog = (habit: Habit) => setDialog({ habit, mode: 'quick' });
-
   /**
-   * Acts, then offers one way back. Accidental taps happen — the row is a big target,
-   * and a counter tap jumps straight to the goal.
+   * Acts, then offers one way back. A tap is cheap, but a wrong tap on a big row
+   * happens — and a counter habit still jumps to its old goal in one go.
    */
   function act(next: (current: AppData) => AppData, message: string) {
     const before = data;
@@ -108,83 +94,45 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
     });
   }
 
-  /**
-   * One visual element per row on the right. Counter and minutes habits fold `− value +`
-   * into a single stepper (and the value opens the quick log); the rest get one icon:
-   * `Play` for “just start”, `Ban` for “don't do”.
-   */
+  /** The only inline action left: «сорвался» on a don't-do habit. */
   function actionsFor(habit: Habit): ReactNode {
-    const entry = getEntry(data, open, habit.id);
-
-    if (habit.kind === 'counter' || habit.kind === 'duration') return null;
-
-    if (habit.kind === 'negative') {
-      const slipped = (entry?.value ?? 0) > 0;
-      const label = slipped ? dict['sheet.slipUndo'] : dict['sheet.slip'];
-      return (
-        <button
-          type="button"
-          className="row-act"
-          data-active={slipped ? 'true' : 'false'}
-          aria-label={label}
-          title={label}
-          onClick={() =>
-            slipped
-              ? update((current) => tapHabit(current, habit.id, open))
-              : act((current) => tapHabit(current, habit.id, open), dict['today.slipped'])
-          }
-        >
-          {slipped ? <Undo2 size={ICON} strokeWidth={1.8} /> : <Ban size={ICON} strokeWidth={1.8} />}
-        </button>
-      );
-    }
-
-    // a closed habit has nothing left to start — the row keeps one target, not two
-    if (isComplete(habit, entry)) return null;
-
+    if (habit.kind !== 'negative') return null;
+    const slipped = (getEntry(data, open, habit.id)?.value ?? 0) > 0;
+    const label = slipped ? dict['sheet.slipUndo'] : dict['sheet.slip'];
     return (
       <button
         type="button"
         className="row-act"
-        aria-label={dict['today.tiny']}
-        title={dict['today.tiny']}
-        onClick={() => startTiny(habit)}
+        data-active={slipped ? 'true' : 'false'}
+        aria-label={label}
+        title={label}
+        onClick={() =>
+          slipped
+            ? update((current) => tapHabit(current, habit.id, open))
+            : act((current) => tapHabit(current, habit.id, open), dict['today.slipped'])
+        }
       >
-        <Play size={ICON} strokeWidth={1.8} />
+        {slipped ? <Undo2 size={ICON} strokeWidth={1.8} /> : <Ban size={ICON} strokeWidth={1.8} />}
       </button>
     );
   }
+
   function row(habit: Habit) {
     const isNegative = habit.kind === 'negative';
-    const counts = habit.kind === 'counter' || habit.kind === 'duration';
-    const status = habitStatus(data, habit, lang, open);
     return (
       <HabitRow
         key={habit.id}
         habit={habit}
         pinned={habit.pinned}
         done={isComplete(habit, getEntry(data, open, habit.id))}
-        status={counts ? undefined : status}
-        statusSlot={
-          counts ? (
-            <CountStepper
-              lang={lang}
-              value={status}
-              openLabel={fill(dict['log.open'], { v: status })}
-              onOpen={() => openLog(habit)}
-              onBump={(direction) =>
-                update((current) => bumpCounter(current, habit.id, open, direction))
-              }
-            />
-          ) : undefined
-        }
         onToggle={
           isNegative
             ? undefined
             : () => {
                 const entry = getEntry(data, open, habit.id);
-                const jumpsToGoal = counts && !isComplete(habit, entry);
-                // A counter tap fills the whole goal in one go — that is worth an undo.
+                const jumpsToGoal =
+                  (habit.kind === 'counter' || habit.kind === 'duration') && !isComplete(habit, entry);
+                // A counter habit still fills its old goal in one tap — that is worth an undo.
                 if (jumpsToGoal) {
                   act((current) => tapHabit(current, habit.id, open), dict['today.filled']);
                   return;
@@ -221,6 +169,16 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
           </div>
         ) : null}
         {notice ? <p className="muted small">{notice}</p> : null}
+        {!isToday ? (
+          <button type="button" className="link" onClick={() => setOpen(today)}>
+            {dict['today.backToToday']}
+          </button>
+        ) : atRisk > 0 ? (
+          // Прошлое появляется только тогда, когда оно правда важно: вчерашний пропуск.
+          <button type="button" className="link" onClick={() => setOpen(yesterday)}>
+            {dict['today.openYesterday']}
+          </button>
+        ) : null}
       </header>
 
       {active.length === 0 ? (
@@ -232,25 +190,6 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
         </div>
       ) : (
         <>
-          {/* Every block on this screen is labelled — including the day strip:
-              it now shows the last seven days, so it needs to say so. */}
-          <section className="block">
-            <p className="label">{dict['today.week']}</p>
-            <DayStrip
-              day={open}
-              today={today}
-              lang={lang}
-              statusFor={(key) => dayHeatStatus(data, actionable, key, today)}
-              onSelect={setOpen}
-              groupLabel={dict['today.week']}
-            />
-            {!isToday ? (
-              <button type="button" className="link" onClick={() => setOpen(today)}>
-                {dict['today.backToToday']}
-              </button>
-            ) : null}
-          </section>
-
           {shown.length === 0 ? (
             <p className="muted small">
               {due.length === 0 ? dict['today.pastEmpty'] : dict['today.offSchedule']}
@@ -348,15 +287,6 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
           </section>
         </>
       )}
-
-      {dialog ? (
-        <LogDialog
-          habit={dialog.habit}
-          mode={dialog.mode}
-          day={open}
-          onClose={() => setDialog(null)}
-        />
-      ) : null}
     </div>
   );
 }

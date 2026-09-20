@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
-import { lastNDays, todayKey, weekdayName, weekdayShort } from '../lib/date';
+import { lastNDays, todayKey, weekdayShort } from '../lib/date';
 import {
   activeHabits,
   dayHeatStatus,
@@ -10,12 +10,7 @@ import {
   isActionable,
   overallStreak,
   softStreak,
-  weekProgress,
-  weekReview,
-  weekdayRates,
 } from '../lib/habits';
-import TrendStrip from './TrendStrip';
-import ValueRow from './ValueRow';
 
 /** Longest run using the same "something was done" rule as the headline streak. */
 function bestRun(flags: boolean[]): number {
@@ -40,10 +35,9 @@ function bestRun(flags: boolean[]): number {
 }
 
 /**
- * Статистика отвечает на три вопроса и молчит про остальное:
- * сколько держится серия, как прошла эта неделя и что именно отстаёт.
- * Никаких окон 30/90 и стены из тридцати столбиков на каждую привычку —
- * за неделю видно ровно то, на что ещё можно повлиять.
+ * Две цифры и семь точек. Никаких полос на тридцать дней, легенд и процентов:
+ * «длинные непонятные графики» — это ровно то, из-за чего на статистику не хочется
+ * заходить. Точка — это день: была работа или не было.
  */
 export default function StatsView() {
   const { data } = useStore();
@@ -51,8 +45,6 @@ export default function StatsView() {
   const dict = t(lang);
   const today = todayKey();
   const week = useMemo(() => lastNDays(7, today), [today]);
-  // Дни недели смотрятся на месяце: за семь дней каждый день встречается один раз.
-  const month = useMemo(() => lastNDays(30, today), [today]);
   // «Лучшая серия» — не про одну неделю: за семь дней она всегда упирается в семь.
   const quarter = useMemo(() => lastNDays(90, today), [today]);
 
@@ -64,28 +56,11 @@ export default function StatsView() {
   );
   const anything = hasAnyData(data);
 
-  const weekRates = weekdayRates(data, actionable, month, today);
-  /** The weekday that most often ends up empty — the one insight worth saying out loud. */
-  let worstWeekday: number | null = null;
-  let lowest = 1;
-  weekRates.forEach((rate, index) => {
-    if (rate.total < 2) return;
-    const share = rate.done / rate.total;
-    if (share < lowest) {
-      lowest = share;
-      worstWeekday = index;
-    }
+  const weekDays = week.map((key) => {
+    const status = dayHeatStatus(data, actionable, key, today);
+    return { key, on: status === 'done' || status === 'partial' };
   });
-
-  const review = weekReview(data, habits, week, today);
-  const reviewTone =
-    review.totalDays === 0
-      ? null
-      : review.activeDays / review.totalDays >= 0.7
-        ? dict['stats.review.good']
-        : review.activeDays / review.totalDays >= 0.4
-          ? dict['stats.review.mid']
-          : dict['stats.review.low'];
+  const weekDone = weekDays.filter((day) => day.on).length;
 
   return (
     <div className="stack">
@@ -108,46 +83,22 @@ export default function StatsView() {
           <section className="block">
             <p className="label">{dict['stats.thisWeek']}</p>
             <div className="card">
-              <TrendStrip
-                days={week}
-                lang={lang}
-                now={today}
-                statusFor={(key) => dayHeatStatus(data, actionable, key, today)}
-              />
-              <ul className="weekday-labels">
-                {week.map((key) => (
-                  <li key={key}>{weekdayShort(key, lang)}</li>
+              <ul className="dots">
+                {weekDays.map(({ key, on }) => (
+                  <li key={key}>
+                    <span
+                      className="dot"
+                      data-on={on ? 'true' : 'false'}
+                      data-now={key === today ? 'true' : 'false'}
+                      aria-hidden="true"
+                    />
+                    <span className="dot-day">{weekdayShort(key, lang)}</span>
+                  </li>
                 ))}
               </ul>
-              {reviewTone ? <p className="muted small">{reviewTone}</p> : null}
-              {review.totalDays > 0 ? (
-                <ValueRow
-                  label={dict['stats.review.days']}
-                  value={fill(dict['stats.review.daysValue'], {
-                    done: review.activeDays,
-                    total: review.totalDays,
-                  })}
-                />
-              ) : null}
-              {review.best ? (
-                <ValueRow
-                  label={dict['stats.review.best']}
-                  name={review.best.habit.name}
-                  value={`${review.best.done}/${review.best.total}`}
-                />
-              ) : null}
-              {review.worst ? (
-                <ValueRow
-                  label={dict['stats.review.worst']}
-                  name={review.worst.habit.name}
-                  value={`${review.worst.done}/${review.worst.total}`}
-                />
-              ) : null}
-              {worstWeekday !== null ? (
-                <p className="muted small">
-                  {fill(dict['stats.weekdayWorst'], { day: weekdayName(worstWeekday, lang) })}
-                </p>
-              ) : null}
+              <p className="muted small">
+                {fill(dict['stats.weekLine'], { done: weekDone, total: week.length })}
+              </p>
             </div>
           </section>
 
@@ -155,31 +106,17 @@ export default function StatsView() {
             <p className="label">{dict['stats.perHabit']}</p>
             <div className="rows">
               {habits.map((habit) => {
-                const weekly = habit.kind === 'flex' ? weekProgress(data, habit) : null;
                 const streakOf = softStreak(data, habit);
                 return (
-                  <div key={habit.id} className="hstat">
-                    <div className="hstat-head">
-                      <span className="hstat-name">{habit.name}</span>
-                      <span className="hstat-streak">
-                        {weekly
-                          ? fill(dict['today.weekly'], { done: weekly.done, target: weekly.target })
-                          : streakOf > 0
-                            ? fill(dict['today.streak'], { n: streakOf })
-                            : ''}
-                      </span>
-                    </div>
-                    <TrendStrip
-                      compact
-                      days={week}
-                      lang={lang}
-                      statusFor={(key) => dayStatus(data, habit, key, today)}
-                    />
+                  <div key={habit.id} className="hstat hstat-one">
+                    <span className="hstat-name">{habit.name}</span>
+                    <span className="hstat-streak">
+                      {streakOf > 0 ? fill(dict['stats.streak'], { n: streakOf }) : ''}
+                    </span>
                   </div>
                 );
               })}
             </div>
-            <p className="muted small">{dict['stats.noJudgement']}</p>
           </section>
         </>
       )}

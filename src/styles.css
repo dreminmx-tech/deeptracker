@@ -35,17 +35,13 @@
   --line-strong: #4a4d56; /* the only strong border in the app: controls */
   --fg: #f7f8fc;
   --muted: #a4a8b4;
-  --pick: #3a3d47; /* the open tab / open day / chosen range */
+  --pick: #3a3d47; /* the open tab, the chosen switch, the chosen weekdays */
   --pick-ink: #f7f8fc;
-  --well: #1b1c20; /* an inset instrument on a card: the − value + stepper */
   --accent: #0070f3; /* the only blue: a habit's state, and the one main action */
   --accent-ink: #ffffff;
   --good: #22c55e;
-  /* history is neutral; only "today" borrows the accent */
+  /* нейтральная заливка дня: метр на экране «Сегодня» */
   --cell-done: #b4b9c5;
-  --cell-partial: #6b7280;
-  --cell-missed: #3d4049;
-  --cell-line: #5a5e66;
   --toast-bg: #f7f8fc;
   --toast-ink: #131317;
   --ok-bg: #22c55e;
@@ -92,14 +88,10 @@
   --muted: #6d6d6d;
   --pick: #e2e2e5;
   --pick-ink: #000000;
-  --well: #ededf0;
   --accent: #000000;
   --accent-ink: #ffffff;
   --good: #000000;
   --cell-done: #3a3a3a;
-  --cell-partial: #9a9a9a;
-  --cell-missed: #dedede;
-  --cell-line: #c9c9c9;
   --toast-bg: #000000;
   --toast-ink: #ffffff;
   --ok-bg: #000000;
@@ -469,12 +461,7 @@ p {
 /* A tap should feel like a tap — but only when the user is happy with motion. */
 @media (prefers-reduced-motion: no-preference) {
   .btn:active,
-  .chip:active,
-  .day-chip:active,
   .row-act:active,
-  .stepper-act:active,
-  .stepper-value:active,
-  .daystrip-shift:active,
   .dump-remove:active {
     transform: scale(0.96);
   }
@@ -484,10 +471,7 @@ p {
   }
 
   .btn,
-  .day-chip,
-  .row-act,
-  .stepper-act,
-  .stepper-value {
+  .row-act {
     transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease,
       transform 0.08s ease;
   }
@@ -516,6 +500,17 @@ p {
   color: var(--pick-ink);
   background: var(--pick);
   font-weight: var(--w-strong);
+}
+
+/* The two halves of «Делать / Не делать» — единственный выбор в форме привычки. */
+.segmented-wide {
+  display: flex;
+  align-self: stretch;
+}
+
+.segmented-wide button {
+  flex: 1;
+  min-height: var(--control);
 }
 
 /* settings: one label, one control, on the line of a list row */
@@ -551,36 +546,6 @@ p {
   }
 }
 
-/* ---------- quick value chips (how much did you do) ---------- */
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s2);
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: var(--control);
-  min-height: var(--control);
-  padding: 0 var(--s3);
-  font-size: var(--t-md);
-  font-variant-numeric: tabular-nums;
-  color: var(--fg);
-  background: none;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-}
-
-.chip[data-active='true'] {
-  color: var(--accent-ink);
-  background: var(--accent);
-  border-color: var(--accent);
-  font-weight: var(--w-strong);
-}
-
 /* ---------- day header ---------- */
 
 .day-head {
@@ -589,39 +554,11 @@ p {
   gap: var(--s2);
 }
 
-.day-line,
-.spread {
+.day-line {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--s3);
-}
-
-/* right-hand value of a summary line: the name truncates, the number never does */
-.value {
-  display: flex;
-  flex: 0 1 auto;
-  gap: var(--s1);
-  align-items: baseline;
-  min-width: 0;
-  font-size: var(--t-sm);
-}
-
-.value-label {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
-
-.value-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.value-num {
-  flex: 0 0 auto;
-  font-variant-numeric: tabular-nums;
-  color: var(--fg);
 }
 
 .day-count {
@@ -667,10 +604,10 @@ p {
 }
 
 .hrow {
-  /* Two anchored columns on the right: every number ends on one line, every action
-     sits in the next one. It is the right edge that aligns rows, not a shared grid. */
+  /* Two columns: the habit, then one action. Название тянется, действие прижато
+     к правому краю — поэтому у всех строк списка правый край совпадает. */
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto var(--icon);
+  grid-template-columns: minmax(0, 1fr) var(--icon);
   align-items: center;
   min-height: var(--row);
   padding: 0 var(--s2) 0 var(--s4);
@@ -715,68 +652,6 @@ p {
   color: var(--muted);
 }
 
-/* every value in the app lives in one right-hand column: full ink, tabular */
-.hrow > .hrow-status {
-  grid-column: 2;
-  text-align: right;
-  font-size: var(--t-sm);
-  font-variant-numeric: tabular-nums;
-  color: var(--fg);
-  white-space: nowrap;
-}
-
-/* the value itself opens the quick log — that is how "20 мин" takes one tap */
-.stepper-value {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0;
-  color: var(--fg);
-  background: none;
-  border: 0;
-  font-size: var(--t-sm);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-button.stepper-value:hover {
-  color: var(--fg);
-}
-
-/* − значение + as one instrument: a soft inset well, no outline of its own.
-   It spans the value and the action column, so its "+" lands exactly where a row's
-   icon sits — the whole list keeps two clean columns instead of a ragged edge. */
-.stepper {
-  grid-column: 2 / 4;
-  justify-self: end;
-  display: grid;
-  grid-template-columns: var(--icon) 1fr var(--icon);
-  align-items: stretch;
-  /* вне строки списка (в шторке и в форме) прибор остаётся по ширине значения */
-  width: fit-content;
-  min-height: var(--control);
-  overflow: hidden;
-  background: var(--well);
-  border-radius: var(--radius-sm);
-}
-
-/* only the two icon buttons are squares — the value keeps the width of its text */
-.stepper-act {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--icon);
-  padding: 0;
-  color: var(--muted);
-  background: none;
-  border: 0;
-}
-
-.stepper-act:hover {
-  color: var(--fg);
-  background: var(--surface-3);
-}
-
 .hrow-actions {
   display: flex;
   flex: 0 0 auto;
@@ -786,7 +661,7 @@ button.stepper-value:hover {
 
 .hrow > .hrow-actions,
 .hrow > .row-act {
-  grid-column: 3;
+  grid-column: 2;
 }
 
 /* one tap, one action — no reading required */
@@ -943,51 +818,15 @@ button.stepper-value:hover {
   min-width: 0;
 }
 
-.kind-grid {
-  display: grid;
-  gap: var(--s2);
-}
-
-@media (min-width: 460px) {
-  .kind-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.kind-option {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-height: var(--row);
-  padding: var(--s2) var(--s3);
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  text-align: left;
-}
-
-.kind-option[data-active='true'] {
-  color: var(--pick-ink);
-  background: var(--pick);
-  border-color: var(--line-strong);
-}
-
-.kind-name {
-  font-size: var(--t-md);
-  font-weight: var(--w-strong);
-}
-
-.kind-desc {
-  font-size: var(--t-xs);
-  opacity: 0.75;
-}
-
+/* the one switch left in the form: «показывать в главном» */
 .switch {
   display: flex;
   align-items: center;
   gap: var(--s3);
   min-height: var(--tap);
-}.switch input {
+}
+
+.switch input {
   width: 20px;
   height: 20px;
   accent-color: var(--accent);
@@ -1163,47 +1002,6 @@ button.stepper-value:hover {
   border-top: 1px solid var(--line);
 }
 
-/* ---------- timer & quick log ---------- */
-
-.timer-name {
-  margin: 0;
-  font-weight: var(--w-strong);
-}
-
-.timer-hint {
-  margin: 0;
-  font-size: var(--t-sm);
-  color: var(--muted);
-}
-
-.timer-clock {
-  margin: 0;
-  font-size: var(--t-3xl);
-  font-weight: var(--w-strong);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  text-align: center;
-  color: var(--fg);
-}
-
-.timer-note {
-  margin: 0;
-  text-align: center;
-  color: var(--muted);
-}
-
-/* the two or three ways into the clock, one row */
-.timer-actions {
-  display: flex;
-  justify-content: center;
-  gap: var(--s2);
-}
-
-.timer-actions .btn {
-  flex: 1;
-}
-
 /* ---------- stats ---------- */
 
 /* the headline is a card like everything else, so its text lines up with the rest */
@@ -1243,13 +1041,22 @@ button.stepper-value:hover {
   white-space: nowrap;
 }
 
-/* One habit = one row of the same list, not another wall of chart.
-   Name, streak, rate on the first line; its own 30-day strip underneath. */
+/* One habit = one row of the same list: name on the left, its streak on the right. */
 .hstat {
   display: flex;
   flex-direction: column;
   gap: var(--s2);
   padding: var(--s3) var(--s4);
+}
+
+/* the single-line version: a habit and its streak, nothing else */
+.hstat-one {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-height: var(--row);
+  padding: 0 var(--s4);
 }
 
 .hstat-head {
@@ -1281,139 +1088,48 @@ button.stepper-value:hover {
   white-space: nowrap;
 }
 
-/* ---------- week strip (Today) ---------- */
+/* ---------- week dots (stats) ---------- */
 
-.daystrip {
-  display: flex;
-  gap: var(--s1);
-}
-
-/* One chip per day: the name on top, that day's heat as a mark under it.
-   The mark is currentColor at four opacities, so a chip keeps a single ink and
-   a quiet day still shows that a day exists. */
-.day-chip {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  min-width: 0;
-  height: var(--control);
-  padding: 0;
-  color: var(--muted);
-  background: none;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  font-size: var(--t-xs);
-}
-
-.day-chip-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.day-chip-mark {
-  width: 16px;
-  height: 3px;
-  background: currentColor;
-  border-radius: 999px;
-  opacity: 0.16;
-}
-
-.day-chip[data-status='partial'] .day-chip-mark {
-  opacity: 0.5;
-}
-
-.day-chip[data-status='done'] .day-chip-mark {
-  opacity: 1;
-}
-
-.day-chip[data-status='rest'] .day-chip-mark,
-.day-chip[data-status='future'] .day-chip-mark {
-  opacity: 0.06;
-}
-
-/* today stays readable while another day is open */
-.day-chip[data-today='true'] {
-  color: var(--fg);
-  font-weight: var(--w-strong);
-}
-
-/* "you are here" — a lifted neutral pill, never blue */
-.day-chip[data-active='true'] {
-  color: var(--pick-ink);
-  background: var(--pick);
-  border-color: var(--line);
-}
-
-.day-chip:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-@media (hover: hover) {
-  .day-chip:not(:disabled):not([data-active='true']):hover {
-    color: var(--fg);
-    background: var(--surface);
-  }
-}
-
-/* Weekday labels under the week strip: the same seven columns as the bars above,
-   so the chart needs no legend at all. */
-.weekday-labels {
+/* Семь точек — вся неделя. Точка это день: была работа или нет.
+   Никаких полос, легенд и осей: график, который надо расшифровывать, — это ровно
+   то, из-за чего на статистику не хочется заходить. */
+.dots {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
+  gap: var(--s2);
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.dots li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  background: var(--line-strong);
+  border-radius: 999px;
+}
+
+.dot[data-on='true'] {
+  background: var(--fg);
+}
+
+/* сегодня отмечено кольцом, а не заливкой: заливка значит «был прогресс»,
+   и пустой сегодня не должен выглядеть закрытым */
+.dot[data-now='true'] {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.dot-day {
   font-size: var(--t-xs);
   color: var(--muted);
-  text-align: center;
-}
-
-/* ---------- trend strip (stats) ---------- */
-
-/* The strip keeps a baseline, so "nothing logged" never reads as a broken chart.
-   History is neutral grey; today is the single blue bar. */
-.trend {
-  display: flex;
-  align-items: flex-end;
-  gap: 1px;
-  height: 48px;
-  border-bottom: 1px solid var(--line);
-}
-
-/* the same strip, sized to sit inside one row of the per-habit list */
-.trend-compact {
-  height: 20px;
-}
-
-.trend-day {
-  flex: 1 1 0;
-  min-width: 1px;
-  background: var(--cell-done);
-  border-radius: 2px;
-}
-
-.trend-day[data-status='partial'] {
-  background: var(--cell-partial);
-}
-
-.trend-day[data-status='missed'] {
-  background: var(--cell-missed);
-}
-
-.trend-day[data-status='rest'],
-.trend-day[data-status='pad'],
-.trend-day[data-status='future'] {
-  background: transparent;
-}
-
-.trend-day[data-now='true'] {
-  background: var(--accent);
 }
 
 /* ---------- toast ---------- */
