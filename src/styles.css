@@ -622,20 +622,53 @@ p {
 }
 
 /* the value itself opens the quick log — that is how "20 мин" takes one tap */
-.hrow-chip {
+.stepper-value {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  min-height: var(--control-sm);
   padding: 0 var(--s2);
   color: var(--fg);
+  background: none;
+  border: 0;
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+button.stepper-value:hover {
+  color: var(--accent-bright);
+}
+
+/* − значение + as one instrument: one border, one rhythm, three taps */
+.stepper {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+  width: fit-content;
+  min-height: var(--control);
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: 999px;
 }
 
-.hrow-chip:hover {
-  border-color: var(--muted);
+/* only the two icon buttons are squares — the value keeps the width of its text */
+.stepper-act {
+  display: inline-flex;
+  flex: 0 0 var(--icon);
+  align-items: center;
+  justify-content: center;
+  width: var(--icon);
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: 0;
+}
+
+.stepper-act:hover {
+  color: var(--fg);
+  background: var(--surface-3);
 }
 
 .hrow-actions {

@@ -7,10 +7,8 @@ export interface HabitRowProps {
   habit: Habit;
   /** Right-aligned muted value (today's progress). */
   status?: string;
-  /** Makes that value a button — counter and minutes habits open the quick log. */
-  onStatus?: () => void;
-  /** Accessible name of that button, since the value is just “3/6”. */
-  statusLabel?: string;
+  /** Replaces that value with a real control — the ± stepper of counter/minutes habits. */
+  statusSlot?: ReactNode;
   /** Optional second line, used by the management list. */
   sub?: string;
   /** The main three get a heavier name — the only emphasis in the list. */
@@ -32,8 +30,7 @@ export interface HabitRowProps {
 export default function HabitRow({
   habit,
   status,
-  onStatus,
-  statusLabel,
+  statusSlot,
   sub,
   pinned,
   onToggle,
@@ -52,6 +49,12 @@ export default function HabitRow({
     </>
   );
 
+  const right = statusSlot ? (
+    statusSlot
+  ) : status ? (
+    <span className="hrow-status">{status}</span>
+  ) : null;
+
   return (
     <div className="hrow" data-done={done ? 'true' : 'false'} data-pinned={pinned ? 'true' : 'false'}>
       {onToggle ? (
@@ -68,20 +71,7 @@ export default function HabitRow({
         <div className="hrow-main hrow-static">{label}</div>
       )}
 
-      {status ? (
-        onStatus ? (
-          <button
-            type="button"
-            className="hrow-status hrow-chip"
-            onClick={onStatus}
-            aria-label={statusLabel ?? status}
-          >
-            {status}
-          </button>
-        ) : (
-          <span className="hrow-status">{status}</span>
-        )
-      ) : null}
+      {right}
 
       {actions ? (
         <div className="hrow-actions">{actions}</div>

@@ -3,8 +3,9 @@ import type { Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
 import { todayKey } from '../lib/date';
-import { addMinutes, setProgress, tapHabit } from '../lib/actions';
+import { addMinutes, bumpCounter, setProgress, tapHabit } from '../lib/actions';
 import { getEntry, isComplete, progressOf, targetOf } from '../lib/habits';
+import CountStepper from './CountStepper';
 import Modal from './Modal';
 import { useToast } from './Toast';
 import { quickSteps, unitOf } from './habitText';
@@ -78,6 +79,11 @@ export default function LogDialog({ habit, mode, onClose }: LogDialogProps) {
     update((current) => setProgress(current, habit.id, amount));
     notify(fill(dict['log.saved'], { v: withUnit(amount) }), 'ok');
     onClose();
+  }
+
+  /** The stepper stays open — it is for getting the number exactly right. */
+  function bump(direction: 1 | -1) {
+    update((current) => bumpCounter(current, habit.id, todayKey(), direction));
   }
 
   function logWork() {
@@ -176,6 +182,8 @@ export default function LogDialog({ habit, mode, onClose }: LogDialogProps) {
         <span className="muted small">{fill(dict['log.goal'], { v: withUnit(target) })}</span>
       </div>
 
+      <CountStepper lang={lang} value={withUnit(value)} onBump={bump} />
+
       <div className="chips">
         {quickSteps(target).map((step) => (
           <button
@@ -190,8 +198,6 @@ export default function LogDialog({ habit, mode, onClose }: LogDialogProps) {
           </button>
         ))}
       </div>
-
-      <p className="muted small">{dict['log.hint']}</p>
 
       {value > 0 ? (
         <button type="button" className="link" onClick={() => choose(0)}>

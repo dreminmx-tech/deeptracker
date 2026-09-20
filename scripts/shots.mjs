@@ -179,8 +179,8 @@ try {
       theme: 'dark',
       width: 390,
       height: 820,
-      // второй чип — «Прогулка»: окно быстрого ввода минут с чипами и таймером
-      clickJs: "document.querySelectorAll('.hrow-chip')[1]?.click()",
+      // второе значение — «Прогулка»: окно быстрого ввода минут с чипами и таймером
+      clickJs: "document.querySelectorAll('.stepper-value')[1]?.click()",
     },
     { name: 'habits', tab: 'habits', theme: 'dark', width: 390, height: 520 },
     { name: 'habits-actions', tab: 'habits', theme: 'dark', width: 390, height: 620, click: '.row-act' },

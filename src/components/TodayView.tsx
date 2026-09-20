@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Ban, Minus, Play, Plus, Timer, Undo2, X } from 'lucide-react';
+import { Ban, Play, Undo2, X } from 'lucide-react';
 import type { Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
@@ -13,9 +13,9 @@ import {
   isActionable,
   isComplete,
   mainHabits,
-  targetOf,
 } from '../lib/habits';
 import Checkbox from './Checkbox';
+import CountStepper from './CountStepper';
 import HabitRow from './HabitRow';
 import LogDialog, { type LogMode } from './LogDialog';
 import { habitStatus } from './habitText';
@@ -60,54 +60,14 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
   const openLog = (habit: Habit) => setDialog({ habit, mode: 'quick' });
 
   /**
-   * Daily actions are inline icons, one tap each — nothing to read:
-   * counter gets −/+, minutes get the timer, the rest get “just start”,
-   * “don't do” gets the slip. The value itself opens the quick log.
+   * One visual element per row on the right. Counter and minutes habits fold `− value +`
+   * into a single stepper (and the value opens the quick log); the rest get one icon:
+   * `Play` for “just start”, `Ban` for “don't do”.
    */
   function actionsFor(habit: Habit): ReactNode {
     const entry = getEntry(data, today, habit.id);
 
-    if (habit.kind === 'counter') {
-      return (
-        <>
-          <button
-            type="button"
-            className="row-act"
-            aria-label={dict['sheet.minus']}
-            title={dict['sheet.minus']}
-            onClick={() => update((current) => bumpCounter(current, habit.id, today, -1))}
-          >
-            <Minus size={ICON} strokeWidth={2} />
-          </button>
-          <button
-            type="button"
-            className="row-act"
-            aria-label={dict['sheet.plus']}
-            title={dict['sheet.plus']}
-            onClick={() => update((current) => bumpCounter(current, habit.id, today, 1))}
-          >
-            <Plus size={ICON} strokeWidth={2} />
-          </button>
-        </>
-      );
-    }
-
-    if (habit.kind === 'duration') {
-      const label = fill(dict['sheet.timer'], {
-        n: `${targetOf(habit)} ${habit.unit ?? (lang === 'ru' ? 'мин' : 'min')}`,
-      });
-      return (
-        <button
-          type="button"
-          className="row-act"
-          aria-label={label}
-          title={label}
-          onClick={() => openLog(habit)}
-        >
-          <Timer size={ICON} strokeWidth={1.8} />
-        </button>
-      );
-    }
+    if (habit.kind === 'counter' || habit.kind === 'duration') return null;
 
     if (habit.kind === 'negative') {
       const slipped = (entry?.value ?? 0) > 0;
@@ -149,9 +109,20 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
         habit={habit}
         pinned={habit.pinned}
         done={isComplete(habit, getEntry(data, today, habit.id))}
-        status={status}
-        onStatus={counts ? () => openLog(habit) : undefined}
-        statusLabel={fill(dict['log.open'], { v: status })}
+        status={counts ? undefined : status}
+        statusSlot={
+          counts ? (
+            <CountStepper
+              lang={lang}
+              value={status}
+              openLabel={fill(dict['log.open'], { v: status })}
+              onOpen={() => openLog(habit)}
+              onBump={(direction) =>
+                update((current) => bumpCounter(current, habit.id, today, direction))
+              }
+            />
+          ) : undefined
+        }
         onToggle={
           isNegative
             ? undefined

@@ -77,7 +77,8 @@ describe('views render', () => {
     // ежедневные действия — инлайн-иконки, читать ничего не нужно
     expect(html).toContain('aria-label="Прибавить"');
     expect(html).toContain('aria-label="Просто начни"');
-    // значение счётчика — кнопка быстрого ввода, а не просто текст
+    // у счётчика и минут − значение + собраны в один прибор, а не в три элемента
+    expect(html.match(/class="stepper"/g)).toHaveLength(2);
     expect(html).toContain('aria-label="0/6 — изменить"');
     expect(html).toContain('aria-label="25/20 мин — изменить"');
   });
@@ -92,7 +93,8 @@ describe('views render', () => {
     expect(html).toContain('Цель — 20 мин');
     expect(html).toContain('aria-label="Записать 20 мин"');
     expect(html.match(/class="chip"/g)).toHaveLength(4);
-    // и таймер рядом, в том же окне
+    // в окне есть и точная подстройка по единице, и таймер
+    expect(html.match(/class="stepper"/g)).toHaveLength(1);
     expect(html).toContain('Засечь время');
     expect(html).toContain('20:00');
   });
