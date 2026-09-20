@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>deeptracker — трекер привычек</title>
+    <meta
+      name="description"
+      content="Минималистичный офлайн-трекер привычек для СДВГ. Чёрно-белый, без аккаунтов, без сети."
+    />
+    <meta name="theme-color" content="#141418" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="deeptracker" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <script>
+      // Apply the saved theme before first paint to avoid a white flash.
+      (function () {
+        try {
+          var raw = localStorage.getItem('deeptracker.v1');
+          var theme = raw ? JSON.parse(raw).settings.theme : 'dark';
+          if (theme !== 'light') theme = 'dark';
+          document.documentElement.dataset.theme = theme;
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute('content', theme === 'light' ? '#ffffff' : '#141418');
+        } catch (e) {
+          /* first run: keep dark */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
