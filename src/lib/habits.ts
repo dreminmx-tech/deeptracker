@@ -279,6 +279,82 @@ export function habitsUpTo(habits: Habit[], key: DateKey): Habit[] {
 }
 
 /**
+ * How many times a habit was closed inside the window, and how many times it was expected.
+ * Flex habits are measured against their weekly goal, not against the days they were done —
+ * otherwise a "3 times a week" habit would always look like 100%.
+ */
+export function habitCounts(
+  data: AppData,
+  habit: Habit,
+  days: DateKey[],
+  today: DateKey = todayKey(),
+): { done: number; total: number } {
+  let done = 0;
+  let total = 0;
+  for (const key of days) {
+    if (key > today || key < startKey(habit)) continue;
+    if (habit.kind === 'flex') {
+      if (dayStatus(data, habit, key, today) === 'done') done += 1;
+      continue;
+    }
+    const status = dayStatus(data, habit, key, today);
+    if (status === 'rest') continue;
+    total += 1;
+    if (status === 'done') done += 1;
+  }
+  if (habit.kind === 'flex') total = Math.max(1, Math.round(habit.perWeek ?? 3));
+  return { done, total };
+}
+
+export interface WeekReviewLine {
+  habit: Habit;
+  done: number;
+  total: number;
+}
+
+export interface WeekReview {
+  /** Days in the window when at least one habit was closed. */
+  activeDays: number;
+  /** Days in the window when something was expected at all. */
+  totalDays: number;
+  best: WeekReviewLine | null;
+  /** The laggard — only when another habit really did better. */
+  worst: WeekReviewLine | null;
+}
+
+/** A plain-language summary of the window: was the week alive, what worked, what did not. */
+export function weekReview(
+  data: AppData,
+  habits: Habit[],
+  days: DateKey[],
+  today: DateKey = todayKey(),
+): WeekReview {
+  let activeDays = 0;
+  let totalDays = 0;
+  for (const key of days) {
+    if (key > today) continue;
+    const { done, total } = dayProgress(data, habitsUpTo(habits.filter(isActionable), key), key);
+    if (total === 0) continue;
+    totalDays += 1;
+    if (done > 0) activeDays += 1;
+  }
+
+  // Здесь уже все привычки: неделя — это и «3 раза в неделю», и «ни разу не сорвался».
+  const lines: WeekReviewLine[] = habits
+    .map((habit) => ({ habit, ...habitCounts(data, habit, days, today) }))
+    .filter((line) => line.total >= 3) // слишком свежая привычка ничего не доказывает
+    .sort((a, b) => b.done / b.total - a.done / a.total || b.done - a.done);
+
+  const best = lines[0] ?? null;
+  const last = lines[lines.length - 1] ?? null;
+  const worst = best && last && last !== best && last.done / last.total < best.done / best.total
+    ? last
+    : null;
+
+  return { activeDays, totalDays, best, worst };
+}
+
+/**
  * Share of closed habits per weekday (0 = Monday) over the window.
  * Answers the only question that matters here: "какой день недели у меня проваливается?"
  * Counting habits rather than whole days keeps the chart readable: a day is rarely closed

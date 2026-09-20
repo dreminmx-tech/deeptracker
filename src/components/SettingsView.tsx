@@ -2,9 +2,11 @@ import { useState, type ChangeEvent } from 'react';
 import { Download, Trash2, Upload } from 'lucide-react';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
-import { APP_VERSION } from '../lib/version';
+import { dateKey, diffDays, formatDay, todayKey } from '../lib/date';
 import { downloadJson, freshData, parseImport } from '../lib/storage';
 import { updateSettings } from '../lib/actions';
+import { hasAnyData } from '../lib/habits';
+import { APP_VERSION } from '../lib/version';
 import { useInstallPrompt } from '../lib/useInstallPrompt';
 import Modal from './Modal';
 import { useToast } from './Toast';
@@ -24,6 +26,10 @@ export default function SettingsView() {
 
   const [paste, setPaste] = useState('');
   const [confirmWipe, setConfirmWipe] = useState(false);
+
+  const lastExport = data.settings.lastExport;
+  const backupAge = lastExport ? diffDays(dateKey(new Date(lastExport)), todayKey()) : null;
+  const backupStale = hasAnyData(data) && (backupAge === null || backupAge >= 21);
 
   const offlineReady =
     typeof navigator !== 'undefined' &&
@@ -103,7 +109,14 @@ export default function SettingsView() {
         <p className="muted small">{dict['settings.exportHint']}</p>
 
         <div className="btn-col">
-          <button type="button" className="btn" onClick={() => downloadJson(data)}>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              downloadJson(data);
+              update((current) => updateSettings(current, { lastExport: new Date().toISOString() }));
+            }}
+          >
             <Download size={ICON} strokeWidth={1.8} aria-hidden="true" />
             {dict['settings.export']}
           </button>
@@ -113,6 +126,17 @@ export default function SettingsView() {
             <input type="file" accept="application/json,.json,text/plain" onChange={handleFile} hidden />
           </label>
         </div>
+
+        <p className="muted small">
+          {lastExport
+            ? fill(dict['settings.lastExport'], {
+                date: formatDay(dateKey(new Date(lastExport)), lang, false),
+              })
+            : dict['settings.neverExported']}
+          {backupStale
+            ? ` ${lastExport ? dict['settings.backupStaleCta'] : dict['settings.backupNeverCta']}`
+            : ''}
+        </p>
 
         <details className="disclosure">
           <summary>{dict['settings.importPasteToggle']}</summary>

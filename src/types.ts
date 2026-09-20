@@ -49,6 +49,8 @@ export interface DayLog {
 export interface Settings {
   lang: Lang;
   theme: Theme;
+  /** ISO datetime of the last JSON export — the only backup this app has. */
+  lastExport?: string;
 }
 
 export interface AppData {

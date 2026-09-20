@@ -127,11 +127,20 @@ export function normalizeData(raw: unknown): AppData {
   const settings = asRecord(record.settings);
   const lang: Lang = settings.lang === 'en' ? 'en' : 'ru';
   const theme: Theme = settings.theme === 'light' ? 'light' : 'dark';
+  const lastExport =
+    typeof settings.lastExport === 'string' && !Number.isNaN(Date.parse(settings.lastExport))
+      ? settings.lastExport
+      : undefined;
 
   // A file with no habits at all is treated as empty rather than valid-but-broken.
   const habitsWithOrder = habits.map((habit, index) => ({ ...habit, order: index }));
 
-  return { version: DATA_VERSION, habits: habitsWithOrder, days, settings: { lang, theme } };
+  return {
+    version: DATA_VERSION,
+    habits: habitsWithOrder,
+    days,
+    settings: { lang, theme, ...(lastExport ? { lastExport } : {}) },
+  };
 }
 
 export function loadData(): AppData {

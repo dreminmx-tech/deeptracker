@@ -13,9 +13,11 @@ import {
   overallStreak,
   softStreak,
   weekProgress,
+  weekReview,
   weekdayRates,
 } from '../lib/habits';
 import TrendStrip from './TrendStrip';
+import ValueRow from './ValueRow';
 
 /** Longest run using the same "something was done" rule as the headline streak. */
 function bestRun(flags: boolean[]): number {
@@ -66,6 +68,18 @@ export default function StatsView() {
     }
   });
 
+  // Прошедшая неделя отдельно от окна 30/90: «что зашло, что нет» за семь дней.
+  const week = useMemo(() => lastNDays(7, today), [today]);
+  const review = weekReview(data, habits, week, today);
+  const reviewTone =
+    review.totalDays === 0
+      ? null
+      : review.activeDays / review.totalDays >= 0.7
+        ? dict['stats.review.good']
+        : review.activeDays / review.totalDays >= 0.4
+          ? dict['stats.review.mid']
+          : dict['stats.review.low'];
+
   return (
     <div className="stack">
       <header className="view-head">
@@ -91,6 +105,36 @@ export default function StatsView() {
             </div>
             <span className="stat-note">{fill(dict['stats.overallBest'], { n: best })}</span>
           </div>
+
+          {review.totalDays > 0 ? (
+            <section className="block">
+              <p className="label">{dict['stats.review']}</p>
+              <div className="card">
+                <ValueRow
+                  label={dict['stats.review.days']}
+                  value={fill(dict['stats.review.daysValue'], {
+                    done: review.activeDays,
+                    total: review.totalDays,
+                  })}
+                />
+                {review.best ? (
+                  <ValueRow
+                    label={dict['stats.review.best']}
+                    name={review.best.habit.name}
+                    value={`${review.best.done}/${review.best.total}`}
+                  />
+                ) : null}
+                {review.worst ? (
+                  <ValueRow
+                    label={dict['stats.review.worst']}
+                    name={review.worst.habit.name}
+                    value={`${review.worst.done}/${review.worst.total}`}
+                  />
+                ) : null}
+                {reviewTone ? <p className="muted small">{reviewTone}</p> : null}
+              </div>
+            </section>
+          ) : null}
 
           <div className="card">
             <TrendStrip

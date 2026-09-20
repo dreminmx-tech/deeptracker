@@ -563,6 +563,33 @@ p {
   gap: var(--s3);
 }
 
+/* right-hand value of a summary line: the name truncates, the number never does */
+.value {
+  display: flex;
+  flex: 0 1 auto;
+  gap: var(--s1);
+  align-items: baseline;
+  min-width: 0;
+  font-size: var(--t-sm);
+}
+
+.value-label {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.value-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value-num {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
 .day-count {
   flex: 0 0 auto;
   font-size: var(--t-sm);

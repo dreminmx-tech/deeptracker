@@ -183,6 +183,15 @@ describe('views render', () => {
     expect(html).toContain('Danger zone');
     expect(html).toContain('btn btn-danger');
     expect(html).toContain('class="segmented segmented-wide"');
+    // про единственный бэкап экран говорит прямо
+    expect(html).toContain('No backup yet.');
+  });
+
+  it('asks for a backup once there is something to lose', () => {
+    seedStorage(dataWithHistory());
+    const html = render(<SettingsView />);
+    expect(html).toContain('Бэкапа ещё не было.');
+    expect(html).toContain('Пора сделать первый.');
   });
 
   it('renders the action sheet as a plain text list', () => {

@@ -8,11 +8,13 @@ import {
   dayProgress,
   dayStatus,
   getEntry,
+  habitCounts,
   habitsUpTo,
   isComplete,
   missedYesterday,
   softStreak,
   weekProgress,
+  weekReview,
   weekdayRates,
 } from './habits';
 import { freshData, normalizeData, parseImport, toJson } from './storage';
@@ -218,6 +220,22 @@ describe('days before a habit existed', () => {
   });
 });
 
+describe('export stays a real backup', () => {
+  it('keeps the last backup date through export and import', () => {
+    const base = makeData(makeHabit());
+    const data = {
+      ...base,
+      settings: { lang: 'ru' as const, theme: 'dark' as const, lastExport: '2026-01-02T10:00:00.000Z' },
+    };
+    expect(parseImport(toJson(data)).settings.lastExport).toBe('2026-01-02T10:00:00.000Z');
+  });
+
+  it('ignores a broken backup date instead of failing the import', () => {
+    const raw = { ...makeData(makeHabit()), settings: { lang: 'ru', theme: 'dark', lastExport: 'вчера' } };
+    expect(parseImport(JSON.stringify(raw)).settings.lastExport).toBeUndefined();
+  });
+});
+
 describe('missedYesterday', () => {
   it('counts habits missed yesterday that are still open today', () => {
     const habit = makeHabit();
@@ -233,6 +251,55 @@ describe('missedYesterday', () => {
   it('ignores habits that did not exist yesterday', () => {
     const habit = makeHabit({ createdAt: isoAt(TODAY) });
     expect(missedYesterday(makeData(habit), [habit], TODAY)).toBe(0);
+  });
+});
+
+describe('weekReview', () => {
+  it('counts live days, the leader and the laggard', () => {
+    const leader = makeHabit({ id: 'h1' });
+    const laggard = makeHabit({ id: 'h2', kind: 'counter', target: 3 });
+    const week = lastNDays(7, TODAY);
+    // h1 закрыт везде, кроме последнего дня; h2 только один раз
+    const log = logDays(week.slice(1).map((key) => diffDays(key, TODAY)));
+    log[week[2] as string] = { entries: { h1: { done: true, value: 1 }, h2: { value: 3, done: true } }, dump: [] };
+
+    const data: AppData = { ...makeData(leader, log), habits: [leader, laggard] };
+    const review = weekReview(data, [leader, laggard], week, TODAY);
+
+    expect(review.totalDays).toBe(7);
+    expect(review.activeDays).toBe(6); // сегодня ещё пусто
+    expect(review.best?.habit.id).toBe('h1');
+    expect(review.best?.done).toBe(6);
+    expect(review.best?.total).toBe(7);
+    expect(review.worst?.habit.id).toBe('h2');
+    expect(review.worst?.done).toBe(1);
+  });
+
+  it('measures a flex habit against its weekly goal, not against its own done days', () => {
+    const flex = makeHabit({ kind: 'flex', perWeek: 3 });
+    const week = lastNDays(7, TODAY);
+    const log = logDays([1, 3].map((offset) => offset));
+    const data = makeData(flex, log);
+
+    const counts = habitCounts(data, flex, week, TODAY);
+    expect(counts.done).toBe(2);
+    expect(counts.total).toBe(3);
+  });
+
+  it('reports no laggard when one habit is all there is', () => {
+    const only = makeHabit();
+    const week = lastNDays(7, TODAY);
+    const review = weekReview(makeData(only), [only], week, TODAY);
+    expect(review.best?.habit.id).toBe('h1');
+    expect(review.worst).toBeNull();
+  });
+
+  it('ignores habits that are too young to judge', () => {
+    const fresh = makeHabit({ createdAt: isoAt(TODAY) });
+    const week = lastNDays(7, TODAY);
+    const review = weekReview(makeData(fresh), [fresh], week, TODAY);
+    expect(review.best).toBeNull();
+    expect(review.worst).toBeNull();
   });
 });
 
