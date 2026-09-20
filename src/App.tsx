@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StoreProvider, useStore } from './store';
 import { ToastProvider } from './components/Toast';
+import Icon from './components/Icon';
 import TodayView from './components/TodayView';
 import HabitsView from './components/HabitsView';
 import StatsView from './components/StatsView';
@@ -12,10 +13,17 @@ import { todayKey } from './lib/date';
 type Tab = 'today' | 'habits' | 'stats' | 'settings';
 const TABS: Tab[] = ['today', 'habits', 'stats', 'settings'];
 
+/** Deep links: /#stats, /#habits … (also handy for screenshots and sharing). */
+function tabFromHash(): Tab {
+  if (typeof window === 'undefined') return 'today';
+  const raw = window.location.hash.replace(/^#\/?/, '');
+  return (TABS as string[]).includes(raw) ? (raw as Tab) : 'today';
+}
+
 function Shell() {
   const { data, update } = useStore();
   const dict = useMemo(() => t(data.settings.lang), [data.settings.lang]);
-  const [tab, setTab] = useState<Tab>('today');
+  const [tab, setTab] = useState<Tab>(() => tabFromHash());
   // Bumped at midnight / on tab focus so the "today" views roll over without a reload.
   const [day, setDay] = useState(() => todayKey());
 
@@ -37,31 +45,45 @@ function Shell() {
     };
   }, []);
 
+  function selectTab(next: Tab) {
+    setTab(next);
+    try {
+      window.history.replaceState(null, '', next === 'today' ? window.location.pathname : `#${next}`);
+    } catch {
+      /* file:// and friends — the tab still switches */
+    }
+  }
+
+  const isDark = data.settings.theme === 'dark';
+
   return (
     <div className="app">
       <header className="app-head">
-        <div>
-          <p className="app-name">deeptracker</p>
-          <p className="muted small">{dict['app.tagline']}</p>
+        <div className="app-brand">
+          <span className="app-logo" aria-hidden="true">
+            <Icon name="check" size={16} />
+          </span>
+          <div>
+            <p className="app-name">deeptracker</p>
+            <p className="muted tiny">{dict['app.tagline']}</p>
+          </div>
         </div>
         <div className="head-actions">
           <button
             type="button"
             className="icon-btn"
-            aria-label={dict['settings.theme']}
+            aria-label={`${dict['settings.theme']}: ${isDark ? dict['settings.theme.light'] : dict['settings.theme.dark']}`}
             onClick={() =>
               update((current) =>
-                updateSettings(current, {
-                  theme: current.settings.theme === 'dark' ? 'light' : 'dark',
-                }),
+                updateSettings(current, { theme: current.settings.theme === 'dark' ? 'light' : 'dark' }),
               )
             }
           >
-            ◐
+            <Icon name={isDark ? 'sun' : 'moon'} size={18} />
           </button>
           <button
             type="button"
-            className="icon-btn"
+            className="lang-btn"
             aria-label={dict['settings.language']}
             onClick={() =>
               update((current) =>
@@ -75,7 +97,7 @@ function Shell() {
       </header>
 
       <main key={day}>
-        {tab === 'today' ? <TodayView onGoToHabits={() => setTab('habits')} /> : null}
+        {tab === 'today' ? <TodayView onGoToHabits={() => selectTab('habits')} /> : null}
         {tab === 'habits' ? <HabitsView /> : null}
         {tab === 'stats' ? <StatsView /> : null}
         {tab === 'settings' ? <SettingsView /> : null}
@@ -88,7 +110,7 @@ function Shell() {
             type="button"
             data-active={tab === key ? 'true' : 'false'}
             aria-current={tab === key ? 'page' : undefined}
-            onClick={() => setTab(key)}
+            onClick={() => selectTab(key)}
           >
             {dict[`nav.${key}`]}
           </button>

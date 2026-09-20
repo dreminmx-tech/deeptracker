@@ -15,7 +15,16 @@
 [![React](https://img.shields.io/badge/React-19-0070f3?style=flat-square&labelColor=141418)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7-0070f3?style=flat-square&labelColor=141418)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8-0070f3?style=flat-square&labelColor=141418)](https://vite.dev)
-[![Bundle](https://img.shields.io/badge/бандл-83%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
+[![Bundle](https://img.shields.io/badge/бандл-84%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/today.png" alt="Экран «Сегодня»" width="200"><br><sub>Сегодня</sub></td>
+    <td align="center"><img src="docs/screenshots/stats.png" alt="Статистика" width="200"><br><sub>Статистика</sub></td>
+    <td align="center"><img src="docs/screenshots/habits.png" alt="Привычки" width="200"><br><sub>Привычки</sub></td>
+    <td align="center"><img src="docs/screenshots/today-light.png" alt="Светлая тема" width="200"><br><sub>Светлая тема</sub></td>
+  </tr>
+</table>
 
 </div>
 
@@ -52,12 +61,14 @@ npm run preview  # http://127.0.0.1:4173
 - ✅ **Пять типов привычек** — отметка, счётчик с целью, минуты с таймером, «не делать» и гибкая частота вроде «3 раза в неделю».
 - 🪶 **Мягкие серии** — «не пропускай дважды»: один пропущенный день не обнуляет прогресс, ломают только два подряд, а сегодняшний незакрытый день вообще не считается пропуском.
 - 🎯 **«Главное сегодня»** — максимум три привычки наверху, остальные ниже: меньше паралича выбора.
+- 📐 **Плотно, без простыней** — крупные карточки только у главных трёх, остальные привычки живут компактными строками по 52 px: весь день видно почти без скролла.
 - ⏱️ **«Просто начни»** — таймер на 2 минуты с минимальной версией привычки вместо целого дела.
 - 🧠 **Брейн-дамп** — быстрый инбокс мыслей на сегодня, чтобы не держать их в голове.
 - 📊 **Статистика без осуждения** — heatmap на 30 или 90 дней, серая шкала, ни одного красного цвета: пустая клетка — просто пустая клетка.
 - 📴 **Полный офлайн** — service worker, манифест и иконки: приложение ставится на телефон и работает в самолёте.
 - 🔒 **Приватность по умолчанию** — никаких аккаунтов, аналитики и сети; данные лежат в `localStorage`, бэкап — экспорт в JSON.
-- 🌗 **Две темы** — тёмная в цветах дашборда DeepSeek Platform и строго чёрно-белая светлая. Интерфейс на русском и английском.
+- 🌗 **Две темы и своя типографика** — тёмная в цветах дашборда DeepSeek Platform, светлая строго чёрно-белая; шрифт Manrope с самохостингом (кириллица + латиница), иконки — собственные SVG. Интерфейс на русском и английском.
+- 🔗 **Ссылки на вкладки** — `/#stats`, `/#habits`, `/#settings`: можно держать в закладках и открывать сразу нужный экран.
 
 ### 🗂 Типы привычек
 

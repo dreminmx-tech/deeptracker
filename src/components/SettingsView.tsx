@@ -144,7 +144,7 @@ export default function SettingsView() {
           <p className="banner">{dict['settings.installIos']}</p>
         )}
         <p className="muted small">
-          {dict['settings.offline']}: {offlineReady ? 'да / yes' : '—'}
+          {dict['settings.offline']}: {offlineReady ? dict['common.yes'] : dict['common.no']}
         </p>
       </section>
 

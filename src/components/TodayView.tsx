@@ -4,17 +4,11 @@ import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
 import { formatDay, todayKey } from '../lib/date';
 import { addDump, clearDoneDump, removeDump, toggleDump } from '../lib/actions';
-import {
-  activeHabits,
-  dayProgress,
-  flexHabits,
-  getDay,
-  isActionable,
-  mainHabits,
-  negativeHabits,
-  otherHabits,
-} from '../lib/habits';
+import { activeHabits, dayProgress, getDay, isActionable, mainHabits } from '../lib/habits';
+import Checkbox from './Checkbox';
 import HabitCard from './HabitCard';
+import HabitRow from './HabitRow';
+import Icon from './Icon';
 import TimerDialog from './TimerDialog';
 
 interface TodayViewProps {
@@ -33,9 +27,10 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
   const active = activeHabits(data);
   const actionable = active.filter(isActionable);
   const main = mainHabits(data);
-  const rest = otherHabits(data);
-  const flexible = flexHabits(data);
-  const negatives = negativeHabits(data);
+  const mainIds = new Set(main.map((habit) => habit.id));
+  const secondary = active.filter((habit) => !mainIds.has(habit.id) && habit.kind !== 'negative');
+  const negatives = active.filter((habit) => habit.kind === 'negative');
+
   const day = getDay(data, today);
   const { done, total } = dayProgress(data, actionable, today);
   const percent = total === 0 ? 0 : Math.round((done / total) * 100);
@@ -53,29 +48,32 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
   const progressNote =
     total === 0 ? '' : done === total ? dict['today.allDone'] : done === 0 ? dict['today.noneYet'] : '';
 
+  const startTiny = (habit: Habit) => setTimer({ habit, mode: 'tiny' });
+  const openTimer = (habit: Habit) => setTimer({ habit, mode: 'focus' });
+
   return (
     <div className="stack">
       <header className="today-head">
         <p className="eyebrow">{formatDay(today, lang)}</p>
-        <h1>{greeting}</h1>
+        <div className="today-title">
+          <h1>{greeting}</h1>
+          {total > 0 ? (
+            <span className="today-count">{fill(dict['today.progress'], { done, total })}</span>
+          ) : null}
+        </div>
         {total > 0 ? (
-          <>
-            <div
-              className="bar"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={total}
-              aria-valuenow={done}
-              aria-label={fill(dict['today.progress'], { done, total })}
-            >
-              <span className="bar-fill" style={{ width: `${percent}%` }} />
-            </div>
-            <p className="muted">
-              {fill(dict['today.progress'], { done, total })}
-              {progressNote ? ` · ${progressNote}` : ''}
-            </p>
-          </>
+          <div
+            className="bar"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={total}
+            aria-valuenow={done}
+            aria-label={fill(dict['today.progress'], { done, total })}
+          >
+            <span className="bar-fill" style={{ width: `${percent}%` }} />
+          </div>
         ) : null}
+        {progressNote ? <p className="muted small">{progressNote}</p> : null}
       </header>
 
       {active.length === 0 ? (
@@ -96,41 +94,24 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
               <HabitCard
                 key={habit.id}
                 habit={habit}
-                big
-                onStartTiny={(target) => setTimer({ habit: target, mode: 'tiny' })}
-                onOpenTimer={(target) => setTimer({ habit: target, mode: 'focus' })}
+                onStartTiny={startTiny}
+                onOpenTimer={openTimer}
               />
             ))}
           </div>
         </section>
       ) : null}
 
-      {rest.length > 0 ? (
+      {secondary.length > 0 ? (
         <section className="section">
           <h2 className="section-title">{dict['today.others']}</h2>
-          <div className="cards">
-            {rest.map((habit) => (
-              <HabitCard
+          <div className="rows">
+            {secondary.map((habit) => (
+              <HabitRow
                 key={habit.id}
                 habit={habit}
-                onStartTiny={(target) => setTimer({ habit: target, mode: 'tiny' })}
-                onOpenTimer={(target) => setTimer({ habit: target, mode: 'focus' })}
-              />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {flexible.length > 0 ? (
-        <section className="section">
-          <h2 className="section-title">{dict['habits.kind.flex']}</h2>
-          <div className="cards">
-            {flexible.map((habit) => (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                onStartTiny={(target) => setTimer({ habit: target, mode: 'tiny' })}
-                onOpenTimer={(target) => setTimer({ habit: target, mode: 'focus' })}
+                onStartTiny={startTiny}
+                onOpenTimer={openTimer}
               />
             ))}
           </div>
@@ -140,17 +121,17 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
       {negatives.length > 0 ? (
         <section className="section">
           <h2 className="section-title">{dict['today.negatives']}</h2>
-          <p className="banner">{dict['today.negativesHint']}</p>
-          <div className="cards">
+          <div className="rows">
             {negatives.map((habit) => (
-              <HabitCard
+              <HabitRow
                 key={habit.id}
                 habit={habit}
-                onStartTiny={(target) => setTimer({ habit: target, mode: 'tiny' })}
-                onOpenTimer={(target) => setTimer({ habit: target, mode: 'focus' })}
+                onStartTiny={startTiny}
+                onOpenTimer={openTimer}
               />
             ))}
           </div>
+          <p className="banner small">{dict['today.negativesHint']}</p>
         </section>
       ) : null}
 
@@ -172,7 +153,7 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
             aria-label={dict['today.dumpPlaceholder']}
             onChange={(event) => setDumpText(event.target.value)}
           />
-          <button type="submit" className="btn" disabled={dumpText.trim().length === 0}>
+          <button type="submit" className="btn btn-sm" disabled={dumpText.trim().length === 0}>
             {dict['today.dumpAdd']}
           </button>
         </form>
@@ -189,18 +170,16 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
                   aria-pressed={item.done}
                   onClick={() => update((current) => toggleDump(current, today, item.id))}
                 >
-                  <span className="box" data-checked={item.done ? 'true' : 'false'} aria-hidden="true">
-                    {item.done ? '✓' : ''}
-                  </span>
+                  <Checkbox checked={item.done} small />
                   <span className="dump-text">{item.text}</span>
                 </button>
                 <button
                   type="button"
-                  className="icon-btn"
+                  className="icon-btn sm"
                   aria-label={dict['common.delete']}
                   onClick={() => update((current) => removeDump(current, today, item.id))}
                 >
-                  ✕
+                  <Icon name="x" size={16} />
                 </button>
               </li>
             ))}
@@ -210,15 +189,13 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
         {day.dump.some((item) => item.done) ? (
           <button
             type="button"
-            className="btn btn-ghost"
+            className="btn btn-ghost btn-sm"
             onClick={() => update((current) => clearDoneDump(current, today))}
           >
             {dict['today.dumpClear']}
           </button>
         ) : null}
       </section>
-
-      <p className="muted small center">{dict['today.tapHint']}</p>
 
       {timer ? (
         <TimerDialog habit={timer.habit} mode={timer.mode} onClose={() => setTimer(null)} />

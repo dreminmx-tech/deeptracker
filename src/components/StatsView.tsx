@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
 import { lastNDays, todayKey } from '../lib/date';
-import type { DayStatus } from '../lib/habits';
 import {
   activeHabits,
   bestStreak,
@@ -17,20 +16,19 @@ import {
 } from '../lib/habits';
 import Heatmap from './Heatmap';
 
-/** Longest run of "something done" days using the same soft rule (one gap allowed). */
-function bestRun(statuses: DayStatus[]): number {
+/** Longest run using the same "something was done" rule as the headline streak. */
+function bestRun(flags: boolean[]): number {
   let best = 0;
   let run = 0;
   let misses = 0;
-  statuses.forEach((status, index) => {
-    if (status === 'rest') return;
-    if (status === 'done') {
+  flags.forEach((done, index) => {
+    if (done) {
       run += 1;
       misses = 0;
       if (run > best) best = run;
       return;
     }
-    if (index === statuses.length - 1) return; // today is still open
+    if (index === flags.length - 1) return; // today is still open
     misses += 1;
     if (misses >= 2) {
       run = 0;
@@ -50,9 +48,8 @@ export default function StatsView() {
 
   const habits = activeHabits(data);
   const actionable = habits.filter(isActionable);
-  const overallStatuses = days.map((key) => dayHeatStatus(data, actionable, key, today));
   const streak = overallStreak(data);
-  const best = bestRun(overallStatuses);
+  const best = bestRun(days.map((key) => actionable.some((habit) => dayStatus(data, habit, key) === 'done')));
   const anything = hasAnyData(data);
 
   return (
@@ -60,18 +57,10 @@ export default function StatsView() {
       <header className="view-head">
         <h1>{dict['stats.title']}</h1>
         <div className="segmented" role="group">
-          <button
-            type="button"
-            data-active={range === 30 ? 'true' : 'false'}
-            onClick={() => setRange(30)}
-          >
+          <button type="button" data-active={range === 30 ? 'true' : 'false'} onClick={() => setRange(30)}>
             {dict['stats.range30']}
           </button>
-          <button
-            type="button"
-            data-active={range === 90 ? 'true' : 'false'}
-            onClick={() => setRange(90)}
-          >
+          <button type="button" data-active={range === 90 ? 'true' : 'false'} onClick={() => setRange(90)}>
             {dict['stats.range90']}
           </button>
         </div>
@@ -84,9 +73,9 @@ export default function StatsView() {
       ) : (
         <>
           <section className="card stat-card">
-            <p className="stat-big">{streak}</p>
-            <p className="muted">{dict['stats.overall']}</p>
-            <p className="muted small">{fill(dict['stats.overallBest'], { n: best })}</p>
+            <span className="stat-big">{streak}</span>
+            <span className="stat-label">{dict['stats.overall']}</span>
+            <span className="chip">{fill(dict['stats.overallBest'], { n: best })}</span>
           </section>
 
           <section className="card">
@@ -99,7 +88,7 @@ export default function StatsView() {
                 </li>
               ))}
             </ul>
-            <p className="banner">{dict['stats.noJudgement']}</p>
+            <p className="banner small">{dict['stats.noJudgement']}</p>
           </section>
 
           <section className="section">
@@ -117,11 +106,7 @@ export default function StatsView() {
                         : fill(dict['stats.rate'], { n: rate })}
                     </span>
                   </div>
-                  <Heatmap
-                    days={days}
-                    lang={lang}
-                    statusFor={(key) => dayStatus(data, habit, key, today)}
-                  />
+                  <Heatmap days={days} lang={lang} statusFor={(key) => dayStatus(data, habit, key, today)} />
                   <p className="muted small">
                     {fill(dict['today.streak'], { n: softStreak(data, habit) })} ·{' '}
                     {fill(dict['today.best'], { n: bestStreak(data, habit) })}

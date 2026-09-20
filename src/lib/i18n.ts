@@ -33,8 +33,10 @@ const ru = {
   'today.empty.text': 'Начни с одной. Даже одна — уже работает.',
   'today.empty.cta': 'Создать привычку',
   'today.weekly': '{done}/{target} за неделю',
+  'today.weeklyShort': '{done}/{target} нед.',
   'today.weeklyDone': 'Неделя закрыта: {done}/{target}',
-  'today.cleanDays': '{n} чистых дней',
+  'today.cleanDays': '{n} дней чисто',
+  'today.cleanDaysShort': '{n} чисто',
   'today.slip': 'Сорвался',
   'today.slipUndo': 'Вернуть «чисто»',
   'today.streak': 'серия {n}',
@@ -82,7 +84,7 @@ const ru = {
   'stats.title': 'Статистика',
   'stats.range30': '30 дней',
   'stats.range90': '90 дней',
-  'stats.overall': 'Дней подряд, где что-то сделано',
+  'stats.overall': 'Дней подряд с делами',
   'stats.overallBest': 'Лучшая серия: {n}',
   'stats.perHabit': 'По привычкам',
   'stats.rate': '{n}% дней',
@@ -145,6 +147,8 @@ const ru = {
   'common.ok': 'Понятно',
   'common.today': 'сегодня',
   'common.none': '—',
+  'common.yes': 'да',
+  'common.no': 'нет',
 };
 
 export type Dict = typeof ru;
@@ -178,8 +182,10 @@ const en: Dict = {
   'today.empty.text': 'Start with one. Even one works.',
   'today.empty.cta': 'Create a habit',
   'today.weekly': '{done}/{target} this week',
+  'today.weeklyShort': '{done}/{target} wk',
   'today.weeklyDone': 'Week done: {done}/{target}',
-  'today.cleanDays': '{n} clean days',
+  'today.cleanDays': '{n} days clean',
+  'today.cleanDaysShort': '{n} clean',
   'today.slip': 'I slipped',
   'today.slipUndo': 'Back to clean',
   'today.streak': '{n} in a row',
@@ -227,7 +233,7 @@ const en: Dict = {
   'stats.title': 'Stats',
   'stats.range30': '30 days',
   'stats.range90': '90 days',
-  'stats.overall': 'Days in a row with something done',
+  'stats.overall': 'Days in a row with progress',
   'stats.overallBest': 'Best streak: {n}',
   'stats.perHabit': 'By habit',
   'stats.rate': '{n}% of days',
@@ -290,6 +296,8 @@ const en: Dict = {
   'common.ok': 'Got it',
   'common.today': 'today',
   'common.none': '—',
+  'common.yes': 'yes',
+  'common.no': 'no',
 };
 
 export const STRINGS: Record<Lang, Dict> = { ru, en };

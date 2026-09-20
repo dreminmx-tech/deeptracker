@@ -1,6 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+// Self-hosted variable font (Cyrillic + Latin subsets) — no external requests, works offline.
+import '@fontsource-variable/manrope';
 import './styles.css';
 
 const container = document.getElementById('root');
