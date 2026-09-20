@@ -11,18 +11,19 @@
 [![Deploy](https://github.com/dreminmx-tech/deeptracker/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/dreminmx-tech/deeptracker/actions/workflows/deploy.yml)
 [![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square&labelColor=141418)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-offline--first-0070f3?style=flat-square&labelColor=141418)](docs/technical.md#pwa)
-[![Tests](https://img.shields.io/badge/tests-25%20passing-22c55e?style=flat-square&labelColor=141418)](docs/technical.md#tests)
+[![Tests](https://img.shields.io/badge/tests-31%20passing-22c55e?style=flat-square&labelColor=141418)](docs/technical.md#tests)
 [![React](https://img.shields.io/badge/React-19-0070f3?style=flat-square&labelColor=141418)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7-0070f3?style=flat-square&labelColor=141418)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8-0070f3?style=flat-square&labelColor=141418)](https://vite.dev)
-[![Bundle](https://img.shields.io/badge/бандл-84%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
+[![Bundle](https://img.shields.io/badge/бандл-87%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/today.png" alt="Экран «Сегодня»" width="200"><br><sub>Сегодня</sub></td>
-    <td align="center"><img src="docs/screenshots/stats.png" alt="Статистика" width="200"><br><sub>Статистика</sub></td>
-    <td align="center"><img src="docs/screenshots/habits.png" alt="Привычки" width="200"><br><sub>Привычки</sub></td>
-    <td align="center"><img src="docs/screenshots/today-light.png" alt="Светлая тема" width="200"><br><sub>Светлая тема</sub></td>
+    <td align="center"><img src="docs/screenshots/today.png" alt="Экран «Сегодня»" width="165"><br><sub>Сегодня</sub></td>
+    <td align="center"><img src="docs/screenshots/today-log.png" alt="Быстрый ввод: 20 минут одним тапом" width="165"><br><sub>Быстрый ввод</sub></td>
+    <td align="center"><img src="docs/screenshots/stats.png" alt="Статистика" width="165"><br><sub>Статистика</sub></td>
+    <td align="center"><img src="docs/screenshots/habits.png" alt="Привычки" width="165"><br><sub>Привычки</sub></td>
+    <td align="center"><img src="docs/screenshots/today-light.png" alt="Светлая тема" width="165"><br><sub>Светлая тема</sub></td>
   </tr>
 </table>
 
@@ -39,7 +40,7 @@
 ```bash
 npm install
 npm run dev      # http://127.0.0.1:5173
-npm test         # 25 тестов: логика + рендер всех экранов
+npm test         # 31 тест: логика + рендер всех экранов
 ```
 
 Сборка и просмотр продакшн-версии:
@@ -61,13 +62,15 @@ npm run preview  # http://127.0.0.1:4173
 - ✅ **Пять типов привычек** — отметка, счётчик с целью, минуты с таймером, «не делать» и гибкая частота вроде «3 раза в неделю».
 - 🪶 **Мягкие серии** — «не пропускай дважды»: один пропущенный день не обнуляет прогресс, ломают только два подряд, а сегодняшний незакрытый день вообще не считается пропуском.
 - 🎯 **«Главное сегодня»** — максимум три привычки наверху, остальные ниже: меньше паралича выбора.
-- 📐 **Плотно, без простыней** — крупные карточки только у главных трёх, остальные привычки живут компактными строками по 52 px: весь день видно почти без скролла.
+- 👆 **Один тап вместо двадцати** — значение в строке (`0/6`, `25/20 мин`) само открывает быстрый ввод: выбираешь «20 минут» и всё, считать по единице не нужно. Рядом, в том же окне, таймер.
+- 📐 **Плотно, без простыней** — один паттерн строки на все списки: галочка, название, одно значение и кнопки действий. Высоты кнопок, полей и строк берутся из одной шкалы (32/40/44/56), отступы — из одной сетки (4…32), карточка всегда 16px внутри и 12px между детьми.
+- 📊 **Статистика без осуждения** — полоса-график за 30 или 90 дней на всю ширину: высота столбика показывает, насколько закрыт день, а разбивка по привычкам — один список с разделителями. Ни одного жёлтого пикселя; красный остался только у кнопки «удалить всё».
 - ⏱️ **«Просто начни»** — таймер на 2 минуты с минимальной версией привычки вместо целого дела.
 - 🧠 **Брейн-дамп** — быстрый инбокс мыслей на сегодня, чтобы не держать их в голове.
-- 📊 **Статистика без осуждения** — heatmap на 30 или 90 дней, серая шкала, ни одного красного цвета: пустая клетка — просто пустая клетка.
+- 🧹 **Данные без хаоса** — бэкап двумя понятными действиями (скачать / загрузить из файла), вставка JSON спрятана под раскрывашку, удаление — в отдельной «опасной зоне».
 - 📴 **Полный офлайн** — service worker, манифест и иконки: приложение ставится на телефон и работает в самолёте.
 - 🔒 **Приватность по умолчанию** — никаких аккаунтов, аналитики и сети; данные лежат в `localStorage`, бэкап — экспорт в JSON.
-- 🌗 **Две темы и своя типографика** — тёмная в цветах дашборда DeepSeek Platform, светлая строго чёрно-белая; шрифт Manrope с самохостингом (кириллица + латиница), иконки — собственные SVG. Интерфейс на русском и английском.
+- 🌗 **Две темы и своя типографика** — тёмная в цветах дашборда DeepSeek Platform, светлая строго чёрно-белая; шрифт Manrope с самохостингом (кириллица + латиница), иконки — Lucide. Интерфейс на русском и английском.
 - 🔗 **Ссылки на вкладки** — `/#stats`, `/#habits`, `/#settings`: можно держать в закладках и открывать сразу нужный экран.
 
 ### 🗂 Типы привычек
@@ -75,8 +78,8 @@ npm run preview  # http://127.0.0.1:4173
 | Тип | Как работает |
 | --- | --- |
 | ✅ Отметка | Сделано / не сделано, один тап по карточке |
-| 🔢 Счётчик | Цель в день (например, 6 стаканов воды), кнопки − / + |
-| ⏳ Минуты | Цель по времени, минуты накапливаются таймером |
+| 🔢 Счётчик | Цель в день (например, 6 стаканов воды), кнопки − / + и чипы быстрого ввода |
+| ⏳ Минуты | Цель по времени: таймер или быстрый выбор «20 мин» одним тапом |
 | 🚫 Не делать | Чисто по умолчанию, отмечаются только срывы |
 | 🔄 Гибкая частота | Например, 3 раза в неделю, с чипом `1/3 за неделю` |
 

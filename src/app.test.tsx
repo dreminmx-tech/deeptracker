@@ -4,6 +4,8 @@ import type { ReactNode } from 'react';
 import App from './App';
 import { StoreProvider } from './store';
 import { ToastProvider } from './components/Toast';
+import ActionSheet from './components/ActionSheet';
+import LogDialog from './components/LogDialog';
 import TodayView from './components/TodayView';
 import HabitsView from './components/HabitsView';
 import StatsView from './components/StatsView';
@@ -57,19 +59,42 @@ describe('views render', () => {
   it('renders the shell with tabs and the seeded habits', () => {
     seedStorage(freshData('ru'));
     const html = render(<App />);
-    expect(html).toContain('deeptracker');
     expect(html).toContain('Сегодня');
+    expect(html).toContain('Привычки');
     expect(html).toContain('Статистика');
+    expect(html).toContain('Настройки');
     expect(html).toContain('Выпить таблетки');
-    expect(html).toContain('Главное сегодня');
+    expect(html).toContain('Вода');
   });
 
-  it('renders Today with the brain dump', () => {
+  it('renders Today with the brain dump and one quiet status per row', () => {
     seedStorage(dataWithHistory());
     const html = render(<TodayView onGoToHabits={() => {}} />);
     expect(html).toContain('Мысли на сегодня');
     expect(html).toContain('Позвонить в поликлинику');
-    expect(html).toContain('Просто начни');
+    expect(html).toContain('0/6');
+    expect(html).toContain('25/20 мин');
+    // ежедневные действия — инлайн-иконки, читать ничего не нужно
+    expect(html).toContain('aria-label="Прибавить"');
+    expect(html).toContain('aria-label="Просто начни"');
+    // значение счётчика — кнопка быстрого ввода, а не просто текст
+    expect(html).toContain('aria-label="0/6 — изменить"');
+    expect(html).toContain('aria-label="25/20 мин — изменить"');
+  });
+
+  it('logs a whole amount in one tap instead of twenty', () => {
+    const walk = freshData('ru').habits[2];
+    if (!walk) throw new Error('seeds missing');
+    seedStorage(freshData('ru'));
+    const html = render(<LogDialog habit={walk} mode="quick" onClose={() => {}} />);
+
+    expect(html).toContain('Сколько всего, мин?');
+    expect(html).toContain('Цель — 20 мин');
+    expect(html).toContain('aria-label="Записать 20 мин"');
+    expect(html.match(/class="chip"/g)).toHaveLength(4);
+    // и таймер рядом, в том же окне
+    expect(html).toContain('Засечь время');
+    expect(html).toContain('20:00');
   });
 
   it('renders the habits list', () => {
@@ -80,12 +105,17 @@ describe('views render', () => {
     expect(html).toContain('+ Привычка');
   });
 
-  it('renders stats with a heatmap once there is data', () => {
+  it('renders stats with a trend strip once there is data', () => {
     seedStorage(dataWithHistory());
     const html = render(<StatsView />);
-    expect(html).toContain('По привычкам');
-    expect(html).toContain('heatmap');
+    expect(html).toContain('100% дней');
+    expect(html).toContain('class="trend"');
     expect(html).toContain('данные, а не оценка');
+    // заголовок — такая же карточка, как всё остальное, а привычки живут одним списком
+    expect(html).toContain('class="card stat"');
+    expect(html).toContain('class="rows"');
+    expect(html).toContain('class="hstat"');
+    expect(html).toContain('По привычкам');
   });
 
   it('renders the empty stats state without data', () => {
@@ -101,5 +131,32 @@ describe('views render', () => {
     expect(html).toContain('Settings');
     expect(html).toContain('Download JSON');
     expect(html).toContain('Delete all data');
+    // паста спрятана, а разрушительное действие отделено и подписано
+    expect(html).toContain('Paste JSON manually');
+    expect(html).toContain('Danger zone');
+    expect(html).toContain('btn btn-danger');
+    expect(html).toContain('class="segmented segmented-wide"');
+  });
+
+  it('renders the action sheet as a plain text list', () => {
+    seedStorage(freshData('ru'));
+    const html = render(
+      <ActionSheet
+        title="Вода"
+        subtitle="Счётчик · 6 стаканов"
+        actions={[
+          { label: 'Отметить сделанным', onSelect: () => {}, primary: true },
+          { label: 'Убавить', onSelect: () => {} },
+          { label: 'Прибавить', onSelect: () => {} },
+        ]}
+        onClose={() => {}}
+        closeLabel="Закрыть"
+      />,
+    );
+    expect(html).toContain('Счётчик · 6 стаканов');
+    expect(html).toContain('Отметить сделанным');
+    expect(html).toContain('Прибавить');
+    // одно нажатие — одно действие, без иконок
+    expect(html.match(/class="action"/g)).toHaveLength(3);
   });
 });

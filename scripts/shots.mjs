@@ -172,11 +172,21 @@ try {
   let scriptId = null;
 
   const shots = [
-    { name: 'today', tab: 'today', theme: 'dark', width: 390, height: 900 },
-    { name: 'habits', tab: 'habits', theme: 'dark', width: 390, height: 620 },
-    { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 1000 },
-    { name: 'settings', tab: 'settings', theme: 'dark', width: 390, height: 1000 },
-    { name: 'today-light', tab: 'today', theme: 'light', width: 390, height: 900 },
+    { name: 'today', tab: 'today', theme: 'dark', width: 390, height: 820 },
+    {
+      name: 'today-log',
+      tab: 'today',
+      theme: 'dark',
+      width: 390,
+      height: 820,
+      // второй чип — «Прогулка»: окно быстрого ввода минут с чипами и таймером
+      clickJs: "document.querySelectorAll('.hrow-chip')[1]?.click()",
+    },
+    { name: 'habits', tab: 'habits', theme: 'dark', width: 390, height: 520 },
+    { name: 'habits-actions', tab: 'habits', theme: 'dark', width: 390, height: 620, click: '.row-act' },
+    { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 1320 },
+    { name: 'settings', tab: 'settings', theme: 'dark', width: 390, height: 1420 },
+    { name: 'today-light', tab: 'today', theme: 'light', width: 390, height: 820 },
   ];
 
   for (const shot of shots) {
@@ -198,6 +208,18 @@ try {
     await cdp.send('Page.navigate', { url: `${BASE}?shot=${shot.name}#${shot.tab}` });
     await loaded;
     await sleep(700); // let fonts + transitions settle
+
+    if (shot.click) {
+      await cdp.send('Runtime.evaluate', {
+        expression: `document.querySelector(${JSON.stringify(shot.click)})?.click()`,
+      });
+      await sleep(400);
+    }
+
+    if (shot.clickJs) {
+      await cdp.send('Runtime.evaluate', { expression: shot.clickJs });
+      await sleep(400);
+    }
 
     const check = await cdp.send('Runtime.evaluate', {
       expression:

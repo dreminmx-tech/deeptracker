@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import Icon from './Icon';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   title: string;
@@ -35,7 +35,7 @@ export default function Modal({ title, onClose, children, footer, closeLabel }: 
         <header className="sheet-head">
           <h2>{title}</h2>
           <button type="button" className="icon-btn" onClick={onClose} aria-label={closeLabel}>
-            <Icon name="x" size={18} />
+            <X size={18} strokeWidth={1.8} />
           </button>
         </header>
         <div className="sheet-body">{children}</div>

@@ -1,114 +1,95 @@
+import type { ReactNode } from 'react';
+import { ChevronRight } from 'lucide-react';
 import type { Habit } from '../types';
-import { useStore } from '../store';
-import { t } from '../lib/i18n';
-import { todayKey } from '../lib/date';
-import { bumpCounter, tapHabit } from '../lib/actions';
-import { getEntry, isComplete } from '../lib/habits';
 import Checkbox from './Checkbox';
-import Icon from './Icon';
-import { habitMeta } from './habitText';
 
-interface HabitRowProps {
+export interface HabitRowProps {
   habit: Habit;
-  onStartTiny: (habit: Habit) => void;
-  onOpenTimer: (habit: Habit) => void;
+  /** Right-aligned muted value (today's progress). */
+  status?: string;
+  /** Makes that value a button — counter and minutes habits open the quick log. */
+  onStatus?: () => void;
+  /** Accessible name of that button, since the value is just “3/6”. */
+  statusLabel?: string;
+  /** Optional second line, used by the management list. */
+  sub?: string;
+  /** The main three get a heavier name — the only emphasis in the list. */
+  pinned?: boolean;
+  /** When set, the row body completes the habit. */
+  onToggle?: () => void;
+  done?: boolean;
+  /** Inline daily actions (icon buttons) — Today. */
+  actions?: ReactNode;
+  /** Management list: opens the sheet instead. */
+  onOpen?: () => void;
+  openLabel?: string;
 }
 
 /**
- * Dense single-line row for everything below the main three.
- * Negative habits have no row-wide tap: a slip must be logged on purpose.
+ * One row pattern for every list: checkbox, name, one value, then either inline
+ * actions (today) or a chevron into the sheet (management).
  */
-export default function HabitRow({ habit, onStartTiny, onOpenTimer }: HabitRowProps) {
-  const { data, update } = useStore();
-  const dict = t(data.settings.lang);
-  const today = todayKey();
-
-  const entry = getEntry(data, today, habit.id);
-  const complete = isComplete(habit, entry);
-  const meta = habitMeta(data, habit, dict, data.settings.lang);
-  const isNegative = habit.kind === 'negative';
-  const slipped = isNegative && (entry?.value ?? 0) > 0;
-
+export default function HabitRow({
+  habit,
+  status,
+  onStatus,
+  statusLabel,
+  sub,
+  pinned,
+  onToggle,
+  done,
+  actions,
+  onOpen,
+  openLabel,
+}: HabitRowProps) {
   const label = (
     <>
-      <Checkbox checked={complete} small />
-      <span className="hrow-name">{habit.name}</span>
+      {onToggle ? <Checkbox checked={Boolean(done)} /> : null}
+      <span className="hrow-text">
+        <span className="hrow-name">{habit.name}</span>
+        {sub ? <span className="hrow-sub">{sub}</span> : null}
+      </span>
     </>
   );
 
   return (
-    <div className={`hrow${complete ? ' is-done' : ''}`} data-kind={habit.kind}>
-      {isNegative ? (
-        <div className="hrow-main hrow-static">{label}</div>
-      ) : (
+    <div className="hrow" data-done={done ? 'true' : 'false'} data-pinned={pinned ? 'true' : 'false'}>
+      {onToggle ? (
         <button
           type="button"
           className="hrow-main"
-          aria-pressed={complete}
+          onClick={onToggle}
+          aria-pressed={Boolean(done)}
           aria-label={habit.name}
-          onClick={() => update((current) => tapHabit(current, habit.id))}
         >
           {label}
         </button>
+      ) : (
+        <div className="hrow-main hrow-static">{label}</div>
       )}
 
-      {meta ? <span className="hrow-meta">{meta}</span> : null}
-
-      <div className="hrow-actions">
-        {habit.kind === 'counter' ? (
-          <>
-            <button
-              type="button"
-              className="icon-btn sm"
-              aria-label="-1"
-              onClick={() => update((current) => bumpCounter(current, habit.id, today, -1))}
-            >
-              <Icon name="minus" size={18} />
-            </button>
-            <button
-              type="button"
-              className="icon-btn sm"
-              aria-label="+1"
-              onClick={() => update((current) => bumpCounter(current, habit.id, today, 1))}
-            >
-              <Icon name="plus" size={18} />
-            </button>
-          </>
-        ) : null}
-
-        {habit.kind === 'duration' ? (
+      {status ? (
+        onStatus ? (
           <button
             type="button"
-            className="icon-btn sm"
-            aria-label={dict['timer.focusTitle']}
-            title={dict['timer.focusTitle']}
-            onClick={() => onOpenTimer(habit)}
+            className="hrow-status hrow-chip"
+            onClick={onStatus}
+            aria-label={statusLabel ?? status}
           >
-            <Icon name="timer" size={18} />
-          </button>
-        ) : null}
-
-        {isNegative ? (
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            data-active={slipped ? 'true' : 'false'}
-            onClick={() => update((current) => tapHabit(current, habit.id))}
-          >
-            {slipped ? dict['today.slipUndo'] : dict['today.slip']}
+            {status}
           </button>
         ) : (
-          <button
-            type="button"
-            className="icon-btn sm"
-            aria-label={dict['today.tiny']}
-            title={habit.tiny ?? dict['today.tiny']}
-            onClick={() => onStartTiny(habit)}
-          >
-            <Icon name="play" size={17} />
-          </button>
-        )}
-      </div>
+          <span className="hrow-status">{status}</span>
+        )
+      ) : null}
+
+      {actions ? (
+        <div className="hrow-actions">{actions}</div>
+      ) : onOpen ? (
+        <button type="button" className="row-act" onClick={onOpen} aria-label={openLabel} title={openLabel}>
+          <ChevronRight size={20} strokeWidth={1.8} />
+        </button>
+      ) : null}
     </div>
   );
 }

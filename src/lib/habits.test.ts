@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { AppData, DayLog, Habit } from '../types';
 import { MAX_PINNED } from '../types';
 import { addDays, parseKey, todayKey, type DateKey } from './date';
-import { addMinutes, bumpCounter, deleteHabit, moveHabit, saveHabit, tapHabit } from './actions';
+import { addMinutes, bumpCounter, deleteHabit, moveHabit, saveHabit, setProgress, tapHabit } from './actions';
 import {
   bestStreak,
   dayProgress,
@@ -13,6 +13,7 @@ import {
   weekProgress,
 } from './habits';
 import { freshData, normalizeData, parseImport, toJson } from './storage';
+import { quickSteps } from '../components/habitText';
 
 const TODAY = todayKey();
 
@@ -166,6 +167,43 @@ describe('counters and durations', () => {
     data = addMinutes(data, 'h1', 20, TODAY);
     expect(getEntry(data, TODAY, 'h1')?.value).toBe(25);
     expect(dayStatus(data, habit, TODAY)).toBe('done');
+  });
+
+  it('sets the whole amount at once, so 20 minutes is one tap', () => {
+    const habit = makeHabit({ kind: 'duration', target: 20 });
+    let data = makeData(habit);
+
+    data = setProgress(data, 'h1', 20, TODAY);
+    expect(getEntry(data, TODAY, 'h1')?.value).toBe(20);
+    expect(dayStatus(data, habit, TODAY)).toBe('done');
+
+    // a value cannot run past the goal, and zero clears the day again
+    data = setProgress(data, 'h1', 99, TODAY);
+    expect(getEntry(data, TODAY, 'h1')?.value).toBe(20);
+
+    data = setProgress(data, 'h1', 0, TODAY);
+    expect(getEntry(data, TODAY, 'h1')).toBeUndefined();
+    expect(dayStatus(data, habit, TODAY)).toBe('missed');
+  });
+
+  it('ignores quick-log calls for habits without an amount', () => {
+    const habit = makeHabit({ kind: 'check' });
+    const data = makeData(habit);
+    expect(setProgress(data, 'h1', 5, TODAY)).toBe(data);
+  });
+});
+
+describe('quickSteps', () => {
+  it('offers every unit for small goals', () => {
+    expect(quickSteps(6)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(quickSteps(1)).toEqual([1]);
+  });
+
+  it('offers even jumps that always end on the goal', () => {
+    expect(quickSteps(20)).toEqual([5, 10, 15, 20]);
+    expect(quickSteps(30)).toEqual([10, 20, 30]);
+    expect(quickSteps(90)).toEqual([30, 60, 90]);
+    expect(quickSteps(120)).toEqual([30, 60, 90, 120]);
   });
 });
 

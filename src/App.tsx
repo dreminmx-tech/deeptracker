@@ -1,19 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
+import { BarChart3, CalendarCheck, ListChecks, Settings as SettingsIcon, type LucideIcon } from 'lucide-react';
 import { StoreProvider, useStore } from './store';
 import { ToastProvider } from './components/Toast';
-import Icon from './components/Icon';
 import TodayView from './components/TodayView';
 import HabitsView from './components/HabitsView';
 import StatsView from './components/StatsView';
 import SettingsView from './components/SettingsView';
 import { t } from './lib/i18n';
-import { updateSettings } from './lib/actions';
 import { todayKey } from './lib/date';
 
 type Tab = 'today' | 'habits' | 'stats' | 'settings';
 const TABS: Tab[] = ['today', 'habits', 'stats', 'settings'];
+const TAB_ICONS: Record<Tab, LucideIcon> = {
+  today: CalendarCheck,
+  habits: ListChecks,
+  stats: BarChart3,
+  settings: SettingsIcon,
+};
 
-/** Deep links: /#stats, /#habits … (also handy for screenshots and sharing). */
+/** Deep links: /#stats, /#habits … (handy for bookmarks and screenshots). */
 function tabFromHash(): Tab {
   if (typeof window === 'undefined') return 'today';
   const raw = window.location.hash.replace(/^#\/?/, '');
@@ -21,10 +26,10 @@ function tabFromHash(): Tab {
 }
 
 function Shell() {
-  const { data, update } = useStore();
+  const { data } = useStore();
   const dict = useMemo(() => t(data.settings.lang), [data.settings.lang]);
   const [tab, setTab] = useState<Tab>(() => tabFromHash());
-  // Bumped at midnight / on tab focus so the "today" views roll over without a reload.
+  // Bumped at midnight / on focus so the "today" views roll over without a reload.
   const [day, setDay] = useState(() => todayKey());
 
   useEffect(() => {
@@ -54,48 +59,8 @@ function Shell() {
     }
   }
 
-  const isDark = data.settings.theme === 'dark';
-
   return (
     <div className="app">
-      <header className="app-head">
-        <div className="app-brand">
-          <span className="app-logo" aria-hidden="true">
-            <Icon name="check" size={16} />
-          </span>
-          <div>
-            <p className="app-name">deeptracker</p>
-            <p className="muted tiny">{dict['app.tagline']}</p>
-          </div>
-        </div>
-        <div className="head-actions">
-          <button
-            type="button"
-            className="icon-btn"
-            aria-label={`${dict['settings.theme']}: ${isDark ? dict['settings.theme.light'] : dict['settings.theme.dark']}`}
-            onClick={() =>
-              update((current) =>
-                updateSettings(current, { theme: current.settings.theme === 'dark' ? 'light' : 'dark' }),
-              )
-            }
-          >
-            <Icon name={isDark ? 'sun' : 'moon'} size={18} />
-          </button>
-          <button
-            type="button"
-            className="lang-btn"
-            aria-label={dict['settings.language']}
-            onClick={() =>
-              update((current) =>
-                updateSettings(current, { lang: current.settings.lang === 'ru' ? 'en' : 'ru' }),
-              )
-            }
-          >
-            {data.settings.lang.toUpperCase()}
-          </button>
-        </div>
-      </header>
-
       <main key={day}>
         {tab === 'today' ? <TodayView onGoToHabits={() => selectTab('habits')} /> : null}
         {tab === 'habits' ? <HabitsView /> : null}
@@ -104,17 +69,21 @@ function Shell() {
       </main>
 
       <nav className="tabs">
-        {TABS.map((key) => (
-          <button
-            key={key}
-            type="button"
-            data-active={tab === key ? 'true' : 'false'}
-            aria-current={tab === key ? 'page' : undefined}
-            onClick={() => selectTab(key)}
-          >
-            {dict[`nav.${key}`]}
-          </button>
-        ))}
+        {TABS.map((key) => {
+          const TabIcon = TAB_ICONS[key];
+          return (
+            <button
+              key={key}
+              type="button"
+              data-active={tab === key ? 'true' : 'false'}
+              aria-current={tab === key ? 'page' : undefined}
+              onClick={() => selectTab(key)}
+            >
+              <TabIcon size={20} strokeWidth={1.8} aria-hidden="true" />
+              <span>{dict[`nav.${key}`]}</span>
+            </button>
+          );
+        })}
       </nav>
     </div>
   );

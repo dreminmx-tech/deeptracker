@@ -1,19 +1,30 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
+import { Ban, Minus, Play, Plus, Timer, Undo2, X } from 'lucide-react';
 import type { Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
 import { formatDay, todayKey } from '../lib/date';
-import { addDump, clearDoneDump, removeDump, toggleDump } from '../lib/actions';
-import { activeHabits, dayProgress, getDay, isActionable, mainHabits } from '../lib/habits';
+import { addDump, bumpCounter, clearDoneDump, removeDump, tapHabit, toggleDump } from '../lib/actions';
+import {
+  activeHabits,
+  dayProgress,
+  getDay,
+  getEntry,
+  isActionable,
+  isComplete,
+  mainHabits,
+  targetOf,
+} from '../lib/habits';
 import Checkbox from './Checkbox';
-import HabitCard from './HabitCard';
 import HabitRow from './HabitRow';
-import Icon from './Icon';
-import TimerDialog from './TimerDialog';
+import LogDialog, { type LogMode } from './LogDialog';
+import { habitStatus } from './habitText';
 
 interface TodayViewProps {
   onGoToHabits: () => void;
 }
+
+const ICON = 19;
 
 export default function TodayView({ onGoToHabits }: TodayViewProps) {
   const { data, update } = useStore();
@@ -22,13 +33,13 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
   const today = todayKey();
 
   const [dumpText, setDumpText] = useState('');
-  const [timer, setTimer] = useState<{ habit: Habit; mode: 'tiny' | 'focus' } | null>(null);
+  const [dialog, setDialog] = useState<{ habit: Habit; mode: LogMode } | null>(null);
 
   const active = activeHabits(data);
   const actionable = active.filter(isActionable);
   const main = mainHabits(data);
   const mainIds = new Set(main.map((habit) => habit.id));
-  const secondary = active.filter((habit) => !mainIds.has(habit.id) && habit.kind !== 'negative');
+  const rest = active.filter((habit) => !mainIds.has(habit.id) && habit.kind !== 'negative');
   const negatives = active.filter((habit) => habit.kind === 'negative');
 
   const day = getDay(data, today);
@@ -45,20 +56,120 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
           ? dict['today.greeting.day']
           : dict['today.greeting.evening'];
 
-  const progressNote =
-    total === 0 ? '' : done === total ? dict['today.allDone'] : done === 0 ? dict['today.noneYet'] : '';
+  const startTiny = (habit: Habit) => setDialog({ habit, mode: 'tiny' });
+  const openLog = (habit: Habit) => setDialog({ habit, mode: 'quick' });
 
-  const startTiny = (habit: Habit) => setTimer({ habit, mode: 'tiny' });
-  const openTimer = (habit: Habit) => setTimer({ habit, mode: 'focus' });
+  /**
+   * Daily actions are inline icons, one tap each — nothing to read:
+   * counter gets −/+, minutes get the timer, the rest get “just start”,
+   * “don't do” gets the slip. The value itself opens the quick log.
+   */
+  function actionsFor(habit: Habit): ReactNode {
+    const entry = getEntry(data, today, habit.id);
+
+    if (habit.kind === 'counter') {
+      return (
+        <>
+          <button
+            type="button"
+            className="row-act"
+            aria-label={dict['sheet.minus']}
+            title={dict['sheet.minus']}
+            onClick={() => update((current) => bumpCounter(current, habit.id, today, -1))}
+          >
+            <Minus size={ICON} strokeWidth={2} />
+          </button>
+          <button
+            type="button"
+            className="row-act"
+            aria-label={dict['sheet.plus']}
+            title={dict['sheet.plus']}
+            onClick={() => update((current) => bumpCounter(current, habit.id, today, 1))}
+          >
+            <Plus size={ICON} strokeWidth={2} />
+          </button>
+        </>
+      );
+    }
+
+    if (habit.kind === 'duration') {
+      const label = fill(dict['sheet.timer'], {
+        n: `${targetOf(habit)} ${habit.unit ?? (lang === 'ru' ? 'мин' : 'min')}`,
+      });
+      return (
+        <button
+          type="button"
+          className="row-act"
+          aria-label={label}
+          title={label}
+          onClick={() => openLog(habit)}
+        >
+          <Timer size={ICON} strokeWidth={1.8} />
+        </button>
+      );
+    }
+
+    if (habit.kind === 'negative') {
+      const slipped = (entry?.value ?? 0) > 0;
+      const label = slipped ? dict['sheet.slipUndo'] : dict['sheet.slip'];
+      return (
+        <button
+          type="button"
+          className="row-act"
+          data-active={slipped ? 'true' : 'false'}
+          aria-label={label}
+          title={label}
+          onClick={() => update((current) => tapHabit(current, habit.id))}
+        >
+          {slipped ? <Undo2 size={ICON} strokeWidth={1.8} /> : <Ban size={ICON} strokeWidth={1.8} />}
+        </button>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        className="row-act"
+        aria-label={dict['today.tiny']}
+        title={dict['today.tiny']}
+        onClick={() => startTiny(habit)}
+      >
+        <Play size={ICON} strokeWidth={1.8} />
+      </button>
+    );
+  }
+
+  function row(habit: Habit) {
+    const isNegative = habit.kind === 'negative';
+    const counts = habit.kind === 'counter' || habit.kind === 'duration';
+    const status = habitStatus(data, habit, lang);
+    return (
+      <HabitRow
+        key={habit.id}
+        habit={habit}
+        pinned={habit.pinned}
+        done={isComplete(habit, getEntry(data, today, habit.id))}
+        status={status}
+        onStatus={counts ? () => openLog(habit) : undefined}
+        statusLabel={fill(dict['log.open'], { v: status })}
+        onToggle={
+          isNegative
+            ? undefined
+            : () => update((current) => tapHabit(current, habit.id))
+        }
+        actions={actionsFor(habit)}
+      />
+    );
+  }
 
   return (
     <div className="stack">
-      <header className="today-head">
-        <p className="eyebrow">{formatDay(today, lang)}</p>
-        <div className="today-title">
+      <header className="day-head">
+        <p className="label">{formatDay(today, lang)}</p>
+        <div className="day-line">
           <h1>{greeting}</h1>
           {total > 0 ? (
-            <span className="today-count">{fill(dict['today.progress'], { done, total })}</span>
+            <span className="day-count">{fill(dict['today.progress'], { done, total })}</span>
           ) : null}
         </div>
         {total > 0 ? (
@@ -73,132 +184,96 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
             <span className="bar-fill" style={{ width: `${percent}%` }} />
           </div>
         ) : null}
-        {progressNote ? <p className="muted small">{progressNote}</p> : null}
       </header>
 
       {active.length === 0 ? (
-        <section className="card empty">
-          <h2>{dict['today.empty.title']}</h2>
+        <div className="empty">
           <p className="muted">{dict['today.empty.text']}</p>
           <button type="button" className="btn btn-primary" onClick={onGoToHabits}>
             {dict['today.empty.cta']}
           </button>
-        </section>
-      ) : null}
-
-      {main.length > 0 ? (
-        <section className="section">
-          <h2 className="section-title">{dict['today.main']}</h2>
-          <div className="cards">
-            {main.map((habit) => (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                onStartTiny={startTiny}
-                onOpenTimer={openTimer}
-              />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {secondary.length > 0 ? (
-        <section className="section">
-          <h2 className="section-title">{dict['today.others']}</h2>
+        </div>
+      ) : (
+        <>
           <div className="rows">
-            {secondary.map((habit) => (
-              <HabitRow
-                key={habit.id}
-                habit={habit}
-                onStartTiny={startTiny}
-                onOpenTimer={openTimer}
-              />
-            ))}
+            {main.map(row)}
+            {rest.map(row)}
           </div>
-        </section>
-      ) : null}
 
-      {negatives.length > 0 ? (
-        <section className="section">
-          <h2 className="section-title">{dict['today.negatives']}</h2>
-          <div className="rows">
-            {negatives.map((habit) => (
-              <HabitRow
-                key={habit.id}
-                habit={habit}
-                onStartTiny={startTiny}
-                onOpenTimer={openTimer}
+          {negatives.length > 0 ? (
+            <section className="block">
+              <p className="label">{dict['today.negatives']}</p>
+              <div className="rows">{negatives.map(row)}</div>
+            </section>
+          ) : null}
+
+          <section className="block">
+            <p className="label">{dict['today.dump']}</p>
+            <form
+              className="dump-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                update((current) => addDump(current, today, dumpText));
+                setDumpText('');
+              }}
+            >
+              <input
+                type="text"
+                value={dumpText}
+                maxLength={280}
+                placeholder={dict['today.dumpPlaceholder']}
+                aria-label={dict['today.dumpPlaceholder']}
+                onChange={(event) => setDumpText(event.target.value)}
               />
-            ))}
-          </div>
-          <p className="banner small">{dict['today.negativesHint']}</p>
-        </section>
-      ) : null}
+              <button type="submit" className="btn" disabled={dumpText.trim().length === 0}>
+                {dict['today.dumpAdd']}
+              </button>
+            </form>
 
-      <section className="section">
-        <h2 className="section-title">{dict['today.dump']}</h2>
-        <form
-          className="dump-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            update((current) => addDump(current, today, dumpText));
-            setDumpText('');
-          }}
-        >
-          <input
-            type="text"
-            value={dumpText}
-            maxLength={280}
-            placeholder={dict['today.dumpPlaceholder']}
-            aria-label={dict['today.dumpPlaceholder']}
-            onChange={(event) => setDumpText(event.target.value)}
-          />
-          <button type="submit" className="btn btn-sm" disabled={dumpText.trim().length === 0}>
-            {dict['today.dumpAdd']}
-          </button>
-        </form>
+            {day.dump.length > 0 ? (
+              <ul className="dump-list">
+                {day.dump.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className="dump-item"
+                      aria-pressed={item.done}
+                      onClick={() => update((current) => toggleDump(current, today, item.id))}
+                    >
+                      <Checkbox checked={item.done} small />
+                      <span className="dump-text" data-done={item.done ? 'true' : 'false'}>
+                        {item.text}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="dump-remove"
+                      aria-label={dict['common.delete']}
+                      title={dict['common.delete']}
+                      onClick={() => update((current) => removeDump(current, today, item.id))}
+                    >
+                      <X size={ICON} strokeWidth={1.8} aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
 
-        {day.dump.length === 0 ? (
-          <p className="muted small">{dict['today.dumpEmpty']}</p>
-        ) : (
-          <ul className="dump-list">
-            {day.dump.map((item) => (
-              <li key={item.id} className={item.done ? 'is-done' : ''}>
-                <button
-                  type="button"
-                  className="dump-item"
-                  aria-pressed={item.done}
-                  onClick={() => update((current) => toggleDump(current, today, item.id))}
-                >
-                  <Checkbox checked={item.done} small />
-                  <span className="dump-text">{item.text}</span>
-                </button>
-                <button
-                  type="button"
-                  className="icon-btn sm"
-                  aria-label={dict['common.delete']}
-                  onClick={() => update((current) => removeDump(current, today, item.id))}
-                >
-                  <Icon name="x" size={16} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+            {day.dump.some((item) => item.done) ? (
+              <button
+                type="button"
+                className="link"
+                onClick={() => update((current) => clearDoneDump(current, today))}
+              >
+                {dict['today.dumpClear']}
+              </button>
+            ) : null}
+          </section>
+        </>
+      )}
 
-        {day.dump.some((item) => item.done) ? (
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => update((current) => clearDoneDump(current, today))}
-          >
-            {dict['today.dumpClear']}
-          </button>
-        ) : null}
-      </section>
-
-      {timer ? (
-        <TimerDialog habit={timer.habit} mode={timer.mode} onClose={() => setTimer(null)} />
+      {dialog ? (
+        <LogDialog habit={dialog.habit} mode={dialog.mode} onClose={() => setDialog(null)} />
       ) : null}
     </div>
   );

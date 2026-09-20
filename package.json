@@ -1,7 +1,7 @@
 {
   "name": "deeptracker",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Minimal offline-first habit tracker for the ADHD brain. Black & white, no accounts, no network.",
   "scripts": {
@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",
+    "lucide-react": "^1.47.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

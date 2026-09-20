@@ -1,7 +1,7 @@
 import type { AppData, DumpItem, Entry, Habit, HabitKind, Settings } from '../types';
 import type { DateKey } from './date';
 import { todayKey } from './date';
-import { canPinMore, emptyDay, getEntry, isComplete, stepOf, targetOf } from './habits';
+import { canPinMore, emptyDay, getEntry, isComplete, isCounted, stepOf, targetOf } from './habits';
 
 export function uid(prefix = 'h'): string {
   return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -100,6 +100,23 @@ export function addMinutes(
     habitId,
     next === 0 ? null : { value: next, done: next >= targetOf(habit) },
   );
+}
+
+/**
+ * Sets today's amount outright — what the quick-log chips use.
+ * One tap says "20 минут" instead of tapping +1 twenty times. Clamped to the goal.
+ */
+export function setProgress(
+  data: AppData,
+  habitId: string,
+  value: number,
+  key: DateKey = todayKey(),
+): AppData {
+  const habit = data.habits.find((h) => h.id === habitId);
+  if (!habit || !isCounted(habit)) return data;
+  const target = targetOf(habit);
+  const next = Math.max(0, Math.min(target, Math.round(value)));
+  return withEntry(data, key, habitId, next === 0 ? null : { value: next, done: next >= target });
 }
 
 export function addDump(data: AppData, key: DateKey, text: string): AppData {

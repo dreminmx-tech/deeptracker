@@ -14,7 +14,7 @@ import {
   softStreak,
   weekProgress,
 } from '../lib/habits';
-import Heatmap from './Heatmap';
+import TrendStrip from './TrendStrip';
 
 /** Longest run using the same "something was done" rule as the headline streak. */
 function bestRun(flags: boolean[]): number {
@@ -67,53 +67,63 @@ export default function StatsView() {
       </header>
 
       {!anything ? (
-        <section className="card empty">
-          <p className="muted">{dict['stats.empty']}</p>
-        </section>
+        <p className="muted">{dict['stats.empty']}</p>
       ) : (
         <>
-          <section className="card stat-card">
-            <span className="stat-big">{streak}</span>
-            <span className="stat-label">{dict['stats.overall']}</span>
-            <span className="chip">{fill(dict['stats.overallBest'], { n: best })}</span>
-          </section>
+          <div className="card stat">
+            <div className="stat-main">
+              <span className="stat-big">{streak}</span>
+              <span className="stat-label">{dict['stats.overall']}</span>
+            </div>
+            <span className="stat-note">{fill(dict['stats.overallBest'], { n: best })}</span>
+          </div>
 
-          <section className="card">
-            <Heatmap days={days} lang={lang} statusFor={(key) => dayHeatStatus(data, actionable, key, today)} />
+          <div className="card">
+            <TrendStrip
+              days={days}
+              lang={lang}
+              statusFor={(key) => dayHeatStatus(data, actionable, key, today)}
+            />
             <ul className="legend">
               {(['done', 'partial', 'missed', 'rest'] as const).map((status) => (
                 <li key={status}>
-                  <span className="cell" data-status={status} aria-hidden="true" />
+                  <span className="trend-sample" data-status={status} aria-hidden="true" />
                   {dict[`stats.legend.${status}`]}
                 </li>
               ))}
             </ul>
-            <p className="banner small">{dict['stats.noJudgement']}</p>
-          </section>
+            <p className="muted small">{dict['stats.noJudgement']}</p>
+          </div>
 
-          <section className="section">
-            <h2 className="section-title">{dict['stats.perHabit']}</h2>
-            {habits.map((habit) => {
-              const rate = Math.round(completionRate(data, habit, days) * 100);
-              const weekly = habit.kind === 'flex' ? weekProgress(data, habit) : null;
-              return (
-                <article key={habit.id} className="card habit-stat">
-                  <div className="habit-stat-head">
-                    <span className="row-name">{habit.name}</span>
-                    <span className="chip">
-                      {weekly
-                        ? fill(dict['today.weekly'], { done: weekly.done, target: weekly.target })
-                        : fill(dict['stats.rate'], { n: rate })}
-                    </span>
+          <section className="block">
+            <p className="label">{dict['stats.perHabit']}</p>
+            <div className="rows">
+              {habits.map((habit) => {
+                const rate = Math.round(completionRate(data, habit, days) * 100);
+                const weekly = habit.kind === 'flex' ? weekProgress(data, habit) : null;
+                return (
+                  <div key={habit.id} className="hstat">
+                    <div className="hstat-head">
+                      <span className="hrow-name">{habit.name}</span>
+                      <span className="hstat-value muted small">
+                        {weekly
+                          ? fill(dict['today.weekly'], { done: weekly.done, target: weekly.target })
+                          : fill(dict['stats.rate'], { n: rate })}
+                      </span>
+                    </div>
+                    <TrendStrip
+                      days={days}
+                      lang={lang}
+                      statusFor={(key) => dayStatus(data, habit, key, today)}
+                    />
+                    <p className="muted small">
+                      {fill(dict['today.streak'], { n: softStreak(data, habit) })} ·{' '}
+                      {fill(dict['today.best'], { n: bestStreak(data, habit) })}
+                    </p>
                   </div>
-                  <Heatmap days={days} lang={lang} statusFor={(key) => dayStatus(data, habit, key, today)} />
-                  <p className="muted small">
-                    {fill(dict['today.streak'], { n: softStreak(data, habit) })} ·{' '}
-                    {fill(dict['today.best'], { n: bestStreak(data, habit) })}
-                  </p>
-                </article>
-              );
-            })}
+                );
+              })}
+            </div>
           </section>
         </>
       )}
