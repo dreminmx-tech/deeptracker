@@ -3,19 +3,81 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>deeptracker — трекер привычек</title>
+
+    <!-- SEO -->
+    <title>deeptracker — минималистичный офлайн-трекер привычек для СДВГ</title>
     <meta
       name="description"
-      content="Минималистичный офлайн-трекер привычек для СДВГ. Чёрно-белый, без аккаунтов, без сети."
+      content="Бесплатный трекер привычек для СДВГ: пять типов привычек, мягкие серии «не пропускай дважды», максимум три главных дела на день и режим «просто начни» на 2 минуты. Работает офлайн, ставится на телефон, без аккаунтов и рекламы — данные остаются в браузере."
     />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://dreminmx-tech.github.io/deeptracker/" />
+    <meta name="author" content="dreminmx-tech" />
     <meta name="theme-color" content="#141418" />
     <meta name="color-scheme" content="dark light" />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="deeptracker" />
+    <meta property="og:url" content="https://dreminmx-tech.github.io/deeptracker/" />
+    <meta property="og:title" content="deeptracker — офлайн-трекер привычек для СДВГ" />
+    <meta
+      property="og:description"
+      content="Мягкие серии «не пропускай дважды», три главных привычки на день и «просто начни» на 2 минуты. Офлайн, без аккаунтов, бесплатно."
+    />
+    <meta property="og:image" content="https://dreminmx-tech.github.io/deeptracker/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="deeptracker: галочка в синем цвете на тёмном фоне" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="deeptracker — офлайн-трекер привычек для СДВГ" />
+    <meta
+      name="twitter:description"
+      content="Мягкие серии, три главные привычки на день, режим «просто начни». Офлайн-first PWA, без аккаунтов."
+    />
+    <meta name="twitter:image" content="https://dreminmx-tech.github.io/deeptracker/og.png" />
+
+    <!-- PWA -->
+    <meta name="application-name" content="deeptracker" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="deeptracker" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./icons/icon-180.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "deeptracker",
+        "alternateName": "Трекер привычек для СДВГ",
+        "applicationCategory": "LifestyleApplication",
+        "applicationSubCategory": "Habit tracker",
+        "operatingSystem": "Web, Android, iOS (PWA, офлайн)",
+        "url": "https://dreminmx-tech.github.io/deeptracker/",
+        "description": "Минималистичный офлайн-трекер привычек для СДВГ: мягкие серии, до трёх главных привычек в день, режим «просто начни» на две минуты, статистика без осуждения.",
+        "inLanguage": ["ru", "en"],
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "license": "https://github.com/dreminmx-tech/deeptracker/blob/main/LICENSE",
+        "codeRepository": "https://github.com/dreminmx-tech/deeptracker",
+        "featureList": [
+          "Пять типов привычек: отметка, счётчик, минуты, «не делать», гибкая частота",
+          "Мягкие серии «не пропускай дважды»",
+          "Блок «Главное сегодня» из трёх привычек",
+          "Режим «просто начни» на две минуты",
+          "Брейн-дамп мыслей на день",
+          "Heatmap 30/90 дней, экспорт и импорт JSON",
+          "Полностью офлайн, без аккаунтов и рекламы"
+        ]
+      }
+    </script>
+
     <script>
       // Apply the saved theme before first paint to avoid a white flash.
       (function () {
@@ -35,6 +97,10 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      deeptracker — офлайн-трекер привычек для СДВГ. Для работы нужен JavaScript: все данные хранятся
+      в браузере и никуда не отправляются.
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

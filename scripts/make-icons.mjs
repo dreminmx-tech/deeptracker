@@ -11,6 +11,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const OUT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'icons');
+const PUBLIC_DIR = resolve(OUT_DIR, '..');
 
 /* ------------------------------- PNG encoder ------------------------------ */
 
@@ -146,6 +147,54 @@ function renderCheckIcon(size, maskable) {
   return encodePng(size, size, buffer);
 }
 
+/** 1200x630 social preview: flat dark canvas with the accent check, no text needed. */
+function renderOgImage(width, height) {
+  const samples = 3;
+  const box = Math.round(height * 0.66);
+  const left = (width - box) / 2;
+  const top = (height - box) / 2;
+  const place = (u, v) => [left + u * box, top + v * box];
+  const a = place(0.24, 0.53);
+  const b = place(0.44, 0.73);
+  const c = place(0.77, 0.3);
+  const stroke = box * 0.11;
+
+  // Fast path: everything outside the check's bounding box is flat background.
+  const minX = Math.floor(left + 0.2 * box - stroke);
+  const maxX = Math.ceil(left + 0.8 * box + stroke);
+  const minY = Math.floor(top + 0.25 * box - stroke);
+  const maxY = Math.ceil(top + 0.78 * box + stroke);
+
+  const buffer = Buffer.alloc(width * height * 4);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = (y * width + x) * 4;
+      let coverage = 0;
+      if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
+        let hits = 0;
+        for (let sy = 0; sy < samples; sy += 1) {
+          for (let sx = 0; sx < samples; sx += 1) {
+            const px = x + (sx + 0.5) / samples;
+            const py = y + (sy + 0.5) / samples;
+            const onCheck =
+              distanceToSegment(px, py, a[0], a[1], b[0], b[1]) <= stroke / 2 ||
+              distanceToSegment(px, py, b[0], b[1], c[0], c[1]) <= stroke / 2;
+            if (onCheck) hits += 1;
+          }
+        }
+        coverage = hits / (samples * samples);
+      }
+      // Opaque background with the check blended on top.
+      buffer[index] = Math.round(BG[0] + (INK[0] - BG[0]) * coverage);
+      buffer[index + 1] = Math.round(BG[1] + (INK[1] - BG[1]) * coverage);
+      buffer[index + 2] = Math.round(BG[2] + (INK[2] - BG[2]) * coverage);
+      buffer[index + 3] = 255;
+    }
+  }
+
+  return encodePng(width, height, buffer);
+}
+
 /* ---------------------------------- main ---------------------------------- */
 
 mkdirSync(OUT_DIR, { recursive: true });
@@ -162,3 +211,8 @@ for (const target of targets) {
   writeFileSync(resolve(OUT_DIR, target.file), png);
   console.log(`${target.file} — ${target.size}x${target.size}, ${png.length} bytes`);
 }
+
+// Social preview (Open Graph / Twitter card).
+const og = renderOgImage(1200, 630);
+writeFileSync(resolve(PUBLIC_DIR, 'og.png'), og);
+console.log(`og.png — 1200x630, ${og.length} bytes`);
