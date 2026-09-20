@@ -2,11 +2,14 @@
 
 # ✅ deeptracker
 
-**Минималистичный офлайн-трекер привычек для СДВГ-мозга.**
-Пять типов привычек, мягкие серии «не пропускай дважды» и максимум три главных дела в день.
-Без аккаунтов, рекламы и сети — все данные остаются в браузере.
+**A minimal offline habit tracker for an ADHD brain.**
+One tap per habit — there is no «how many glasses» to choose. Soft streaks, at most three
+main things a day, and two numbers in the stats. No accounts, no ads, no network:
+everything stays in the browser.
 
-### 🚀 [Открыть приложение →](https://dreminmx-tech.github.io/deeptracker/)
+**English** · [Русский](README.ru.md)
+
+### 🚀 [Open the app →](https://dreminmx-tech.github.io/deeptracker/)
 
 [![Deploy](https://github.com/dreminmx-tech/deeptracker/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/dreminmx-tech/deeptracker/actions/workflows/deploy.yml)
 [![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square&labelColor=141418)](LICENSE)
@@ -15,18 +18,18 @@
 [![React](https://img.shields.io/badge/React-19-0070f3?style=flat-square&labelColor=141418)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7-0070f3?style=flat-square&labelColor=141418)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8-0070f3?style=flat-square&labelColor=141418)](https://vite.dev)
-[![Bundle](https://img.shields.io/badge/бандл-84%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
+[![Bundle](https://img.shields.io/badge/bundle-84%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/today.png" alt="Экран «Сегодня»: список галочек" width="200"><br><sub>Сегодня</sub></td>
-    <td align="center"><img src="docs/screenshots/today-past.png" alt="Вчерашний день, если он был пропущен" width="200"><br><sub>Вчера</sub></td>
-    <td align="center"><img src="docs/screenshots/stats.png" alt="Статистика: серия и неделя точками" width="200"><br><sub>Статистика</sub></td>
+    <td align="center"><img src="docs/screenshots/today.png" alt="Today: a list of checkboxes" width="200"><br><sub>Today</sub></td>
+    <td align="center"><img src="docs/screenshots/today-past.png" alt="Yesterday, opened for editing" width="200"><br><sub>Yesterday</sub></td>
+    <td align="center"><img src="docs/screenshots/stats.png" alt="Stats: a streak and a week of dots" width="200"><br><sub>Stats</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/screenshots/habits.png" alt="Список привычек" width="200"><br><sub>Привычки</sub></td>
-    <td align="center"><img src="docs/screenshots/habit-form.png" alt="Форма привычки: четыре поля" width="200"><br><sub>Новая привычка</sub></td>
-    <td align="center"><img src="docs/screenshots/today-light.png" alt="Светлая тема" width="200"><br><sub>Светлая тема</sub></td>
+    <td align="center"><img src="docs/screenshots/habits.png" alt="Habit list" width="200"><br><sub>Habits</sub></td>
+    <td align="center"><img src="docs/screenshots/habit-form.png" alt="Habit form: four fields" width="200"><br><sub>New habit</sub></td>
+    <td align="center"><img src="docs/screenshots/today-light.png" alt="Light theme" width="200"><br><sub>Light theme</sub></td>
   </tr>
 </table>
 
@@ -34,77 +37,76 @@
 
 ---
 
-## 🚀 Быстрый старт
+## 🚀 Quick start
 
-**Ничего устанавливать не нужно:** [**dreminmx-tech.github.io/deeptracker**](https://dreminmx-tech.github.io/deeptracker/) — открывается в браузере, ставится на телефон и дальше работает без интернета.
+**Nothing to install:** [**dreminmx-tech.github.io/deeptracker**](https://dreminmx-tech.github.io/deeptracker/) — opens in a browser, installs on a phone, then works without internet.
 
-Локально — три команды:
+Locally — three commands:
 
 ```bash
 npm install
 npm run dev      # http://127.0.0.1:5173
-npm test         # 52 теста: логика + рендер всех экранов
+npm test         # 50 tests: pure logic + every screen rendered
 ```
 
-Сборка и просмотр продакшн-версии:
+Build and preview the production bundle:
 
 ```bash
 npm run build    # typecheck + dist/
 npm run preview  # http://127.0.0.1:4173
 ```
 
-| Хочу | Куда смотреть |
+| I want to | Where to look |
 | --- | --- |
-| 🚢 Задеплоить свою копию на GitHub Pages | [docs/deploy.md](docs/deploy.md) |
-| 🔧 Как устроено внутри: логика, данные, тесты | [docs/technical.md](docs/technical.md) |
-| 🎨 Палитра и токены темы | [docs/technical.md#palette](docs/technical.md#palette) |
-| 🐛 Браузер не открывает localhost | [docs/deploy.md#troubleshooting](docs/deploy.md#troubleshooting) |
+| 🚢 Deploy my own copy to GitHub Pages | [docs/deploy.md](docs/deploy.md) |
+| 🔧 How it works inside: logic, data, tests | [docs/technical.md](docs/technical.md) |
+| 🎨 Palette and theme tokens | [docs/technical.md#palette](docs/technical.md#palette) |
+| 🐛 The browser cannot open localhost | [docs/deploy.md#troubleshooting](docs/deploy.md#troubleshooting) |
 
-## ✨ Что внутри
+## ✨ What is inside
 
-- ✅ **Привычка — это галочка.** Никаких «сколько стаканов» и «сколько минут»: приложение спрашивает только «сделал или нет», а ответ — один тап по строке. Выбор количества был трением, из-за которого трекером не хочется пользоваться; если дело требует двадцати минут, это уже задача, а не привычка.
-- 🪶 **Мягкие серии** — «не пропускай дважды»: один пропущенный день не обнуляет прогресс, ломают только два подряд, а сегодняшний незакрытый день вообще не считается пропуском. Если вчера было пусто, приложение скажет об этом одной короткой фразой.
-- 🗓 **Вчера — один тап** — слева дата словами, справа две стрелки: день назад и день вперёд. Любой прошлый день открывается и правится, из прошлого есть ссылка обратно в сегодня. Никакого листания недель и вопроса «а сейчас какая неделя?».
-- 📆 **Расписание по дням** — «по будням», «пн, ср, пт»: день вне расписания не считается пропуском и не рвёт серию. На экране «Сегодня» такая привычка не мешает, но одной ссылкой её можно показать и отметить.
-- 🎯 **«Главное сегодня»** — максимум три привычки наверху, остальные ниже: меньше паралича выбора.
-- ↩️ **Отмена там, где легко промахнуться** — срыв у «не делать», удалённая мысль, привычка со старой целью: приложение сразу предлагает «Отменить», и данные возвращаются целиком.
-- 📊 **Статистика из двух цифр и семи точек** — серия, лучшая серия и неделя точками: точка это день, была работа или нет. Никаких окон 30/90, полос на тридцать дней и легенд: график, который надо расшифровывать, — ровно то, из-за чего на статистику не хочется заходить.
-- 📐 **Плотно, без простыней** — один паттерн строки на все списки, одна форма у всех элементов управления (радиус 8px), высоты из одной шкалы (32/40/44/56), отступы из одной сетки (4…32), карточка всегда 16px внутри и 12px между детьми. Текста в интерфейсе почти нет: каждая фраза — это то, что человек читает вместо того, чтобы закрыть привычку.
-- 🔵 **Один синий на экран** — цвет означает состояние привычки, а не украшение: синие только отмеченная галочка и кнопка главного действия. Карточки читаются тонкой светлой линией, а не тяжёлой заливкой, а активная вкладка — просто приподнятая серая пилюля. Жёлтого нет вовсе, красный остался только у кнопки «удалить всё».
-- 🧠 **Брейн-дамп** — быстрый инбокс мыслей на сегодня, чтобы не держать их в голове.
-- 🧹 **Данные без хаоса** — бэкап двумя **одинаковыми** кнопками (скачать / загрузить), вставка JSON свёрнута в строку списка, удаление — в «опасной зоне», где красным помечена только сама кнопка. Приложение помнит, когда файл скачивали в последний раз, и напомнит, если прошло три недели: данные живут только в этом браузере.
-- 📴 **Полный офлайн** — service worker, манифест и иконки: приложение ставится на телефон и работает в самолёте.
-- 🔒 **Приватность по умолчанию** — никаких аккаунтов, аналитики и сети; данные лежат в `localStorage`, бэкап — экспорт в JSON.
-- 🌗 **Две темы и своя типографика** — тёмная в цветах дашборда DeepSeek Platform, светлая строго чёрно-белая; шрифт Manrope с самохостингом (кириллица + латиница), иконки — Lucide. Интерфейс на русском и английском.
-- 🔗 **Ссылки на вкладки** — `/#stats`, `/#habits`, `/#settings`: можно держать в закладках и открывать сразу нужный экран.
+- ✅ **A habit is a checkbox.** No «how many glasses», no «how many minutes»: the app only asks «did you do it or not», and the answer is one tap on the row. Choosing an amount was the friction that made a tracker unpleasant to use; if something takes twenty minutes, it is a task, not a habit.
+- 🪶 **Soft streaks** — «never miss twice»: one missed day does not reset progress, only two in a row do, and an open today is not a miss at all. If yesterday was empty, the app says so in one short sentence.
+- 🗓 **Yesterday is one tap** — the date in words on the left, two arrows on the right: a day back and a day forward. Any past day opens and can be edited, and there is a link back to today. No week flipping, no «which week am I on?».
+- 📆 **Weekday schedules** — «weekdays», «Mon, Wed, Fri»: a day off schedule is not a miss and does not break the streak. On the Today screen such a habit stays out of the way, and one link shows it.
+- 🎯 **The main three** — at most three habits on top, the rest below: less choice paralysis.
+- 📊 **Stats in two numbers and seven dots** — the streak, the best streak, and the week as dots: a dot is a day, progress or not. No 30/90 windows, no thirty-bar strips, no legends: a chart you have to decode is exactly why nobody wants to open the stats tab.
+- 📐 **Dense, no walls of text** — one row pattern for every list, one shape for every control (8px radius), heights from one scale (32/40/44/56), spacing from one grid (4…32), a card always 16px inside and 12px between children. There is almost no copy in the UI: every sentence is something you read instead of closing a habit.
+- 🔵 **One blue per screen** — colour means the state of a habit, not decoration: only a checked box and the main action button are blue. Cards are read by a thin light line rather than a heavy fill, and the active tab is just a raised grey pill. No yellow at all, red is left to the «delete everything» button.
+- 🧠 **Brain dump** — a quick inbox for today's thoughts, so you do not have to hold them in your head.
+- 🧹 **Data without chaos** — backup with two **identical** buttons (download / load), and deleting lives in a «danger zone» where only the button itself is red. The app remembers when you last downloaded a file and nudges you after three weeks: your data lives in this browser only.
+- 📴 **Fully offline** — a service worker, a manifest and icons: install it on a phone and it works on a plane.
+- 🔒 **Private by default** — no accounts, no analytics, no network; data lives in `localStorage`, backup is a JSON export.
+- 🌗 **Two themes and its own typography** — dark in DeepSeek Platform dashboard colours, light strictly black and white; Manrope self-hosted (Cyrillic + Latin), icons from Lucide. The interface is in Russian and English.
+- 🔗 **Deep links** — `/#stats`, `/#habits`, `/#settings`: bookmark a screen and open it directly.
 
-### 🗂 Две привычки, которые бывают
+### 🗂 The two habits there are
 
-| Тип | Как работает |
+| Type | How it works |
 | --- | --- |
-| ✅ Делать | Сделано / не сделано, один тап по строке |
-| 🚫 Не делать | Чисто по умолчанию, отмечаются только срывы |
+| ✅ Do | Done / not done, one tap on the row |
+| 🚫 Don't do | Clean by default, only slips are logged |
 
-У любой привычки можно оставить только нужные дни недели — остальные станут выходными и не попадут в статистику как пропуски.
+Any habit can keep just the weekdays it needs — the rest become days off and never count as misses.
 
-Счётчики с целью, минуты с таймером и гибкая частота остались в **модели данных**: приложение по-прежнему умеет их читать и считать, чтобы старая история и старые бэкапы не потерялись, но создать или отредактировать такую привычку из интерфейса больше нельзя — новая привычка всегда галочка.
+Counters with a target, minutes with a timer and flexible weekly frequency stayed in the **data model**: the app still reads and counts them so that old history and old backups are not lost, but the interface no longer creates or edits such a habit — a new habit is always a checkbox.
 
-## 📱 Установка на телефон
+## 📱 Installing on a phone
 
-| Платформа | Как поставить |
+| Platform | How |
 | --- | --- |
-| 🤖 Android / Chrome | Открыть сайт → меню браузера → **Установить приложение** (или кнопка в настройках приложения) |
-| 🍎 iPhone / Safari | **Поделиться** → **На экран «Домой»** |
+| 🤖 Android / Chrome | Open the site → browser menu → **Install app** (or the button in the app settings) |
+| 🍎 iPhone / Safari | **Share** → **Add to Home Screen** |
 
-После установки приложение открывается без интернета и без адресной строки.
+Once installed, the app opens without internet and without an address bar.
 
-## 📚 Документация
+## 📚 Documentation
 
-| Документ | О чём |
+| Document | What is in it |
 | --- | --- |
-| 🚢 [docs/deploy.md](docs/deploy.md) | Самостоятельный деплой на GitHub Pages: через `gh`, вручную, форком, свой домен, обновления, траблшутинг |
-| 🔧 [docs/technical.md](docs/technical.md) | Стек, структура, модель данных, алгоритм мягких серий, хранение и импорт, PWA, палитра, тесты, скрипты |
+| 🚢 [docs/deploy.md](docs/deploy.md) | Deploying your own copy to GitHub Pages: with `gh`, manually, by forking, custom domain, updates, troubleshooting |
+| 🔧 [docs/technical.md](docs/technical.md) | Stack, structure, data model, the soft-streak algorithm, storage and import, PWA, palette, tests, scripts |
 
-## 📄 Лицензия
+## 📄 License
 
-[MIT](LICENSE) — делай что хочешь, ссылка на автора приятна, но не обязательна.
+[MIT](LICENSE) — do whatever you want, a link back is nice but not required.

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Ban, ChevronLeft, ChevronRight, Undo2, X } from 'lucide-react';
-import type { AppData, Habit } from '../types';
+import type { Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
 import { addDays, formatDay, todayKey, type DateKey } from '../lib/date';
@@ -19,7 +19,6 @@ import {
 } from '../lib/habits';
 import Checkbox from './Checkbox';
 import HabitRow from './HabitRow';
-import { useToast } from './Toast';
 
 interface TodayViewProps {
   onGoToHabits: () => void;
@@ -35,10 +34,9 @@ const ICON = 19;
  * «сделал или нет», потому что всё остальное — это трение, а не привычка.
  */
 export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) {
-  const { data, update, replace } = useStore();
+  const { data, update } = useStore();
   const lang = data.settings.lang;
   const dict = t(lang);
-  const notify = useToast();
   const today = todayKey();
 
   const [open, setOpen] = useState<DateKey>(initialDay ?? today);
@@ -80,19 +78,6 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
         ? dict['today.atRisk']
         : null;
 
-  /**
-   * Acts, then offers one way back. A tap is cheap, but a wrong tap on a big row
-   * happens — and a counter habit still jumps to its old goal in one go.
-   */
-  function act(next: (current: AppData) => AppData, message: string) {
-    const before = data;
-    update(next);
-    notify(message, 'plain', {
-      label: dict['common.undo'],
-      run: () => replace(before),
-    });
-  }
-
   /** The only inline action left: «сорвался» on a don't-do habit. */
   function actionsFor(habit: Habit): ReactNode {
     if (habit.kind !== 'negative') return null;
@@ -105,11 +90,7 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
         data-active={slipped ? 'true' : 'false'}
         aria-label={label}
         title={label}
-        onClick={() =>
-          slipped
-            ? update((current) => tapHabit(current, habit.id, open))
-            : act((current) => tapHabit(current, habit.id, open), dict['today.slipped'])
-        }
+        onClick={() => update((current) => tapHabit(current, habit.id, open))}
       >
         {slipped ? <Undo2 size={ICON} strokeWidth={1.8} /> : <Ban size={ICON} strokeWidth={1.8} />}
       </button>
@@ -125,19 +106,7 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
         pinned={habit.pinned}
         done={isComplete(habit, getEntry(data, open, habit.id))}
         onToggle={
-          isNegative
-            ? undefined
-            : () => {
-                const entry = getEntry(data, open, habit.id);
-                const jumpsToGoal =
-                  (habit.kind === 'counter' || habit.kind === 'duration') && !isComplete(habit, entry);
-                // A counter habit still fills its old goal in one tap — that is worth an undo.
-                if (jumpsToGoal) {
-                  act((current) => tapHabit(current, habit.id, open), dict['today.filled']);
-                  return;
-                }
-                update((current) => tapHabit(current, habit.id, open));
-              }
+          isNegative ? undefined : () => update((current) => tapHabit(current, habit.id, open))
         }
         actions={actionsFor(habit)}
       />
@@ -281,12 +250,7 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
                       className="dump-remove"
                       aria-label={dict['common.delete']}
                       title={dict['common.delete']}
-                      onClick={() =>
-                        act(
-                          (current) => removeDump(current, open, item.id),
-                          dict['today.dumpRemoved'],
-                        )
-                      }
+                      onClick={() => update((current) => removeDump(current, open, item.id))}
                     >
                       <X size={ICON} strokeWidth={1.8} aria-hidden="true" />
                     </button>

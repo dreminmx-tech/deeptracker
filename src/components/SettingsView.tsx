@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from 'react';
-import { ChevronRight, Download, Trash2, Upload } from 'lucide-react';
+import { Download, Trash2, Upload } from 'lucide-react';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
 import { dateKey, diffDays, formatDay, todayKey } from '../lib/date';
@@ -24,7 +24,6 @@ export default function SettingsView() {
   const notify = useToast();
   const { canInstall, installed, install } = useInstallPrompt();
 
-  const [paste, setPaste] = useState('');
   const [confirmWipe, setConfirmWipe] = useState(false);
 
   const lastExport = data.settings.lastExport;
@@ -35,7 +34,6 @@ export default function SettingsView() {
     try {
       const next = parseImport(text);
       replace(next);
-      setPaste('');
       notify(dict['settings.importOk'], 'ok');
     } catch {
       notify(dict['settings.importBad']);
@@ -139,33 +137,6 @@ export default function SettingsView() {
             ? ` ${lastExport ? dict['settings.backupStaleCta'] : dict['settings.backupNeverCta']}`
             : ''}
         </p>
-
-        <details className="disclosure">
-          <summary>
-            {dict['settings.importPasteToggle']}
-            <ChevronRight className="disclosure-mark" size={18} strokeWidth={1.8} aria-hidden="true" />
-          </summary>
-          <div className="group">
-            <label className="field">
-              <textarea
-                value={paste}
-                rows={4}
-                spellCheck={false}
-                aria-label={dict['settings.importPaste']}
-                placeholder={dict['settings.importPaste']}
-                onChange={(event) => setPaste(event.target.value)}
-              />
-            </label>
-            <button
-              type="button"
-              className="btn"
-              disabled={paste.trim().length === 0}
-              onClick={() => applyImport(paste)}
-            >
-              {dict['settings.importApply']}
-            </button>
-          </div>
-        </details>
 
         <div className="zone zone-danger">
           <p className="label">{dict['settings.dangerZone']}</p>

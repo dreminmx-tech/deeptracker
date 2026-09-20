@@ -166,8 +166,7 @@ describe('views render', () => {
     expect(html).toContain('Settings');
     expect(html).toContain('Download JSON');
     expect(html).toContain('Delete all data');
-    // паста спрятана, а разрушительное действие отделено и подписано
-    expect(html).toContain('Paste JSON manually');
+    // разрушительное действие отделено и подписано
     expect(html).toContain('Danger zone');
     expect(html).toContain('btn btn-danger');
     // настройки — тихие строки: подпись слева, маленький переключатель справа

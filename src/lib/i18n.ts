@@ -35,9 +35,6 @@ const ru = {
   'today.dumpClear': 'Убрать выполненные',
   'today.empty.text': 'Начни с одной.',
   'today.empty.cta': 'Создать привычку',
-  'today.dumpRemoved': 'Мысль удалена',
-  'today.slipped': 'Срыв отмечен',
-  'today.filled': 'Отмечено',
   'today.pinLimit': 'В «Главном» уже три привычки',
 
   'habits.title': 'Привычки',
@@ -88,9 +85,6 @@ const ru = {
   'settings.data': 'Данные',
   'settings.export': 'Скачать JSON',
   'settings.importFile': 'Загрузить из файла',
-  'settings.importPasteToggle': 'Вставить JSON вручную',
-  'settings.importPaste': 'JSON сюда',
-  'settings.importApply': 'Применить',
   'settings.importOk': 'Данные загружены',
   'settings.importBad': 'Не получилось прочитать этот JSON',
   'settings.lastExport': 'Последний бэкап: {date}',
@@ -111,7 +105,6 @@ const ru = {
 
   'common.close': 'Закрыть',
   'common.cancel': 'Отмена',
-  'common.undo': 'Отменить',
   'common.delete': 'Удалить',
 };
 
@@ -145,9 +138,6 @@ const en: Dict = {
   'today.dumpClear': 'Clear done items',
   'today.empty.text': 'Start with one.',
   'today.empty.cta': 'Create a habit',
-  'today.dumpRemoved': 'Thought removed',
-  'today.slipped': 'Slip logged',
-  'today.filled': 'Done',
   'today.pinLimit': 'The main three are already full',
 
   'habits.title': 'Habits',
@@ -198,9 +188,6 @@ const en: Dict = {
   'settings.data': 'Data',
   'settings.export': 'Download JSON',
   'settings.importFile': 'Load from file',
-  'settings.importPasteToggle': 'Paste JSON manually',
-  'settings.importPaste': 'JSON here',
-  'settings.importApply': 'Apply',
   'settings.importOk': 'Data loaded',
   'settings.importBad': 'Could not read that JSON',
   'settings.lastExport': 'Last backup: {date}',
@@ -221,7 +208,6 @@ const en: Dict = {
 
   'common.close': 'Close',
   'common.cancel': 'Cancel',
-  'common.undo': 'Undo',
   'common.delete': 'Delete',
 };
 
