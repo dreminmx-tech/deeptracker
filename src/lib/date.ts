@@ -48,6 +48,12 @@ export function lastNDays(n: number, end: DateKey = todayKey()): DateKey[] {
   return out;
 }
 
+/** First day (Monday) of the week containing `key`. */
+export function weekDays(key: DateKey): DateKey[] {
+  const start = startOfWeek(key);
+  return Array.from({ length: 7 }, (_, index) => addDays(start, index));
+}
+
 /**
  * Pads a day list so that the first column starts on Monday.
  * Used to render GitHub-style week columns (7 rows x N columns).
@@ -73,6 +79,12 @@ export function formatMonth(key: DateKey, lang: 'ru' | 'en'): string {
 
 export function weekdayShort(key: DateKey, lang: 'ru' | 'en'): string {
   return new Intl.DateTimeFormat(LOCALES[lang], { weekday: 'short' }).format(parseKey(key));
+}
+
+/** Weekday name by index (0 = Monday), for charts that group by weekday. */
+export function weekdayName(index: number, lang: 'ru' | 'en'): string {
+  // 2024-01-01 is a Monday, so the offset lands on the requested weekday.
+  return weekdayShort(dateKey(new Date(2024, 0, 1 + (index % 7))), lang);
 }
 
 /** 0 = Monday … 6 = Sunday, starting from Monday. */

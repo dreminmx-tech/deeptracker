@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
-import { lastNDays, todayKey } from '../lib/date';
+import { lastNDays, todayKey, weekdayName } from '../lib/date';
 import {
   activeHabits,
   bestStreak,
@@ -13,6 +13,7 @@ import {
   overallStreak,
   softStreak,
   weekProgress,
+  weekdayRates,
 } from '../lib/habits';
 import TrendStrip from './TrendStrip';
 
@@ -51,6 +52,19 @@ export default function StatsView() {
   const streak = overallStreak(data);
   const best = bestRun(days.map((key) => actionable.some((habit) => dayStatus(data, habit, key) === 'done')));
   const anything = hasAnyData(data);
+
+  const weekRates = weekdayRates(data, actionable, days, today);
+  /** The weekday that most often ends up empty — the one insight worth saying out loud. */
+  let worstWeekday: number | null = null;
+  let lowest = 1;
+  weekRates.forEach((rate, index) => {
+    if (rate.total < 2) return;
+    const share = rate.done / rate.total;
+    if (share < lowest) {
+      lowest = share;
+      worstWeekday = index;
+    }
+  });
 
   return (
     <div className="stack">
@@ -94,6 +108,38 @@ export default function StatsView() {
             </ul>
             <p className="muted small">{dict['stats.noJudgement']}</p>
           </div>
+
+          <section className="block">
+            <p className="label">{dict['stats.weekday']}</p>
+            <div className="card">
+              <ul className="weekdays">
+                {weekRates.map((rate, index) => {
+                  const percent = rate.total === 0 ? 0 : Math.round((rate.done / rate.total) * 100);
+                  return (
+                    <li key={index}>
+                      <span className="weekday-track">
+                        {rate.total > 0 ? (
+                          <span
+                            className="weekday-fill"
+                            data-empty={percent === 0 ? 'true' : 'false'}
+                            style={{ height: percent === 0 ? '3px' : `${percent}%` }}
+                          />
+                        ) : null}
+                      </span>
+                      <span className="weekday-name">{weekdayName(index, lang)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+              {worstWeekday !== null ? (
+                <p className="muted small">
+                  {fill(dict['stats.weekdayWorst'], {
+                    day: weekdayName(worstWeekday, lang),
+                  })}
+                </p>
+              ) : null}
+            </div>
+          </section>
 
           <section className="block">
             <p className="label">{dict['stats.perHabit']}</p>

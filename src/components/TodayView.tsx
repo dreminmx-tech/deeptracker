@@ -3,47 +3,68 @@ import { Ban, Play, Undo2, X } from 'lucide-react';
 import type { Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
-import { formatDay, todayKey } from '../lib/date';
-import { addDump, bumpCounter, clearDoneDump, removeDump, tapHabit, toggleDump } from '../lib/actions';
+import { formatDay, todayKey, type DateKey } from '../lib/date';import {
+  addDump,
+  bumpCounter,
+  clearDoneDump,
+  removeDump,
+  tapHabit,
+  toggleDump,
+} from '../lib/actions';
 import {
   activeHabits,
+  dayHeatStatus,
   dayProgress,
   getDay,
   getEntry,
+  habitsUpTo,
   isActionable,
   isComplete,
   mainHabits,
+  missedYesterday,
 } from '../lib/habits';
 import Checkbox from './Checkbox';
 import CountStepper from './CountStepper';
+import DayStrip from './DayStrip';
 import HabitRow from './HabitRow';
 import LogDialog, { type LogMode } from './LogDialog';
 import { habitStatus } from './habitText';
 
 interface TodayViewProps {
   onGoToHabits: () => void;
+  /** Opens on another day — used by tests and deep links. */
+  initialDay?: DateKey;
 }
 
 const ICON = 19;
 
-export default function TodayView({ onGoToHabits }: TodayViewProps) {
+/**
+ * One list, any day. Today by default; the week strip lets you look back and fill in
+ * what you forgot to mark yesterday. Every action writes to the day that is open.
+ */
+export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) {
   const { data, update } = useStore();
   const lang = data.settings.lang;
   const dict = t(lang);
   const today = todayKey();
 
+  const [open, setOpen] = useState<DateKey>(initialDay ?? today);
   const [dumpText, setDumpText] = useState('');
   const [dialog, setDialog] = useState<{ habit: Habit; mode: LogMode } | null>(null);
 
-  const active = activeHabits(data);
-  const actionable = active.filter(isActionable);
-  const main = mainHabits(data);
-  const mainIds = new Set(main.map((habit) => habit.id));
-  const rest = active.filter((habit) => !mainIds.has(habit.id) && habit.kind !== 'negative');
-  const negatives = active.filter((habit) => habit.kind === 'negative');
+  const isToday = open === today;
 
-  const day = getDay(data, today);
-  const { done, total } = dayProgress(data, actionable, today);
+  const active = activeHabits(data);
+  // A habit is not asked for a day before it existed.
+  const shown = habitsUpTo(active, open);
+  const actionable = shown.filter(isActionable);
+  const main = mainHabits(data).filter((habit) => habitsUpTo([habit], open).length > 0);
+  const mainIds = new Set(main.map((habit) => habit.id));
+  const rest = shown.filter((habit) => !mainIds.has(habit.id) && habit.kind !== 'negative');
+  const negatives = shown.filter((habit) => habit.kind === 'negative');
+
+  const log = getDay(data, open);
+  const { done, total } = dayProgress(data, actionable, open);
   const percent = total === 0 ? 0 : Math.round((done / total) * 100);
 
   const hour = new Date().getHours();
@@ -56,6 +77,14 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
           ? dict['today.greeting.day']
           : dict['today.greeting.evening'];
 
+  const atRisk = isToday ? missedYesterday(data, actionable, today) : 0;
+  const notice =
+    isToday && total > 0 && done === total
+      ? dict['today.allDone']
+      : atRisk > 0
+        ? dict['today.atRisk']
+        : null;
+
   const startTiny = (habit: Habit) => setDialog({ habit, mode: 'tiny' });
   const openLog = (habit: Habit) => setDialog({ habit, mode: 'quick' });
 
@@ -65,7 +94,7 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
    * `Play` for “just start”, `Ban` for “don't do”.
    */
   function actionsFor(habit: Habit): ReactNode {
-    const entry = getEntry(data, today, habit.id);
+    const entry = getEntry(data, open, habit.id);
 
     if (habit.kind === 'counter' || habit.kind === 'duration') return null;
 
@@ -79,7 +108,7 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
           data-active={slipped ? 'true' : 'false'}
           aria-label={label}
           title={label}
-          onClick={() => update((current) => tapHabit(current, habit.id))}
+          onClick={() => update((current) => tapHabit(current, habit.id, open))}
         >
           {slipped ? <Undo2 size={ICON} strokeWidth={1.8} /> : <Ban size={ICON} strokeWidth={1.8} />}
         </button>
@@ -102,13 +131,13 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
   function row(habit: Habit) {
     const isNegative = habit.kind === 'negative';
     const counts = habit.kind === 'counter' || habit.kind === 'duration';
-    const status = habitStatus(data, habit, lang);
+    const status = habitStatus(data, habit, lang, open);
     return (
       <HabitRow
         key={habit.id}
         habit={habit}
         pinned={habit.pinned}
-        done={isComplete(habit, getEntry(data, today, habit.id))}
+        done={isComplete(habit, getEntry(data, open, habit.id))}
         status={counts ? undefined : status}
         statusSlot={
           counts ? (
@@ -118,15 +147,13 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
               openLabel={fill(dict['log.open'], { v: status })}
               onOpen={() => openLog(habit)}
               onBump={(direction) =>
-                update((current) => bumpCounter(current, habit.id, today, direction))
+                update((current) => bumpCounter(current, habit.id, open, direction))
               }
             />
           ) : undefined
         }
         onToggle={
-          isNegative
-            ? undefined
-            : () => update((current) => tapHabit(current, habit.id))
+          isNegative ? undefined : () => update((current) => tapHabit(current, habit.id, open))
         }
         actions={actionsFor(habit)}
       />
@@ -136,9 +163,9 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
   return (
     <div className="stack">
       <header className="day-head">
-        <p className="label">{formatDay(today, lang)}</p>
+        <p className="label">{formatDay(open, lang)}</p>
         <div className="day-line">
-          <h1>{greeting}</h1>
+          <h1>{isToday ? greeting : dict['today.pastTitle']}</h1>
           {total > 0 ? (
             <span className="day-count">{fill(dict['today.progress'], { done, total })}</span>
           ) : null}
@@ -155,6 +182,7 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
             <span className="bar-fill" style={{ width: `${percent}%` }} />
           </div>
         ) : null}
+        {notice ? <p className="muted small">{notice}</p> : null}
       </header>
 
       {active.length === 0 ? (
@@ -166,17 +194,43 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
         </div>
       ) : (
         <>
-          <div className="rows">
-            {main.map(row)}
-            {rest.map(row)}
-          </div>
+          <DayStrip
+            day={open}
+            today={today}
+            lang={lang}
+            statusFor={(key) => dayHeatStatus(data, actionable, key, today)}
+            onSelect={setOpen}
+            labels={{
+              group: dict['today.week'],
+              current: dict['today.openDay'],
+              prevWeek: dict['today.prevWeek'],
+              nextWeek: dict['today.nextWeek'],
+            }}
+          />
 
-          {negatives.length > 0 ? (
-            <section className="block">
-              <p className="label">{dict['today.negatives']}</p>
-              <div className="rows">{negatives.map(row)}</div>
-            </section>
+          {!isToday ? (
+            <button type="button" className="link" onClick={() => setOpen(today)}>
+              {dict['today.backToToday']}
+            </button>
           ) : null}
+
+          {shown.length === 0 ? (
+            <p className="muted small">{dict['today.pastEmpty']}</p>
+          ) : (
+            <>
+              <div className="rows">
+                {main.map(row)}
+                {rest.map(row)}
+              </div>
+
+              {negatives.length > 0 ? (
+                <section className="block">
+                  <p className="label">{dict['today.negatives']}</p>
+                  <div className="rows">{negatives.map(row)}</div>
+                </section>
+              ) : null}
+            </>
+          )}
 
           <section className="block">
             <p className="label">{dict['today.dump']}</p>
@@ -184,7 +238,7 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
               className="dump-form"
               onSubmit={(event) => {
                 event.preventDefault();
-                update((current) => addDump(current, today, dumpText));
+                update((current) => addDump(current, open, dumpText));
                 setDumpText('');
               }}
             >
@@ -201,15 +255,15 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
               </button>
             </form>
 
-            {day.dump.length > 0 ? (
+            {log.dump.length > 0 ? (
               <ul className="dump-list">
-                {day.dump.map((item) => (
+                {log.dump.map((item) => (
                   <li key={item.id}>
                     <button
                       type="button"
                       className="dump-item"
                       aria-pressed={item.done}
-                      onClick={() => update((current) => toggleDump(current, today, item.id))}
+                      onClick={() => update((current) => toggleDump(current, open, item.id))}
                     >
                       <Checkbox checked={item.done} small />
                       <span className="dump-text" data-done={item.done ? 'true' : 'false'}>
@@ -221,7 +275,7 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
                       className="dump-remove"
                       aria-label={dict['common.delete']}
                       title={dict['common.delete']}
-                      onClick={() => update((current) => removeDump(current, today, item.id))}
+                      onClick={() => update((current) => removeDump(current, open, item.id))}
                     >
                       <X size={ICON} strokeWidth={1.8} aria-hidden="true" />
                     </button>
@@ -230,11 +284,11 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
               </ul>
             ) : null}
 
-            {day.dump.some((item) => item.done) ? (
+            {log.dump.some((item) => item.done) ? (
               <button
                 type="button"
                 className="link"
-                onClick={() => update((current) => clearDoneDump(current, today))}
+                onClick={() => update((current) => clearDoneDump(current, open))}
               >
                 {dict['today.dumpClear']}
               </button>
@@ -244,7 +298,12 @@ export default function TodayView({ onGoToHabits }: TodayViewProps) {
       )}
 
       {dialog ? (
-        <LogDialog habit={dialog.habit} mode={dialog.mode} onClose={() => setDialog(null)} />
+        <LogDialog
+          habit={dialog.habit}
+          mode={dialog.mode}
+          day={open}
+          onClose={() => setDialog(null)}
+        />
       ) : null}
     </div>
   );

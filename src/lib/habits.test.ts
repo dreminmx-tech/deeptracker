@@ -1,16 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import type { AppData, DayLog, Habit } from '../types';
 import { MAX_PINNED } from '../types';
-import { addDays, parseKey, todayKey, type DateKey } from './date';
+import { addDays, diffDays, lastNDays, parseKey, todayKey, weekdayIndex, type DateKey } from './date';
 import { addMinutes, bumpCounter, deleteHabit, moveHabit, saveHabit, setProgress, tapHabit } from './actions';
 import {
   bestStreak,
   dayProgress,
   dayStatus,
   getEntry,
+  habitsUpTo,
   isComplete,
+  missedYesterday,
   softStreak,
   weekProgress,
+  weekdayRates,
 } from './habits';
 import { freshData, normalizeData, parseImport, toJson } from './storage';
 import { quickSteps } from '../components/habitText';
@@ -204,6 +207,64 @@ describe('quickSteps', () => {
     expect(quickSteps(30)).toEqual([10, 20, 30]);
     expect(quickSteps(90)).toEqual([30, 60, 90]);
     expect(quickSteps(120)).toEqual([30, 60, 90, 120]);
+  });
+});
+
+describe('days before a habit existed', () => {
+  it('does not ask for them', () => {
+    const habit = makeHabit({ createdAt: isoAt(TODAY) });
+    expect(habitsUpTo([habit], addDays(TODAY, -1))).toEqual([]);
+    expect(habitsUpTo([habit], TODAY)).toEqual([habit]);
+  });
+});
+
+describe('missedYesterday', () => {
+  it('counts habits missed yesterday that are still open today', () => {
+    const habit = makeHabit();
+    expect(missedYesterday(makeData(habit), [habit], TODAY)).toBe(1);
+  });
+
+  it('stays quiet once today is closed', () => {
+    const habit = makeHabit();
+    const data = tapHabit(makeData(habit), 'h1', TODAY);
+    expect(missedYesterday(data, [habit], TODAY)).toBe(0);
+  });
+
+  it('ignores habits that did not exist yesterday', () => {
+    const habit = makeHabit({ createdAt: isoAt(TODAY) });
+    expect(missedYesterday(makeData(habit), [habit], TODAY)).toBe(0);
+  });
+});
+
+describe('weekdayRates', () => {
+  it('counts closed habits, not whole days', () => {
+    const first = makeHabit({ id: 'h1' });
+    const second = makeHabit({ id: 'h2' });
+    const days = lastNDays(14, TODAY);
+    const missed = addDays(TODAY, -3);
+    // h1 закрыт всегда, кроме одного дня; h2 не закрыт никогда
+    const log = logDays(days.filter((key) => key !== missed).map((key) => diffDays(key, TODAY)));
+    for (const day of Object.values(log)) day.entries.h2 = { done: false };
+
+    const rates = weekdayRates(makeData(first, log), [first, second], days, TODAY);
+    expect(rates.reduce((sum, rate) => sum + rate.total, 0)).toBe(28);
+
+    const bucket = rates[weekdayIndex(missed)];
+    if (!bucket) throw new Error('bucket missing');
+    expect(bucket.total).toBe(4); // два дня недели × две привычки
+    expect(bucket.done).toBe(1);
+
+    rates.forEach((rate, index) => {
+      if (index === weekdayIndex(missed)) return;
+      expect(rate.done).toBe(rate.total / 2);
+    });
+  });
+
+  it('skips days before a habit existed and days still in the future', () => {
+    const habit = makeHabit({ createdAt: isoAt(TODAY) });
+    const days = lastNDays(7, TODAY);
+    const rates = weekdayRates(makeData(habit), [habit], days, TODAY);
+    expect(rates.reduce((sum, rate) => sum + rate.total, 0)).toBe(1);
   });
 });
 

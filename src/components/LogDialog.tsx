@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
-import { todayKey } from '../lib/date';
+import type { DateKey } from '../lib/date';
 import { addMinutes, bumpCounter, setProgress, tapHabit } from '../lib/actions';
 import { getEntry, isComplete, progressOf, targetOf } from '../lib/habits';
 import CountStepper from './CountStepper';
@@ -15,6 +15,8 @@ export type LogMode = 'quick' | 'tiny';
 interface LogDialogProps {
   habit: Habit;
   mode: LogMode;
+  /** The day being edited — today on the main screen, a past day when filling in. */
+  day: DateKey;
   onClose: () => void;
 }
 
@@ -30,7 +32,7 @@ function formatClock(seconds: number): string {
  * Bottom half (minutes habits): the stopwatch, for when you would rather time it.
  * `tiny` mode is the two-minute nudge for check-off habits.
  */
-export default function LogDialog({ habit, mode, onClose }: LogDialogProps) {
+export default function LogDialog({ habit, mode, day, onClose }: LogDialogProps) {
   const { data, update } = useStore();
   const lang = data.settings.lang;
   const dict = t(lang);
@@ -69,32 +71,32 @@ export default function LogDialog({ habit, mode, onClose }: LogDialogProps) {
   const elapsed = Math.max(0, total - remaining);
   const minutes = Math.max(1, Math.round(elapsed / 60));
 
-  const value = Math.round(progressOf(habit, getEntry(data, todayKey(), habit.id)));
+  const value = Math.round(progressOf(habit, getEntry(data, day, habit.id)));
   const target = targetOf(habit);
   const unit = unitOf(habit, lang);
   const withUnit = (amount: number) => (unit ? `${amount} ${unit}` : String(amount));
 
   /** A chip is the whole interaction: pick the amount, the dialog is done. */
   function choose(amount: number) {
-    update((current) => setProgress(current, habit.id, amount));
+    update((current) => setProgress(current, habit.id, amount, day));
     notify(fill(dict['log.saved'], { v: withUnit(amount) }), 'ok');
     onClose();
   }
 
   /** The stepper stays open — it is for getting the number exactly right. */
   function bump(direction: 1 | -1) {
-    update((current) => bumpCounter(current, habit.id, todayKey(), direction));
+    update((current) => bumpCounter(current, habit.id, day, direction));
   }
 
   function logWork() {
-    update((current) => addMinutes(current, habit.id, minutes));
+    update((current) => addMinutes(current, habit.id, minutes, day));
     onClose();
   }
 
   function markDone() {
     update((current) => {
-      const entry = getEntry(current, todayKey(), habit.id);
-      return isComplete(habit, entry) ? current : tapHabit(current, habit.id);
+      const entry = getEntry(current, day, habit.id);
+      return isComplete(habit, entry) ? current : tapHabit(current, habit.id, day);
     });
     onClose();
   }

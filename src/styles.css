@@ -448,6 +448,39 @@ p {
   text-underline-offset: 3px;
 }
 
+.link:hover {
+  color: var(--fg);
+}
+
+/* ---------- press feedback ---------- */
+
+/* A tap should feel like a tap — but only when the user is happy with motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .btn:active,
+  .chip:active,
+  .day-chip:active,
+  .row-act:active,
+  .stepper-act:active,
+  .stepper-value:active,
+  .daystrip-shift:active,
+  .dump-remove:active {
+    transform: scale(0.96);
+  }
+
+  .hrow-main:active .hrow-name {
+    opacity: 0.65;
+  }
+
+  .btn,
+  .day-chip,
+  .row-act,
+  .stepper-act,
+  .stepper-value {
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease,
+      transform 0.08s ease;
+  }
+}
+
 .segmented {
   display: inline-flex;
   align-self: flex-start;
@@ -1099,6 +1132,152 @@ button.stepper-value:hover {
 .hstat-value {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+/* ---------- week strip (Today) ---------- */
+
+.daystrip {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.daystrip-shift {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-sm);
+  height: var(--control);
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.daystrip-shift:hover:not(:disabled) {
+  color: var(--fg);
+  background: var(--surface-3);
+}
+
+.daystrip-shift:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.daystrip-days {
+  display: flex;
+  flex: 1;
+  gap: var(--s1);
+}
+
+/* one chip per day: name on top, status as a small mark under it */
+.day-chip {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  height: var(--control);
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--t-xs);
+}
+
+.day-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-chip-mark {
+  width: 16px;
+  height: 3px;
+  background: var(--line-strong);
+  border-radius: 999px;
+}
+
+.day-chip[data-status='done'] .day-chip-mark {
+  background: var(--cell-done);
+}
+
+.day-chip[data-status='partial'] .day-chip-mark {
+  background: var(--cell-partial);
+}
+
+.day-chip[data-status='rest'] .day-chip-mark,
+.day-chip[data-status='future'] .day-chip-mark {
+  background: transparent;
+}
+
+.day-chip[data-today='true'] {
+  color: var(--fg);
+}
+
+.day-chip[data-active='true'] {
+  color: var(--fg);
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+}
+
+.day-chip:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .day-chip:not(:disabled):not([data-active='true']):hover {
+    color: var(--fg);
+    background: var(--surface);
+  }
+}
+
+/* ---------- weekday chart (stats) ---------- */
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.weekdays li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.weekday-track {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  height: 48px;
+  border-bottom: 1px solid var(--line);
+}
+
+.weekday-fill {
+  width: 100%;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+
+.weekday-fill[data-empty='true'] {
+  background: var(--line-strong);
+}
+
+.weekday-name {
+  font-size: var(--t-xs);
+  color: var(--muted);
 }
 
 /* ---------- trend strip (stats) ---------- */

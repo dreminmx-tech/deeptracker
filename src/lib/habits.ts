@@ -1,7 +1,7 @@
 import type { AppData, DayLog, Entry, Habit, HabitKind } from '../types';
 import { MAX_PINNED } from '../types';
 import type { DateKey } from './date';
-import { addDays, dateKey, diffDays, startOfWeek, todayKey } from './date';
+import { addDays, dateKey, diffDays, startOfWeek, todayKey, weekdayIndex } from './date';
 
 /** Kinds that need a daily action from the user (they drive the daily ring). */
 export const ACTIONABLE_KINDS: HabitKind[] = ['check', 'counter', 'duration'];
@@ -271,6 +271,53 @@ export function hasAnyData(data: AppData): boolean {
   return Object.values(data.days).some(
     (day) => Object.keys(day.entries ?? {}).length > 0 || (day.dump ?? []).length > 0,
   );
+}
+
+/** Habits that exist on `key` — a habit never asks for a day before it was created. */
+export function habitsUpTo(habits: Habit[], key: DateKey): Habit[] {
+  return habits.filter((habit) => startKey(habit) <= key);
+}
+
+/**
+ * Share of closed habits per weekday (0 = Monday) over the window.
+ * Answers the only question that matters here: "какой день недели у меня проваливается?"
+ * Counting habits rather than whole days keeps the chart readable: a day is rarely closed
+ * completely, and "закрыто 40% привычек" is still a signal.
+ */
+export function weekdayRates(
+  data: AppData,
+  habits: Habit[],
+  days: DateKey[],
+  today: DateKey = todayKey(),
+): { done: number; total: number }[] {
+  const rates = Array.from({ length: 7 }, () => ({ done: 0, total: 0 }));
+  for (const key of days) {
+    if (key > today) continue;
+    const { done, total } = dayProgress(data, habitsUpTo(habits, key), key);
+    if (total === 0) continue;
+    const bucket = rates[weekdayIndex(key)];
+    if (!bucket) continue;
+    bucket.done += done;
+    bucket.total += total;
+  }
+  return rates;
+}
+
+/**
+ * How many habits were missed yesterday and are still open today.
+ * One missed day is forgiven, two in a row break the run — this is the moment to say so.
+ */
+export function missedYesterday(
+  data: AppData,
+  habits: Habit[],
+  today: DateKey = todayKey(),
+): number {
+  const yesterday = addDays(today, -1);
+  return habitsUpTo(habits, yesterday).filter(
+    (habit) =>
+      dayStatus(data, habit, yesterday, today) === 'missed' &&
+      dayStatus(data, habit, today, today) !== 'done',
+  ).length;
 }
 
 /** Human readable "1/6" style progress for a counter/duration habit. */

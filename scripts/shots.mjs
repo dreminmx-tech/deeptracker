@@ -172,7 +172,16 @@ try {
   let scriptId = null;
 
   const shots = [
-    { name: 'today', tab: 'today', theme: 'dark', width: 390, height: 820 },
+    { name: 'today', tab: 'today', theme: 'dark', width: 390, height: 900 },
+    {
+      name: 'today-past',
+      tab: 'today',
+      theme: 'dark',
+      width: 390,
+      height: 900,
+      // стрелка назад: открывается прошлый понедельник вместе с прошлой неделей
+      clickJs: "document.querySelector('.daystrip-shift')?.click()",
+    },
     {
       name: 'today-log',
       tab: 'today',
@@ -184,9 +193,9 @@ try {
     },
     { name: 'habits', tab: 'habits', theme: 'dark', width: 390, height: 520 },
     { name: 'habits-actions', tab: 'habits', theme: 'dark', width: 390, height: 620, click: '.row-act' },
-    { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 1320 },
+    { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 1560 },
     { name: 'settings', tab: 'settings', theme: 'dark', width: 390, height: 1420 },
-    { name: 'today-light', tab: 'today', theme: 'light', width: 390, height: 820 },
+    { name: 'today-light', tab: 'today', theme: 'light', width: 390, height: 900 },
   ];
 
   for (const shot of shots) {

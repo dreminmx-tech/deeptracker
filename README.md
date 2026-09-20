@@ -11,19 +11,22 @@
 [![Deploy](https://github.com/dreminmx-tech/deeptracker/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/dreminmx-tech/deeptracker/actions/workflows/deploy.yml)
 [![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square&labelColor=141418)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-offline--first-0070f3?style=flat-square&labelColor=141418)](docs/technical.md#pwa)
-[![Tests](https://img.shields.io/badge/tests-31%20passing-22c55e?style=flat-square&labelColor=141418)](docs/technical.md#tests)
+[![Tests](https://img.shields.io/badge/tests-39%20passing-22c55e?style=flat-square&labelColor=141418)](docs/technical.md#tests)
 [![React](https://img.shields.io/badge/React-19-0070f3?style=flat-square&labelColor=141418)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7-0070f3?style=flat-square&labelColor=141418)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8-0070f3?style=flat-square&labelColor=141418)](https://vite.dev)
-[![Bundle](https://img.shields.io/badge/бандл-87%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
+[![Bundle](https://img.shields.io/badge/бандл-88%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
 
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/today.png" alt="Экран «Сегодня»" width="165"><br><sub>Сегодня</sub></td>
-    <td align="center"><img src="docs/screenshots/today-log.png" alt="Быстрый ввод: 20 минут одним тапом" width="165"><br><sub>Быстрый ввод</sub></td>
-    <td align="center"><img src="docs/screenshots/stats.png" alt="Статистика" width="165"><br><sub>Статистика</sub></td>
-    <td align="center"><img src="docs/screenshots/habits.png" alt="Привычки" width="165"><br><sub>Привычки</sub></td>
-    <td align="center"><img src="docs/screenshots/today-light.png" alt="Светлая тема" width="165"><br><sub>Светлая тема</sub></td>
+    <td align="center"><img src="docs/screenshots/today.png" alt="Экран «Сегодня» с полосой недели" width="200"><br><sub>Сегодня</sub></td>
+    <td align="center"><img src="docs/screenshots/today-past.png" alt="Заполнение прошлого дня" width="200"><br><sub>Заполнить прошлое</sub></td>
+    <td align="center"><img src="docs/screenshots/today-log.png" alt="Быстрый ввод: 20 минут одним тапом" width="200"><br><sub>Один тап вместо двадцати</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/stats.png" alt="Статистика" width="200"><br><sub>Статистика</sub></td>
+    <td align="center"><img src="docs/screenshots/habits.png" alt="Привычки" width="200"><br><sub>Привычки</sub></td>
+    <td align="center"><img src="docs/screenshots/today-light.png" alt="Светлая тема" width="200"><br><sub>Светлая тема</sub></td>
   </tr>
 </table>
 
@@ -40,7 +43,7 @@
 ```bash
 npm install
 npm run dev      # http://127.0.0.1:5173
-npm test         # 31 тест: логика + рендер всех экранов
+npm test         # 39 тестов: логика + рендер всех экранов
 ```
 
 Сборка и просмотр продакшн-версии:
@@ -60,7 +63,9 @@ npm run preview  # http://127.0.0.1:4173
 ## ✨ Что внутри
 
 - ✅ **Пять типов привычек** — отметка, счётчик с целью, минуты с таймером, «не делать» и гибкая частота вроде «3 раза в неделю».
-- 🪶 **Мягкие серии** — «не пропускай дважды»: один пропущенный день не обнуляет прогресс, ломают только два подряд, а сегодняшний незакрытый день вообще не считается пропуском.
+- 🪶 **Мягкие серии** — «не пропускай дважды»: один пропущенный день не обнуляет прогресс, ломают только два подряд, а сегодняшний незакрытый день вообще не считается пропуском. Если вчера всё-таки было пусто, приложение скажет об этом одной спокойной фразой — не уведомлением и не красным.
+- 🗓 **Любой день недели** — полоса недели над списком: листаешь назад и заполняешь то, что забыл отметить вчера. Прошлое редактируется, будущее — нет, а привычки, которых в тот день ещё не было, не показываются.
+- 📅 **По дням недели** — в статистике видно, какой день у тебя проваливается: «Реже всего закрыто: чт.» Считается доля закрытых привычек, а не целых дней — так график вообще о чём-то говорит.
 - 🎯 **«Главное сегодня»** — максимум три привычки наверху, остальные ниже: меньше паралича выбора.
 - 👆 **Один тап вместо двадцати** — `− значение +` собраны в одну пилюлю, а само значение открывает быстрый ввод: выбираешь «20 минут» и всё, считать по единице не нужно. Рядом, в том же окне, таймер.
 - 📐 **Плотно, без простыней** — один паттерн строки на все списки и один прибор действий справа. Высоты кнопок, полей и строк берутся из одной шкалы (32/40/44/56), отступы — из одной сетки (4…32), карточка всегда 16px внутри и 12px между детьми.

@@ -1,5 +1,6 @@
 import type { AppData, Habit, Lang } from '../types';
 import type { Dict } from '../lib/i18n';
+import type { DateKey } from '../lib/date';
 import { todayKey } from '../lib/date';
 import { getEntry, progressOf, softStreak, targetOf, weekProgress } from '../lib/habits';
 
@@ -8,12 +9,17 @@ function minuteUnit(habit: Habit, lang: Lang): string {
 }
 
 /**
- * One quiet value at the right edge of a row: today's progress, nothing else.
+ * One quiet value at the right edge of a row: that day's progress, nothing else.
  * Streaks and history live in Статистика — the daily list stays calm.
  */
-export function habitStatus(data: AppData, habit: Habit, lang: Lang): string {
+export function habitStatus(
+  data: AppData,
+  habit: Habit,
+  lang: Lang,
+  day: DateKey = todayKey(),
+): string {
   if (habit.kind === 'check') return '';
-  const entry = getEntry(data, todayKey(), habit.id);
+  const entry = getEntry(data, day, habit.id);
 
   if (habit.kind === 'counter') {
     const value = Math.round(progressOf(habit, entry));
@@ -27,12 +33,12 @@ export function habitStatus(data: AppData, habit: Habit, lang: Lang): string {
   }
 
   if (habit.kind === 'flex') {
-    const weekly = weekProgress(data, habit);
+    const weekly = weekProgress(data, habit, day);
     return `${weekly.done}/${weekly.target}`;
   }
 
-  // negative: clean days in a row
-  const clean = softStreak(data, habit);
+  // negative: clean days in a row, counted up to that day
+  const clean = softStreak(data, habit, day);
   return lang === 'ru' ? `${clean} чисто` : `${clean} clean`;
 }
 

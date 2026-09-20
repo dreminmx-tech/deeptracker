@@ -14,6 +14,7 @@ import { STORAGE_KEY, type AppData } from './types';
 import { addDays, todayKey } from './lib/date';
 import { freshData } from './lib/storage';
 import { addDump, addMinutes, tapHabit } from './lib/actions';
+import { getEntry, isComplete } from './lib/habits';
 
 /** Minimal localStorage so `loadData()` sees exactly the data a test wants. */
 function seedStorage(data: AppData) {
@@ -49,6 +50,18 @@ function dataWithHistory(): AppData {
   data = addDump(data, todayKey(), 'Позвонить в поликлинику');
   data = addMinutes(data, data.habits[2].id, 25, todayKey());
   return data;
+}
+
+/** The same history, but the habits are a month old — past days count as expected. */
+function agedHistory(): AppData {
+  const data = dataWithHistory();
+  return {
+    ...data,
+    habits: data.habits.map((habit) => ({
+      ...habit,
+      createdAt: new Date(Date.now() - 40 * 86_400_000).toISOString(),
+    })),
+  };
 }
 
 afterEach(() => {
@@ -87,7 +100,9 @@ describe('views render', () => {
     const walk = freshData('ru').habits[2];
     if (!walk) throw new Error('seeds missing');
     seedStorage(freshData('ru'));
-    const html = render(<LogDialog habit={walk} mode="quick" onClose={() => {}} />);
+    const html = render(
+      <LogDialog habit={walk} mode="quick" day={todayKey()} onClose={() => {}} />,
+    );
 
     expect(html).toContain('Сколько всего, мин?');
     expect(html).toContain('Цель — 20 мин');
@@ -97,6 +112,36 @@ describe('views render', () => {
     expect(html.match(/class="stepper"/g)).toHaveLength(1);
     expect(html).toContain('Засечь время');
     expect(html).toContain('20:00');
+  });
+
+  it('lets a past day be filled in from the week strip', () => {
+    seedStorage(agedHistory());
+    const past = addDays(todayKey(), -3);
+    const html = render(<TodayView onGoToHabits={() => {}} initialDay={past} />);
+
+    expect(html).toContain('Прошлый день');
+    expect(html).toContain('Вернуться к сегодня');
+    expect(html).toContain('aria-current="date"');
+    // неделя целиком: семь дней плюс переходы
+    expect(html.match(/class="day-chip"/g)).toHaveLength(7);
+    expect(html.match(/class="daystrip-shift"/g)).toHaveLength(2);
+  });
+
+  it('says one calm thing about the day', () => {
+    seedStorage(agedHistory());
+    const atRisk = render(<TodayView onGoToHabits={() => {}} />);
+    expect(atRisk).toContain('Вчера был пропуск');
+
+    let closed = agedHistory();
+    for (const habit of closed.habits) {
+      if (!['check', 'counter', 'duration'].includes(habit.kind)) continue;
+      if (isComplete(habit, getEntry(closed, todayKey(), habit.id))) continue;
+      closed = tapHabit(closed, habit.id, todayKey());
+    }
+    seedStorage(closed);
+    const html = render(<TodayView onGoToHabits={() => {}} />);
+    expect(html).toContain('На сегодня всё');
+    expect(html).not.toContain('Вчера был пропуск');
   });
 
   it('renders the habits list', () => {
