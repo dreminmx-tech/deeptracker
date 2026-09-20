@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from 'react';
 import { Ban, Play, Undo2, X } from 'lucide-react';
-import type { Habit } from '../types';
+import type { AppData, Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
-import { formatDay, todayKey, type DateKey } from '../lib/date';import {
+import { formatDay, todayKey, type DateKey } from '../lib/date';
+import {
   addDump,
   bumpCounter,
   clearDoneDump,
@@ -29,6 +30,7 @@ import CountStepper from './CountStepper';
 import DayStrip from './DayStrip';
 import HabitRow from './HabitRow';
 import LogDialog, { type LogMode } from './LogDialog';
+import { useToast } from './Toast';
 import { habitStatus } from './habitText';
 
 interface TodayViewProps {
@@ -44,9 +46,10 @@ const ICON = 19;
  * what you forgot to mark yesterday. Every action writes to the day that is open.
  */
 export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) {
-  const { data, update } = useStore();
+  const { data, update, replace } = useStore();
   const lang = data.settings.lang;
   const dict = t(lang);
+  const notify = useToast();
   const today = todayKey();
 
   const [open, setOpen] = useState<DateKey>(initialDay ?? today);
@@ -93,6 +96,19 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
   const openLog = (habit: Habit) => setDialog({ habit, mode: 'quick' });
 
   /**
+   * Acts, then offers one way back. Accidental taps happen — the row is a big target,
+   * and a counter tap jumps straight to the goal.
+   */
+  function act(next: (current: AppData) => AppData, message: string) {
+    const before = data;
+    update(next);
+    notify(message, 'plain', {
+      label: dict['common.undo'],
+      run: () => replace(before),
+    });
+  }
+
+  /**
    * One visual element per row on the right. Counter and minutes habits fold `− value +`
    * into a single stepper (and the value opens the quick log); the rest get one icon:
    * `Play` for “just start”, `Ban` for “don't do”.
@@ -112,7 +128,11 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
           data-active={slipped ? 'true' : 'false'}
           aria-label={label}
           title={label}
-          onClick={() => update((current) => tapHabit(current, habit.id, open))}
+          onClick={() =>
+            slipped
+              ? update((current) => tapHabit(current, habit.id, open))
+              : act((current) => tapHabit(current, habit.id, open), dict['today.slipped'])
+          }
         >
           {slipped ? <Undo2 size={ICON} strokeWidth={1.8} /> : <Ban size={ICON} strokeWidth={1.8} />}
         </button>
@@ -157,7 +177,18 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
           ) : undefined
         }
         onToggle={
-          isNegative ? undefined : () => update((current) => tapHabit(current, habit.id, open))
+          isNegative
+            ? undefined
+            : () => {
+                const entry = getEntry(data, open, habit.id);
+                const jumpsToGoal = counts && !isComplete(habit, entry);
+                // A counter tap fills the whole goal in one go — that is worth an undo.
+                if (jumpsToGoal) {
+                  act((current) => tapHabit(current, habit.id, open), dict['today.filled']);
+                  return;
+                }
+                update((current) => tapHabit(current, habit.id, open));
+              }
         }
         actions={actionsFor(habit)}
       />
@@ -289,7 +320,12 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
                       className="dump-remove"
                       aria-label={dict['common.delete']}
                       title={dict['common.delete']}
-                      onClick={() => update((current) => removeDump(current, open, item.id))}
+                      onClick={() =>
+                        act(
+                          (current) => removeDump(current, open, item.id),
+                          dict['today.dumpRemoved'],
+                        )
+                      }
                     >
                       <X size={ICON} strokeWidth={1.8} aria-hidden="true" />
                     </button>

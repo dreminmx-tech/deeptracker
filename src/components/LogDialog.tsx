@@ -33,7 +33,7 @@ function formatClock(seconds: number): string {
  * `tiny` mode is the two-minute nudge for check-off habits.
  */
 export default function LogDialog({ habit, mode, day, onClose }: LogDialogProps) {
-  const { data, update } = useStore();
+  const { data, update, replace } = useStore();
   const lang = data.settings.lang;
   const dict = t(lang);
   const notify = useToast();
@@ -78,8 +78,12 @@ export default function LogDialog({ habit, mode, day, onClose }: LogDialogProps)
 
   /** A chip is the whole interaction: pick the amount, the dialog is done. */
   function choose(amount: number) {
+    const before = data;
     update((current) => setProgress(current, habit.id, amount, day));
-    notify(fill(dict['log.saved'], { v: withUnit(amount) }), 'ok');
+    notify(fill(dict['log.saved'], { v: withUnit(amount) }), 'ok', {
+      label: dict['common.undo'],
+      run: () => replace(before),
+    });
     onClose();
   }
 

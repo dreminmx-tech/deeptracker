@@ -193,6 +193,15 @@ try {
       // второе значение — «Прогулка»: окно быстрого ввода минут с чипами и таймером
       clickJs: "document.querySelectorAll('.stepper-value')[1]?.click()",
     },
+    {
+      name: 'today-undo',
+      tab: 'today',
+      theme: 'dark',
+      width: 390,
+      height: 900,
+      // случайный тап по строке счётчика: видно, что приложение предлагает отмену
+      clickJs: "document.querySelectorAll('.hrow')[1]?.querySelector('.hrow-main')?.click()",
+    },
     { name: 'habits', tab: 'habits', theme: 'dark', width: 390, height: 620 },
     {
       name: 'habit-form',
