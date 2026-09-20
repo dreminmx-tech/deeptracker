@@ -242,10 +242,8 @@ p {
   gap: var(--s3);
 }
 
-.group > .btn,
-.zone > .btn {
-  align-self: flex-start;
-}
+/* One button shape and one width: an action in a card always spans the card.
+   A lone narrow button next to full-width twins was the loudest thing left. */
 
 /* labels read as words, not as shouting: no caps, no letter-spaced noise */
 .label {
@@ -300,13 +298,13 @@ p {
   font-weight: var(--w-strong);
 }
 
-/* a labelled zone inside a card, separated by a rule */
+/* a labelled zone inside a card, separated by a rule — same rhythm as the card */
 .zone {
   display: flex;
   flex-direction: column;
-  gap: var(--s2);
+  gap: var(--s3);
   margin-top: var(--s1);
-  padding-top: var(--s3);
+  padding-top: var(--s4);
   border-top: 1px solid var(--line);
 }
 
@@ -529,8 +527,14 @@ p {
   min-height: var(--row);
 }
 
-/* here the switch is a row control, so it keeps the full 44px tap height */
+/* here the switch is a row control, so it keeps the full 44px tap height.
+   Both rows use one width: «Чёрная/Белая» is exactly as wide as «Русский/English». */
+.set-row .segmented {
+  width: 176px;
+}
+
 .set-row .segmented button {
+  flex: 1 1 0;
   min-height: var(--control);
 }
 
@@ -1055,11 +1059,16 @@ button.stepper-value:hover {
   background: rgba(0, 0, 0, 0.32);
 }
 
+/* The sheet is a column: the head and the footer are always visible, only the body
+   scrolls. Before this the footer could sit below the fold — «Сохранить» уезжало
+   вниз, и добавить привычку было невозможно, не догадавшись про скролл. */
 .sheet {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: var(--sheet-width);
   max-height: 92dvh;
-  overflow-y: auto;
+  overflow: hidden;
   padding: var(--s4) var(--s4) calc(var(--s4) + env(safe-area-inset-bottom));
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -1079,6 +1088,7 @@ button.stepper-value:hover {
 
 .sheet-head {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: var(--s2);
@@ -1094,8 +1104,11 @@ button.stepper-value:hover {
 /* the body owns the rhythm, so dialogs, sheets and forms all breathe alike */
 .sheet-body {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--s3);
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .sheet-sub {
@@ -1141,6 +1154,7 @@ button.stepper-value:hover {
 /* one, two or three actions — always equal, always the full width */
 .sheet-foot {
   display: grid;
+  flex: 0 0 auto;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   gap: var(--s2);
@@ -1271,37 +1285,6 @@ button.stepper-value:hover {
 
 .daystrip {
   display: flex;
-  align-items: center;
-  gap: var(--s1);
-}
-
-.daystrip-shift {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  width: var(--control-sm);
-  height: var(--control);
-  padding: 0;
-  color: var(--muted);
-  background: none;
-  border: 0;
-  border-radius: var(--radius-sm);
-}
-
-.daystrip-shift:hover:not(:disabled) {
-  color: var(--fg);
-  background: var(--surface-3);
-}
-
-.daystrip-shift:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
-.daystrip-days {
-  display: flex;
-  flex: 1;
   gap: var(--s1);
 }
 
@@ -1377,46 +1360,18 @@ button.stepper-value:hover {
   }
 }
 
-/* ---------- weekday chart (stats) ---------- */
-
-.weekdays {
+/* Weekday labels under the week strip: the same seven columns as the bars above,
+   so the chart needs no legend at all. */
+.weekday-labels {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: var(--s2);
+  gap: 1px;
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.weekdays li {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--s1);
-  min-width: 0;
-}
-
-.weekday-track {
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  height: 48px;
-  border-bottom: 1px solid var(--line);
-}
-
-.weekday-fill {
-  width: 100%;
-  background: var(--cell-done);
-  border-radius: 2px 2px 0 0;
-}
-
-.weekday-fill[data-empty='true'] {
-  background: var(--cell-missed);
-}
-
-.weekday-name {
   font-size: var(--t-xs);
   color: var(--muted);
+  text-align: center;
 }
 
 /* ---------- trend strip (stats) ---------- */
@@ -1459,47 +1414,6 @@ button.stepper-value:hover {
 
 .trend-day[data-now='true'] {
   background: var(--accent);
-}
-
-.trend-sample {
-  display: inline-block;
-  width: 6px;
-  height: 16px;
-  background: var(--cell-done);
-  border-radius: 2px;
-}
-
-.trend-sample[data-status='partial'] {
-  height: 9px;
-  background: var(--cell-partial);
-}
-
-.trend-sample[data-status='missed'] {
-  height: 3px;
-  background: var(--cell-missed);
-}
-
-.trend-sample[data-status='rest'] {
-  height: 3px;
-  background: transparent;
-  border: 1px dashed var(--cell-line);
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s2) var(--s3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--t-xs);
-  color: var(--muted);
-}
-
-.legend li {
-  display: flex;
-  align-items: center;
-  gap: var(--s1);
 }
 
 /* ---------- toast ---------- */

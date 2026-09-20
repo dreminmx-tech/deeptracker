@@ -232,25 +232,24 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
         </div>
       ) : (
         <>
-          <DayStrip
-            day={open}
-            today={today}
-            lang={lang}
-            statusFor={(key) => dayHeatStatus(data, actionable, key, today)}
-            onSelect={setOpen}
-            labels={{
-              group: dict['today.week'],
-              current: dict['today.openDay'],
-              prevWeek: dict['today.prevWeek'],
-              nextWeek: dict['today.nextWeek'],
-            }}
-          />
-
-          {!isToday ? (
-            <button type="button" className="link" onClick={() => setOpen(today)}>
-              {dict['today.backToToday']}
-            </button>
-          ) : null}
+          {/* Every block on this screen is labelled — including the day strip:
+              it now shows the last seven days, so it needs to say so. */}
+          <section className="block">
+            <p className="label">{dict['today.week']}</p>
+            <DayStrip
+              day={open}
+              today={today}
+              lang={lang}
+              statusFor={(key) => dayHeatStatus(data, actionable, key, today)}
+              onSelect={setOpen}
+              groupLabel={dict['today.week']}
+            />
+            {!isToday ? (
+              <button type="button" className="link" onClick={() => setOpen(today)}>
+                {dict['today.backToToday']}
+              </button>
+            ) : null}
+          </section>
 
           {shown.length === 0 ? (
             <p className="muted small">

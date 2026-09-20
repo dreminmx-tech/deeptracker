@@ -76,6 +76,8 @@ export default function HabitForm({ habit, onClose }: HabitFormProps) {
           value={name}
           maxLength={80}
           placeholder={dict['habits.namePlaceholder']}
+          /* новая привычка начинается с названия — сразу ставим туда курсор */
+          autoFocus={!habit}
           onChange={(event) => setName(event.target.value)}
         />
       </label>

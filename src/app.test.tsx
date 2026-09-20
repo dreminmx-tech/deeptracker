@@ -122,9 +122,10 @@ describe('views render', () => {
     expect(html).toContain('Прошлый день');
     expect(html).toContain('Вернуться к сегодня');
     expect(html).toContain('aria-current="date"');
-    // неделя целиком: семь дней плюс переходы
+    // последние семь дней, без листания недель: сегодня — всегда последний день
     expect(html.match(/class="day-chip"/g)).toHaveLength(7);
-    expect(html.match(/class="daystrip-shift"/g)).toHaveLength(2);
+    expect(html).not.toContain('daystrip-shift');
+    expect(html).toContain('data-today="true"');
   });
 
   it('says one calm thing about the day', () => {
@@ -155,7 +156,8 @@ describe('views render', () => {
   it('renders stats with a trend strip once there is data', () => {
     seedStorage(dataWithHistory());
     const html = render(<StatsView />);
-    expect(html).toContain('100% дней');
+    expect(html).toContain('Эта неделя');
+    expect(html).toContain('class="weekday-labels"');
     expect(html).toContain('class="trend"');
     expect(html).toContain('данные, а не оценка');
     // заголовок — такая же карточка, как всё остальное, а привычки живут одним списком

@@ -220,9 +220,10 @@ describe('days before a habit existed', () => {
   });
 });
 
-/** The most recent day with the given weekday, 0 = Monday. */
+/** The most recent day with the given weekday, 0 = Monday. Always in the past:
+    today itself is never returned, so «следующий день» в тестах не уезжает в будущее. */
 function lastOn(weekday: number): DateKey {
-  for (let i = 0; i < 7; i += 1) {
+  for (let i = 1; i <= 7; i += 1) {
     const key = addDays(TODAY, -i);
     if (weekdayIndex(key) === weekday) return key;
   }

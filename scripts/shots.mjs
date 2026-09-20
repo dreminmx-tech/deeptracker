@@ -181,8 +181,8 @@ try {
       theme: 'dark',
       width: 390,
       height: 900,
-      // стрелка назад: открывается прошлый понедельник вместе с прошлой неделей
-      clickJs: "document.querySelector('.daystrip-shift')?.click()",
+      // третий день в полосе: «последние 7 дней» открывает любой из них для правки
+      clickJs: "document.querySelectorAll('.day-chip')[2]?.click()",
     },
     {
       name: 'today-log',
@@ -213,7 +213,7 @@ try {
       click: '.view-head .btn',
     },
     { name: 'habits-actions', tab: 'habits', theme: 'dark', width: 390, height: 620, click: '.row-act' },
-    { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 1380 },
+    { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 1150 },
     { name: 'settings', tab: 'settings', theme: 'dark', width: 390, height: 1330 },
     { name: 'today-light', tab: 'today', theme: 'light', width: 390, height: 900 },
   ];
