@@ -84,6 +84,24 @@ node scripts/smoke.mjs http://127.0.0.1:4173/     # собранная верс�
 
 ## Деплой на GitHub Pages
 
+Живая версия: **https://dreminmx-tech.github.io/deeptracker/** — ставится на телефон как приложение.
+
+Быстрый путь (нужен авторизованный [gh](https://cli.github.com)):
+
+```bash
+git init -b main
+git add . && git commit -m "deeptracker"
+gh repo create deeptracker --public --source=. --remote=origin
+gh api -X POST repos/<user>/deeptracker/pages -f build_type=workflow
+git push -u origin main
+```
+
+Дальше всё делает workflow: прогоняет тесты, собирает проект и публикует `dist/` на каждый пуш в `main`
+(ручной запуск — через **Actions → Deploy to GitHub Pages → Run workflow**).
+
+<details>
+<summary>Вручную, без gh</summary>
+
 1. Создай репозиторий и запушь код в ветку `main`:
    ```bash
    git init
@@ -95,6 +113,8 @@ node scripts/smoke.mjs http://127.0.0.1:4173/     # собранная верс�
    ```
 2. На GitHub: **Settings → Pages → Source: GitHub Actions**.
 3. Workflow `.github/workflows/deploy.yml` сам прогонит тесты, соберёт проект и опубликует `dist/`.
+
+</details>
 
 Сборка использует `base: './'`, поэтому один и тот же `dist/` работает и на project-странице
 (`https://<user>.github.io/<repo>/`), и на user-странице, и на своём домене — переписывать пути не нужно.
