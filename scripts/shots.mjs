@@ -177,23 +177,22 @@ try {
   let scriptId = null;
 
   const shots = [
-    { name: 'today', tab: 'today', theme: 'dark', width: 390, height: 900 },
+    { name: 'today', tab: 'today', theme: 'dark', width: 390, height: 940 },
     {
       name: 'today-past',
       tab: 'today',
       theme: 'dark',
       width: 390,
-      height: 900,
-      // прошлое открывается только тогда, когда оно важно: подсказка про вчера
-      clickJs:
-        "[...document.querySelectorAll('.day-head .link')].find((el) => el.textContent.includes('вчера'))?.click()",
+      height: 940,
+      // стрелка назад: вчера открывается одним тапом и правится
+      clickJs: "document.querySelector('[aria-label=\"Предыдущий день\"]')?.click()",
     },
     {
       name: 'today-undo',
       tab: 'today',
       theme: 'dark',
       width: 390,
-      height: 900,
+      height: 940,
       // срыв у «не делать»: приложение сразу предлагает отмену
       clickJs: "document.querySelector('.hrow-actions .row-act')?.click()",
     },
@@ -210,7 +209,7 @@ try {
     { name: 'habits-actions', tab: 'habits', theme: 'dark', width: 390, height: 620, click: '.row-act' },
     { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 820 },
     { name: 'settings', tab: 'settings', theme: 'dark', width: 390, height: 1120 },
-    { name: 'today-light', tab: 'today', theme: 'light', width: 390, height: 900 },
+    { name: 'today-light', tab: 'today', theme: 'light', width: 390, height: 940 },
   ];
 
   for (const shot of shots) {

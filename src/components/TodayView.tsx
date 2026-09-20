@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Ban, Undo2, X } from 'lucide-react';
+import { Ban, ChevronLeft, ChevronRight, Undo2, X } from 'lucide-react';
 import type { AppData, Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
@@ -46,7 +46,6 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
   const [dumpText, setDumpText] = useState('');
 
   const isToday = open === today;
-  const yesterday = addDays(today, -1);
 
   const active = activeHabits(data);
   // A habit is not asked for a day before it existed, nor on a day off its schedule.
@@ -148,7 +147,38 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
   return (
     <div className="stack">
       <header className="day-head">
-        <p className="label">{formatDay(open, lang)}</p>
+        {/* Один день назад — один тап. Стрелки, а не полоса недели: дата всегда
+            написана слева, поэтому «какой это день» не загадка, а вчера открывается
+            даже тогда, когда вчера не было пусто (полоса дней за это и поплатилась). */}
+        <div className="day-nav">
+          <p className="label">{formatDay(open, lang)}</p>
+          <div className="day-nav-acts">
+            {!isToday ? (
+              <button type="button" className="link" onClick={() => setOpen(today)}>
+                {dict['today.today']}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label={dict['today.prevDay']}
+              title={dict['today.prevDay']}
+              onClick={() => setOpen(addDays(open, -1))}
+            >
+              <ChevronLeft size={18} strokeWidth={1.8} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label={dict['today.nextDay']}
+              title={dict['today.nextDay']}
+              disabled={isToday}
+              onClick={() => setOpen(addDays(open, 1))}
+            >
+              <ChevronRight size={18} strokeWidth={1.8} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
         <div className="day-line">
           <h1>{isToday ? greeting : dict['today.pastTitle']}</h1>
           {total > 0 ? (
@@ -169,16 +199,6 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
           </div>
         ) : null}
         {notice ? <p className="muted small">{notice}</p> : null}
-        {!isToday ? (
-          <button type="button" className="link" onClick={() => setOpen(today)}>
-            {dict['today.backToToday']}
-          </button>
-        ) : atRisk > 0 ? (
-          // Прошлое появляется только тогда, когда оно правда важно: вчерашний пропуск.
-          <button type="button" className="link" onClick={() => setOpen(yesterday)}>
-            {dict['today.openYesterday']}
-          </button>
-        ) : null}
       </header>
 
       {active.length === 0 ? (

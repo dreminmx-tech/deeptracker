@@ -439,6 +439,18 @@ p {
   background: var(--surface-3);
 }
 
+.icon-btn:disabled,
+.row-act:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.icon-btn:disabled:hover,
+.row-act:disabled:hover {
+  color: var(--muted);
+  background: none;
+}
+
 /* a text button keeps a faint rule instead of a loud underline */
 .link {
   align-self: flex-start;
@@ -552,6 +564,21 @@ p {
   display: flex;
   flex-direction: column;
   gap: var(--s2);
+}
+
+/* Дата слева, шаг по дням справа: вчера — один тап, и он всегда на виду. */
+.day-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-height: var(--control);
+}
+
+.day-nav-acts {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
 }
 
 .day-line {

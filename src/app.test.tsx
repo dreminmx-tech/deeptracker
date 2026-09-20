@@ -91,11 +91,13 @@ describe('views render', () => {
     expect(html).not.toContain('0/6');
   });
 
-  it('opens yesterday from the notice instead of a week strip', () => {
+  it('keeps yesterday one tap away, whatever yesterday looked like', () => {
     seedStorage(agedHistory());
     const html = render(<TodayView onGoToHabits={() => {}} />);
 
-    expect(html).toContain('Открыть вчера');
+    // дата написана, шаг по дням на виду: вчера открывается даже если вчера не было пусто
+    expect(html).toContain('aria-label="Предыдущий день"');
+    expect(html).toMatch(/aria-label="Следующий день"[^>]*disabled/);
     expect(html).not.toContain('day-chip');
   });
 
@@ -105,7 +107,8 @@ describe('views render', () => {
     const html = render(<TodayView onGoToHabits={() => {}} initialDay={past} />);
 
     expect(html).toContain('Прошлый день');
-    expect(html).toContain('Вернуться к сегодня');
+    // из прошлого есть один тап обратно в сегодня
+    expect(html).toContain('>Сегодня<');
     expect(html).not.toContain('day-chip');
   });
 
