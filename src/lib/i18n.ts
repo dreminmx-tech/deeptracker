@@ -44,7 +44,7 @@ const ru = {
   'today.pinLimit': 'В «Главном» уже три привычки',
 
   'habits.title': 'Привычки',
-  'habits.add': '+ Привычка',
+  'habits.add': 'Добавить',
   'habits.new': 'Новая привычка',
   'habits.edit': 'Изменить привычку',
   'habits.name': 'Название',
@@ -107,6 +107,7 @@ const ru = {
   'stats.review.low': 'Неделя вышла тихой. Это просто неделя, не приговор.',
   'stats.weekday': 'По дням недели',
   'stats.weekdayWorst': 'Реже всего закрыто: {day}.',
+  'stats.trend': 'Последние {n} дней',
   'stats.rate': '{n}% дней',
   'stats.noJudgement': 'Пустая клетка — просто пустая клетка. Это данные, а не оценка.',
   'stats.legend.done': 'сделано',
@@ -223,7 +224,7 @@ const en: Dict = {
   'today.pinLimit': 'The main three are already full',
 
   'habits.title': 'Habits',
-  'habits.add': '+ Habit',
+  'habits.add': 'Add',
   'habits.new': 'New habit',
   'habits.edit': 'Edit habit',
   'habits.name': 'Name',
@@ -286,6 +287,7 @@ const en: Dict = {
   'stats.review.low': 'A quiet week. It is just a week, not a verdict.',
   'stats.weekday': 'By weekday',
   'stats.weekdayWorst': 'Least often closed: {day}.',
+  'stats.trend': 'Last {n} days',
   'stats.rate': '{n}% of days',
   'stats.noJudgement': 'An empty square is just an empty square. This is data, not a verdict.',
   'stats.legend.done': 'done',

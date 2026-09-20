@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Archive, ArchiveRestore, ArrowDown, ArrowUp, Pencil, Star, StarOff } from 'lucide-react';
+import { Archive, ArchiveRestore, ArrowDown, ArrowUp, Pencil, Plus, Star, StarOff } from 'lucide-react';
 import type { Habit } from '../types';
 import { useStore } from '../store';
 import { t } from '../lib/i18n';
@@ -93,7 +93,8 @@ export default function HabitsView() {
     <div className="stack">
       <header className="view-head">
         <h1>{dict['habits.title']}</h1>
-        <button type="button" className="btn btn-primary btn-sm" onClick={() => setCreating(true)}>
+        <button type="button" className="btn btn-sm" onClick={() => setCreating(true)}>
+          <Plus size={16} strokeWidth={2} aria-hidden="true" />
           {dict['habits.add']}
         </button>
       </header>

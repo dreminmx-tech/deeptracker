@@ -64,43 +64,46 @@ export default function SettingsView() {
         <h1>{dict['settings.title']}</h1>
       </header>
 
+      {/* Two switches, one card: two identical half-empty cards read as noise. */}
       <section className="card">
-        <h2>{dict['settings.language']}</h2>
-        <div className="segmented segmented-wide">
-          <button
-            type="button"
-            data-active={lang === 'ru' ? 'true' : 'false'}
-            onClick={() => update((current) => updateSettings(current, { lang: 'ru' }))}
-          >
-            Русский
-          </button>
-          <button
-            type="button"
-            data-active={lang === 'en' ? 'true' : 'false'}
-            onClick={() => update((current) => updateSettings(current, { lang: 'en' }))}
-          >
-            English
-          </button>
+        <div className="block">
+          <p className="label">{dict['settings.language']}</p>
+          <div className="segmented segmented-wide">
+            <button
+              type="button"
+              data-active={lang === 'ru' ? 'true' : 'false'}
+              onClick={() => update((current) => updateSettings(current, { lang: 'ru' }))}
+            >
+              Русский
+            </button>
+            <button
+              type="button"
+              data-active={lang === 'en' ? 'true' : 'false'}
+              onClick={() => update((current) => updateSettings(current, { lang: 'en' }))}
+            >
+              English
+            </button>
+          </div>
         </div>
-      </section>
 
-      <section className="card">
-        <h2>{dict['settings.theme']}</h2>
-        <div className="segmented segmented-wide">
-          <button
-            type="button"
-            data-active={data.settings.theme === 'dark' ? 'true' : 'false'}
-            onClick={() => update((current) => updateSettings(current, { theme: 'dark' }))}
-          >
-            {dict['settings.theme.dark']}
-          </button>
-          <button
-            type="button"
-            data-active={data.settings.theme === 'light' ? 'true' : 'false'}
-            onClick={() => update((current) => updateSettings(current, { theme: 'light' }))}
-          >
-            {dict['settings.theme.light']}
-          </button>
+        <div className="zone">
+          <p className="label">{dict['settings.theme']}</p>
+          <div className="segmented segmented-wide">
+            <button
+              type="button"
+              data-active={data.settings.theme === 'dark' ? 'true' : 'false'}
+              onClick={() => update((current) => updateSettings(current, { theme: 'dark' }))}
+            >
+              {dict['settings.theme.dark']}
+            </button>
+            <button
+              type="button"
+              data-active={data.settings.theme === 'light' ? 'true' : 'false'}
+              onClick={() => update((current) => updateSettings(current, { theme: 'light' }))}
+            >
+              {dict['settings.theme.light']}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -109,9 +112,10 @@ export default function SettingsView() {
         <p className="muted small">{dict['settings.exportHint']}</p>
 
         <div className="btn-col">
+          {/* the screen gets exactly one blue button, and it is the one being asked for */}
           <button
             type="button"
-            className="btn"
+            className={backupStale ? 'btn btn-primary' : 'btn'}
             onClick={() => {
               downloadJson(data);
               update((current) => updateSettings(current, { lastExport: new Date().toISOString() }));
@@ -179,7 +183,7 @@ export default function SettingsView() {
         ) : canInstall ? (
           <>
             <p className="muted small">{dict['settings.installHint']}</p>
-            <button type="button" className="btn btn-primary" onClick={() => void install()}>
+            <button type="button" className="btn" onClick={() => void install()}>
               {dict['settings.install']}
             </button>
           </>

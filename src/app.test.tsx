@@ -149,7 +149,7 @@ describe('views render', () => {
     const html = render(<HabitsView />);
     expect(html).toContain('Привычки');
     expect(html).toContain('Не листать телефон в постели');
-    expect(html).toContain('+ Привычка');
+    expect(html).toContain('Добавить');
   });
 
   it('renders stats with a trend strip once there is data', () => {

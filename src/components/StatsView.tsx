@@ -4,7 +4,6 @@ import { fill, t } from '../lib/i18n';
 import { lastNDays, todayKey, weekdayName } from '../lib/date';
 import {
   activeHabits,
-  bestStreak,
   completionRate,
   dayHeatStatus,
   dayStatus,
@@ -136,22 +135,26 @@ export default function StatsView() {
             </section>
           ) : null}
 
-          <div className="card">
-            <TrendStrip
-              days={days}
-              lang={lang}
-              statusFor={(key) => dayHeatStatus(data, actionable, key, today)}
-            />
-            <ul className="legend">
-              {(['done', 'partial', 'missed', 'rest'] as const).map((status) => (
-                <li key={status}>
-                  <span className="trend-sample" data-status={status} aria-hidden="true" />
-                  {dict[`stats.legend.${status}`]}
-                </li>
-              ))}
-            </ul>
-            <p className="muted small">{dict['stats.noJudgement']}</p>
-          </div>
+          <section className="block">
+            <p className="label">{fill(dict['stats.trend'], { n: range })}</p>
+            <div className="card">
+              <TrendStrip
+                days={days}
+                lang={lang}
+                now={today}
+                statusFor={(key) => dayHeatStatus(data, actionable, key, today)}
+              />
+              <ul className="legend">
+                {(['done', 'partial', 'missed', 'rest'] as const).map((status) => (
+                  <li key={status}>
+                    <span className="trend-sample" data-status={status} aria-hidden="true" />
+                    {dict[`stats.legend.${status}`]}
+                  </li>
+                ))}
+              </ul>
+              <p className="muted small">{dict['stats.noJudgement']}</p>
+            </div>
+          </section>
 
           <section className="block">
             <p className="label">{dict['stats.weekday']}</p>
@@ -191,25 +194,28 @@ export default function StatsView() {
               {habits.map((habit) => {
                 const rate = Math.round(completionRate(data, habit, days) * 100);
                 const weekly = habit.kind === 'flex' ? weekProgress(data, habit) : null;
+                const streak = softStreak(data, habit);
                 return (
                   <div key={habit.id} className="hstat">
                     <div className="hstat-head">
-                      <span className="hrow-name">{habit.name}</span>
-                      <span className="hstat-value muted small">
+                      <span className="hstat-name">{habit.name}</span>
+                      {streak > 0 ? (
+                        <span className="hstat-streak">
+                          {fill(dict['today.streak'], { n: streak })}
+                        </span>
+                      ) : null}
+                      <span className="hstat-value small">
                         {weekly
                           ? fill(dict['today.weekly'], { done: weekly.done, target: weekly.target })
                           : fill(dict['stats.rate'], { n: rate })}
                       </span>
                     </div>
                     <TrendStrip
+                      compact
                       days={days}
                       lang={lang}
                       statusFor={(key) => dayStatus(data, habit, key, today)}
                     />
-                    <p className="muted small">
-                      {fill(dict['today.streak'], { n: softStreak(data, habit) })} ·{' '}
-                      {fill(dict['today.best'], { n: bestStreak(data, habit) })}
-                    </p>
                   </div>
                 );
               })}

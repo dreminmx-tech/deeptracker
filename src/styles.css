@@ -7,7 +7,16 @@
      · sections sit 24px apart (.stack), a card's children 12px (.card gap),
        a titled block inside a card 8px (.block)
      · one row pattern (.hrow) for every list in the app
-     · icons are Lucide, 19px inside a row, 16px inside a button, never a glyph  */
+     · icons are Lucide, 19px inside a row, 16px inside a button, never a glyph
+   Hierarchy — what is allowed to be loud:
+     · blue is the state of a habit: done, or the value you just chose.
+       History, charts, meters, links and navigation are neutral, never blue.
+     · "you are here" is a lifted neutral pill (--pick): the open tab, the open day,
+       the chosen range. It is never blue.
+     · surfaces are quiet — a card is one step above the page and is read by its
+       hairline edge, not by a heavy fill. Only controls carry a strong border.
+     · exactly one blue thing per screen, and on most screens that thing is
+       nothing at all.  */
 
 :root {
   /* control scale — no other heights anywhere */
@@ -18,28 +27,26 @@
   --row: 56px; /* one list row */
 
   /* palette: dark, sampled from the DeepSeek platform dashboard */
-  --bg: #141418;
-  --surface: #1c1c1f;
-  --surface-2: #333538;
-  --surface-3: #3d4044;
-  --line: #2b2c30;
-  --line-strong: #43454a;
-  --fg: #f8f8fc;
-  --muted: #a2a6b3;
-  --pill: #43454a;
-  --pill-ink: #ffffff;
-  --accent: #0070f3;
+  --bg: #131317;
+  --surface: #1b1c20; /* inset wells: inputs, steppers, the tab bar */
+  --surface-2: #23242a; /* cards and lists — one quiet step above the page */
+  --surface-3: #2e303a; /* hover */
+  --line: #33353c; /* hairlines: card edge, row divider — lighter than the card */
+  --line-strong: #4a4d56; /* the only strong border in the app: controls */
+  --fg: #f7f8fc;
+  --muted: #a4a8b4;
+  --pick: #3a3d47; /* the open tab / open day / chosen range */
+  --pick-ink: #f7f8fc;
+  --accent: #0070f3; /* the only blue: a habit's state, and the one main action */
   --accent-ink: #ffffff;
-  --accent-bright: #cfe0ff;
-  --action-bg: #679efe;
-  --action-ink: #0d1117;
   --good: #22c55e;
-  /* partial days: the same blue, just dimmer — no yellow anywhere in the palette */
-  --cell-done: #679efe;
-  --cell-partial: #2f5488;
+  /* history is neutral; only "today" borrows the accent */
+  --cell-done: #b4b9c5;
+  --cell-partial: #6b7280;
+  --cell-missed: #3d4049;
   --cell-line: #5a5e66;
-  --toast-bg: #f8f8fc;
-  --toast-ink: #141418;
+  --toast-bg: #f7f8fc;
+  --toast-ink: #131317;
   --ok-bg: #22c55e;
   --ok-ink: #08210f;
   /* the only extra hue in the app: destructive actions, never habit state */
@@ -75,23 +82,21 @@
 [data-theme='light'] {
   /* light stays strictly black & white */
   --bg: #ffffff;
-  --surface: #fafafa;
-  --surface-2: #f2f2f2;
-  --surface-3: #e6e6e6;
-  --line: #e2e2e2;
-  --line-strong: #c9c9c9;
+  --surface: #ffffff;
+  --surface-2: #f5f5f6;
+  --surface-3: #e7e7e9;
+  --line: #e4e4e6;
+  --line-strong: #c4c4c8;
   --fg: #000000;
-  --muted: #6f6f6f;
-  --pill: #e8e8e8;
-  --pill-ink: #000000;
+  --muted: #6d6d6d;
+  --pick: #e2e2e5;
+  --pick-ink: #000000;
   --accent: #000000;
   --accent-ink: #ffffff;
-  --accent-bright: #000000;
-  --action-bg: #000000;
-  --action-ink: #ffffff;
   --good: #000000;
-  --cell-done: #000000;
-  --cell-partial: #9e9e9e;
+  --cell-done: #3a3a3a;
+  --cell-partial: #9a9a9a;
+  --cell-missed: #dedede;
   --cell-line: #c9c9c9;
   --toast-bg: #000000;
   --toast-ink: #ffffff;
@@ -164,7 +169,8 @@ p {
 .app {
   max-width: var(--sheet-width);
   margin: 0 auto;
-  padding: var(--s5) var(--s4) calc(72px + env(safe-area-inset-bottom));
+  /* the tab bar is 72px; the extra 32 keeps the last card clear of it */
+  padding: var(--s5) var(--s4) calc(104px + env(safe-area-inset-bottom));
 }
 
 .tabs {
@@ -199,8 +205,8 @@ p {
 }
 
 .tabs button[data-active='true'] {
-  color: var(--pill-ink);
-  background: var(--pill);
+  color: var(--pick-ink);
+  background: var(--pick);
   font-weight: var(--w-strong);
 }
 
@@ -239,12 +245,11 @@ p {
   align-self: flex-start;
 }
 
+/* labels read as words, not as shouting: no caps, no letter-spaced noise */
 .label {
   margin: 0;
-  font-size: var(--t-xs);
+  font-size: var(--t-sm);
   font-weight: var(--w-strong);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--muted);
 }
 
@@ -340,6 +345,7 @@ p {
   cursor: pointer;
   list-style: none;
   text-decoration: underline;
+  text-decoration-color: var(--line-strong);
   text-underline-offset: 3px;
 }
 
@@ -389,9 +395,9 @@ p {
 }
 
 .btn-primary {
-  color: var(--action-ink);
-  background: var(--action-bg);
-  border-color: var(--action-bg);
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
   font-weight: var(--w-strong);
 }
 
@@ -437,6 +443,7 @@ p {
   background: var(--surface-3);
 }
 
+/* a text button keeps a faint rule instead of a loud underline */
 .link {
   align-self: flex-start;
   padding: 0;
@@ -445,6 +452,7 @@ p {
   border: 0;
   font-size: var(--t-sm);
   text-decoration: underline;
+  text-decoration-color: var(--line-strong);
   text-underline-offset: 3px;
 }
 
@@ -501,8 +509,8 @@ p {
 }
 
 .segmented button[data-active='true'] {
-  color: var(--action-ink);
-  background: var(--action-bg);
+  color: var(--pick-ink);
+  background: var(--pick);
   font-weight: var(--w-strong);
 }
 
@@ -541,9 +549,9 @@ p {
 }
 
 .chip[data-active='true'] {
-  color: var(--action-ink);
-  background: var(--action-bg);
-  border-color: var(--action-bg);
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
   font-weight: var(--w-strong);
 }
 
@@ -587,7 +595,7 @@ p {
 .value-num {
   flex: 0 0 auto;
   font-variant-numeric: tabular-nums;
-  color: var(--muted);
+  color: var(--fg);
 }
 
 .day-count {
@@ -598,19 +606,25 @@ p {
   white-space: nowrap;
 }
 
+/* the day's meter: neutral, because progress is history. It is allowed to be
+   blue only when the day is closed — one small reward, once a day. */
 .bar {
-  height: 6px;
+  height: 4px;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--surface-2);
   border-radius: 999px;
 }
 
 .bar-fill {
   display: block;
   height: 100%;
-  background: var(--accent);
+  background: var(--cell-done);
   border-radius: 999px;
   transition: width 0.25s ease;
+}
+
+.bar[data-complete='true'] .bar-fill {
+  background: var(--accent);
 }
 
 /* ---------- the single row pattern ---------- */
@@ -673,11 +687,12 @@ p {
   color: var(--muted);
 }
 
+/* every value in the app lives in one right-hand column: full ink, tabular */
 .hrow-status {
   flex: 0 0 auto;
   font-size: var(--t-sm);
   font-variant-numeric: tabular-nums;
-  color: var(--muted);
+  color: var(--fg);
   white-space: nowrap;
 }
 
@@ -697,10 +712,11 @@ p {
 }
 
 button.stepper-value:hover {
-  color: var(--accent-bright);
+  color: var(--fg);
 }
 
-/* − значение + as one instrument: one border, one rhythm, three taps */
+/* − значение + as one instrument: one well, one rhythm, three taps.
+   No outline — the well itself is the shape, so a row keeps a single strong border. */
 .stepper {
   display: inline-flex;
   flex: 0 0 auto;
@@ -709,7 +725,7 @@ button.stepper-value:hover {
   min-height: var(--control);
   overflow: hidden;
   background: var(--surface);
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line);
   border-radius: 999px;
 }
 
@@ -740,7 +756,7 @@ button.stepper-value:hover {
 
 /* one tap, one action — no reading required */
 .row-act[data-active='true'] {
-  color: var(--accent-bright);
+  color: var(--fg);
 }
 
 .row-name {
@@ -751,7 +767,8 @@ button.stepper-value:hover {
 @media (hover: hover) {
   /* only the rows that actually do something light up */
   button.hrow-main:hover .hrow-name {
-    color: var(--accent-bright);
+    color: var(--fg);
+    opacity: 0.75;
   }
 }
 
@@ -807,8 +824,9 @@ button.stepper-value:hover {
 
 .dump-list {
   list-style: none;
+  /* rows line up with the rows of a card, not with its edge */
   margin: var(--s2) 0 0;
-  padding: 0;
+  padding: 0 var(--s2) 0 var(--s4);
 }
 
 .dump-list li {
@@ -817,6 +835,11 @@ button.stepper-value:hover {
   gap: var(--s1);
   min-height: var(--row);
   border-bottom: 1px solid var(--line);
+}
+
+/* the list is its own edge — no stray rule under the last thought */
+.dump-list li:last-child {
+  border-bottom: 0;
 }
 
 .dump-item {
@@ -853,10 +876,8 @@ button.stepper-value:hover {
 .field-label {
   display: block;
   margin-bottom: var(--s1);
-  font-size: var(--t-xs);
+  font-size: var(--t-sm);
   font-weight: var(--w-strong);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--muted);
 }
 
@@ -911,9 +932,9 @@ button.stepper-value:hover {
 }
 
 .kind-option[data-active='true'] {
-  color: var(--pill-ink);
-  background: var(--pill);
-  border-color: var(--accent);
+  color: var(--pick-ink);
+  background: var(--pick);
+  border-color: var(--line-strong);
 }
 
 .kind-name {
@@ -958,10 +979,12 @@ button.stepper-value:hover {
   border-radius: var(--radius-sm);
 }
 
+/* A schedule is a setting, not a habit state — so the chosen days are the same
+   neutral pill as the chosen tab, and blue stays for what you actually did. */
 .wick[data-on='true'] {
-  color: var(--action-ink);
-  background: var(--action-bg);
-  border-color: var(--action-bg);
+  color: var(--pick-ink);
+  background: var(--pick);
+  border-color: var(--line-strong);
   font-weight: var(--w-strong);
 }
 
@@ -1078,8 +1101,9 @@ button.stepper-value:hover {
   border-bottom: 1px solid var(--line);
 }
 
+/* the main action of a sheet: weight, not colour */
 .action[data-primary='true'] {
-  color: var(--accent-bright);
+  color: var(--fg);
   font-weight: var(--w-strong);
 }
 
@@ -1115,7 +1139,7 @@ button.stepper-value:hover {
   letter-spacing: -0.03em;
   line-height: 1;
   text-align: center;
-  color: var(--accent-bright);
+  color: var(--fg);
 }
 
 .timer-note {
@@ -1152,12 +1176,13 @@ button.stepper-value:hover {
   min-width: 0;
 }
 
+/* the headline number is big and white: size is the emphasis, not colour */
 .stat-big {
   font-size: var(--t-2xl);
   font-weight: var(--w-strong);
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  color: var(--accent-bright);
+  color: var(--fg);
 }
 
 .stat-label {
@@ -1173,23 +1198,41 @@ button.stepper-value:hover {
   white-space: nowrap;
 }
 
-/* one habit = one section of the same list, not another card */
+/* One habit = one row of the same list, not another wall of chart.
+   Name, streak, rate on the first line; its own 30-day strip underneath. */
 .hstat {
   display: flex;
   flex-direction: column;
   gap: var(--s2);
-  padding: var(--s4);
+  padding: var(--s3) var(--s4);
 }
 
 .hstat-head {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s3);
+  gap: var(--s2);
+}
+
+.hstat-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t-md);
+}
+
+.hstat-streak {
+  flex: 0 0 auto;
+  font-size: var(--t-sm);
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .hstat-value {
   flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
   white-space: nowrap;
 }
 
@@ -1231,7 +1274,9 @@ button.stepper-value:hover {
   gap: var(--s1);
 }
 
-/* one chip per day: name on top, status as a small mark under it */
+/* One chip per day: the name on top, that day's heat as a mark under it.
+   The mark is currentColor at four opacities, so a chip keeps a single ink and
+   a quiet day still shows that a day exists. */
 .day-chip {
   display: flex;
   flex: 1;
@@ -1258,35 +1303,39 @@ button.stepper-value:hover {
 .day-chip-mark {
   width: 16px;
   height: 3px;
-  background: var(--line-strong);
+  background: currentColor;
   border-radius: 999px;
-}
-
-.day-chip[data-status='done'] .day-chip-mark {
-  background: var(--cell-done);
+  opacity: 0.16;
 }
 
 .day-chip[data-status='partial'] .day-chip-mark {
-  background: var(--cell-partial);
+  opacity: 0.5;
+}
+
+.day-chip[data-status='done'] .day-chip-mark {
+  opacity: 1;
 }
 
 .day-chip[data-status='rest'] .day-chip-mark,
 .day-chip[data-status='future'] .day-chip-mark {
-  background: transparent;
+  opacity: 0.06;
 }
 
+/* today stays readable while another day is open */
 .day-chip[data-today='true'] {
   color: var(--fg);
+  font-weight: var(--w-strong);
 }
 
+/* "you are here" — a lifted neutral pill, never blue */
 .day-chip[data-active='true'] {
-  color: var(--fg);
-  background: var(--surface-2);
-  border-color: var(--line-strong);
+  color: var(--pick-ink);
+  background: var(--pick);
+  border-color: var(--line);
 }
 
 .day-chip:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: default;
 }
 
@@ -1326,12 +1375,12 @@ button.stepper-value:hover {
 
 .weekday-fill {
   width: 100%;
-  background: var(--accent);
+  background: var(--cell-done);
   border-radius: 2px 2px 0 0;
 }
 
 .weekday-fill[data-empty='true'] {
-  background: var(--line-strong);
+  background: var(--cell-missed);
 }
 
 .weekday-name {
@@ -1341,7 +1390,8 @@ button.stepper-value:hover {
 
 /* ---------- trend strip (stats) ---------- */
 
-/* the strip keeps a baseline, so "nothing logged" never reads as a broken chart */
+/* The strip keeps a baseline, so "nothing logged" never reads as a broken chart.
+   History is neutral grey; today is the single blue bar. */
 .trend {
   display: flex;
   align-items: flex-end;
@@ -1350,10 +1400,15 @@ button.stepper-value:hover {
   border-bottom: 1px solid var(--line);
 }
 
+/* the same strip, sized to sit inside one row of the per-habit list */
+.trend-compact {
+  height: 20px;
+}
+
 .trend-day {
   flex: 1 1 0;
   min-width: 1px;
-  background: var(--accent);
+  background: var(--cell-done);
   border-radius: 2px;
 }
 
@@ -1362,13 +1417,17 @@ button.stepper-value:hover {
 }
 
 .trend-day[data-status='missed'] {
-  background: var(--line-strong);
+  background: var(--cell-missed);
 }
 
 .trend-day[data-status='rest'],
 .trend-day[data-status='pad'],
 .trend-day[data-status='future'] {
   background: transparent;
+}
+
+.trend-day[data-now='true'] {
+  background: var(--accent);
 }
 
 .trend-sample {
@@ -1386,7 +1445,7 @@ button.stepper-value:hover {
 
 .trend-sample[data-status='missed'] {
   height: 3px;
-  background: var(--line-strong);
+  background: var(--cell-missed);
 }
 
 .trend-sample[data-status='rest'] {

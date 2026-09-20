@@ -139,6 +139,9 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
       );
     }
 
+    // a closed habit has nothing left to start — the row keeps one target, not two
+    if (isComplete(habit, entry)) return null;
+
     return (
       <button
         type="button"
@@ -151,7 +154,6 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
       </button>
     );
   }
-
   function row(habit: Habit) {
     const isNegative = habit.kind === 'negative';
     const counts = habit.kind === 'counter' || habit.kind === 'duration';
@@ -208,6 +210,7 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
         {total > 0 ? (
           <div
             className="bar"
+            data-complete={done === total ? 'true' : 'false'}
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={total}
