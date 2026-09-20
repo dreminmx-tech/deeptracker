@@ -37,6 +37,7 @@
   --muted: #a4a8b4;
   --pick: #3a3d47; /* the open tab / open day / chosen range */
   --pick-ink: #f7f8fc;
+  --well: #1b1c20; /* an inset instrument on a card: the − value + stepper */
   --accent: #0070f3; /* the only blue: a habit's state, and the one main action */
   --accent-ink: #ffffff;
   --good: #22c55e;
@@ -91,6 +92,7 @@
   --muted: #6d6d6d;
   --pick: #e2e2e5;
   --pick-ink: #000000;
+  --well: #ededf0;
   --accent: #000000;
   --accent-ink: #ffffff;
   --good: #000000;
@@ -312,8 +314,9 @@ p {
   color: var(--muted);
 }
 
+/* one red thing per screen: the button itself, not the heading above it */
 .zone-danger .label {
-  color: var(--danger);
+  color: var(--muted);
 }
 
 /* a group of buttons, used by forms and settings */
@@ -323,38 +326,41 @@ p {
   gap: var(--s2);
 }
 
-/* stacked actions: one per line, all the same width */
-.btn-col {
-  display: grid;
-  gap: var(--s2);
-}
-
+/* the file picker wears the same clothes as the button next to it */
 .file-btn {
   cursor: pointer;
 }
 
-/* collapsed extra path: keeps the main card to two obvious buttons */
+/* A collapsed extra path is a row, not a stray underlined link: 56px, chevron on
+   the right, and the rule above it is a normal row divider. */
 .disclosure {
-  padding-top: var(--s3);
   border-top: 1px solid var(--line);
 }
 
 .disclosure summary {
-  font-size: var(--t-sm);
-  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-height: var(--row);
+  font-size: var(--t-md);
+  color: var(--fg);
   cursor: pointer;
   list-style: none;
-  text-decoration: underline;
-  text-decoration-color: var(--line-strong);
-  text-underline-offset: 3px;
 }
 
 .disclosure summary::-webkit-details-marker {
   display: none;
 }
 
-.disclosure summary:hover {
-  color: var(--fg);
+.disclosure-mark {
+  flex: 0 0 auto;
+  color: var(--muted);
+  transition: transform 0.12s ease;
+}
+
+.disclosure[open] .disclosure-mark {
+  transform: rotate(90deg);
 }
 
 .disclosure[open] summary {
@@ -514,15 +520,31 @@ p {
   font-weight: var(--w-strong);
 }
 
-/* settings: two halves of the full width, easy to hit */
-.segmented-wide {
+/* settings: one label, one control, on the line of a list row */
+.set-row {
   display: flex;
-  align-self: stretch;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-height: var(--row);
 }
 
-.segmented-wide button {
-  flex: 1;
+/* here the switch is a row control, so it keeps the full 44px tap height */
+.set-row .segmented button {
   min-height: var(--control);
+}
+
+/* two equal actions: same shape, same weight, one decision.
+   Stacked on a phone — «Загрузить из файла» в две колонки не влезает и ломает ряд. */
+.btn-row {
+  display: grid;
+  gap: var(--s2);
+}
+
+@media (min-width: 460px) {
+  .btn-row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* ---------- quick value chips (how much did you do) ---------- */
@@ -545,7 +567,7 @@ p {
   color: var(--fg);
   background: none;
   border: 1px solid var(--line-strong);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 
 .chip[data-active='true'] {
@@ -641,16 +663,18 @@ p {
 }
 
 .hrow {
-  display: flex;
+  /* Two anchored columns on the right: every number ends on one line, every action
+     sits in the next one. It is the right edge that aligns rows, not a shared grid. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto var(--icon);
   align-items: center;
-  gap: var(--s2);
   min-height: var(--row);
   padding: 0 var(--s2) 0 var(--s4);
 }
 
 .hrow-main {
+  grid-column: 1;
   display: flex;
-  flex: 1;
   align-items: center;
   gap: var(--s3);
   min-width: 0;
@@ -688,8 +712,9 @@ p {
 }
 
 /* every value in the app lives in one right-hand column: full ink, tabular */
-.hrow-status {
-  flex: 0 0 auto;
+.hrow > .hrow-status {
+  grid-column: 2;
+  text-align: right;
   font-size: var(--t-sm);
   font-variant-numeric: tabular-nums;
   color: var(--fg);
@@ -699,10 +724,9 @@ p {
 /* the value itself opens the quick log — that is how "20 мин" takes one tap */
 .stepper-value {
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: center;
-  justify-content: center;
-  padding: 0 var(--s2);
+  justify-content: flex-end;
+  padding: 0;
   color: var(--fg);
   background: none;
   border: 0;
@@ -715,24 +739,26 @@ button.stepper-value:hover {
   color: var(--fg);
 }
 
-/* − значение + as one instrument: one well, one rhythm, three taps.
-   No outline — the well itself is the shape, so a row keeps a single strong border. */
+/* − значение + as one instrument: a soft inset well, no outline of its own.
+   It spans the value and the action column, so its "+" lands exactly where a row's
+   icon sits — the whole list keeps two clean columns instead of a ragged edge. */
 .stepper {
-  display: inline-flex;
-  flex: 0 0 auto;
+  grid-column: 2 / 4;
+  justify-self: end;
+  display: grid;
+  grid-template-columns: var(--icon) 1fr var(--icon);
   align-items: stretch;
+  /* вне строки списка (в шторке и в форме) прибор остаётся по ширине значения */
   width: fit-content;
   min-height: var(--control);
   overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  background: var(--well);
+  border-radius: var(--radius-sm);
 }
 
 /* only the two icon buttons are squares — the value keeps the width of its text */
 .stepper-act {
   display: inline-flex;
-  flex: 0 0 var(--icon);
   align-items: center;
   justify-content: center;
   width: var(--icon);
@@ -752,6 +778,11 @@ button.stepper-value:hover {
   flex: 0 0 auto;
   align-items: center;
   gap: 2px;
+}
+
+.hrow > .hrow-actions,
+.hrow > .row-act {
+  grid-column: 3;
 }
 
 /* one tap, one action — no reading required */
@@ -1490,7 +1521,7 @@ button.stepper-value:hover {
   text-align: center;
   color: var(--toast-ink);
   background: var(--toast-bg);
-  border-radius: 999px;
+  border-radius: var(--radius);
   opacity: 0;
   pointer-events: none;
   transform: translateX(-50%) translateY(8px);
@@ -1518,7 +1549,7 @@ button.stepper-value:hover {
   color: inherit;
   background: rgba(127, 127, 127, 0.22);
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 
 .toast-act:hover {

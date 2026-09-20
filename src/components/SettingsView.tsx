@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from 'react';
-import { Download, Trash2, Upload } from 'lucide-react';
+import { ChevronRight, Download, Trash2, Upload } from 'lucide-react';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
 import { dateKey, diffDays, formatDay, todayKey } from '../lib/date';
@@ -64,11 +64,14 @@ export default function SettingsView() {
         <h1>{dict['settings.title']}</h1>
       </header>
 
-      {/* Two switches, one card: two identical half-empty cards read as noise. */}
+      {/* Two settings, two rows. A full-width switch for a binary choice was the
+          heaviest control in the app; now it is a label with a small switch right. */}
       <section className="card">
-        <div className="block">
-          <p className="label">{dict['settings.language']}</p>
-          <div className="segmented segmented-wide">
+        <h2>{dict['settings.general']}</h2>
+
+        <div className="set-row">
+          <span className="row-name">{dict['settings.language']}</span>
+          <div className="segmented" role="group" aria-label={dict['settings.language']}>
             <button
               type="button"
               data-active={lang === 'ru' ? 'true' : 'false'}
@@ -86,9 +89,9 @@ export default function SettingsView() {
           </div>
         </div>
 
-        <div className="zone">
-          <p className="label">{dict['settings.theme']}</p>
-          <div className="segmented segmented-wide">
+        <div className="set-row">
+          <span className="row-name">{dict['settings.theme']}</span>
+          <div className="segmented" role="group" aria-label={dict['settings.theme']}>
             <button
               type="button"
               data-active={data.settings.theme === 'dark' ? 'true' : 'false'}
@@ -111,11 +114,12 @@ export default function SettingsView() {
         <h2>{dict['settings.data']}</h2>
         <p className="muted small">{dict['settings.exportHint']}</p>
 
-        <div className="btn-col">
-          {/* the screen gets exactly one blue button, and it is the one being asked for */}
+        {/* Two identical actions. Settings has no main button — so nothing here is blue,
+            and the line below says whether a backup is due. */}
+        <div className="btn-row">
           <button
             type="button"
-            className={backupStale ? 'btn btn-primary' : 'btn'}
+            className="btn"
             onClick={() => {
               downloadJson(data);
               update((current) => updateSettings(current, { lastExport: new Date().toISOString() }));
@@ -143,7 +147,10 @@ export default function SettingsView() {
         </p>
 
         <details className="disclosure">
-          <summary>{dict['settings.importPasteToggle']}</summary>
+          <summary>
+            {dict['settings.importPasteToggle']}
+            <ChevronRight className="disclosure-mark" size={18} strokeWidth={1.8} aria-hidden="true" />
+          </summary>
           <div className="group">
             <label className="field">
               <textarea
@@ -196,13 +203,16 @@ export default function SettingsView() {
       </section>
 
       <section className="card">
-        <h2>{dict['settings.help']}</h2>
-        <p className="muted small">{dict['settings.helpBody']}</p>
-      </section>
-
-      <section className="card">
         <h2>{dict['settings.about']}</h2>
         <p className="muted small">{dict['settings.aboutText']}</p>
+        {/* Reference text, not something to read every time: folded into a row. */}
+        <details className="disclosure">
+          <summary>
+            {dict['settings.help']}
+            <ChevronRight className="disclosure-mark" size={18} strokeWidth={1.8} aria-hidden="true" />
+          </summary>
+          <p className="muted small">{dict['settings.helpBody']}</p>
+        </details>
       </section>
 
       <p className="muted small center">{fill(dict['settings.version'], { v: APP_VERSION })}</p>

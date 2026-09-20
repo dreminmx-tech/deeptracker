@@ -182,7 +182,9 @@ describe('views render', () => {
     expect(html).toContain('Paste JSON manually');
     expect(html).toContain('Danger zone');
     expect(html).toContain('btn btn-danger');
-    expect(html).toContain('class="segmented segmented-wide"');
+    // настройки — тихие строки: подпись слева, маленький переключатель справа
+    expect(html).toContain('class="set-row"');
+    expect(html).toContain('class="segmented"');
     // про единственный бэкап экран говорит прямо
     expect(html).toContain('No backup yet.');
   });

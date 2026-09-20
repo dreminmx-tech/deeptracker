@@ -117,6 +117,7 @@ const ru = {
   'stats.empty': 'Пока нечего считать. Отметь что-нибудь сегодня — и здесь появятся клетки.',
 
   'settings.title': 'Настройки',
+  'settings.general': 'Интерфейс',
   'settings.language': 'Язык',
   'settings.theme': 'Тема',
   'settings.theme.dark': 'Чёрная',
@@ -297,6 +298,7 @@ const en: Dict = {
   'stats.empty': 'Nothing to count yet. Tick something today and squares will show up here.',
 
   'settings.title': 'Settings',
+  'settings.general': 'Interface',
   'settings.language': 'Language',
   'settings.theme': 'Theme',
   'settings.theme.dark': 'Black',

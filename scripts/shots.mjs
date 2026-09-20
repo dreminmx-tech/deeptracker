@@ -214,7 +214,7 @@ try {
     },
     { name: 'habits-actions', tab: 'habits', theme: 'dark', width: 390, height: 620, click: '.row-act' },
     { name: 'stats', tab: 'stats', theme: 'dark', width: 390, height: 1380 },
-    { name: 'settings', tab: 'settings', theme: 'dark', width: 390, height: 1450 },
+    { name: 'settings', tab: 'settings', theme: 'dark', width: 390, height: 1330 },
     { name: 'today-light', tab: 'today', theme: 'light', width: 390, height: 900 },
   ];
 
