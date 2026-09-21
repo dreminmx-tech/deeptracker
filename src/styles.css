@@ -549,15 +549,21 @@ html[data-typing='true'] .tabs {
   min-height: var(--row);
 }
 
-/* here the switch is a row control, so it keeps the full 44px tap height.
-   Both rows use one width: «Чёрная/Белая» is exactly as wide as «Русский/English». */
+/* here the switch is a row control, so the whole control is exactly 44px —
+   такой же высоты, как кнопка рядом в карточке «Данные». Внутренняя кнопка ниже
+   на padding и рамку контейнера (36 + 3 + 3 + 1 + 1), иначе сам контрол выше
+   соседних кнопок на 8px, хотя кажется, что он им ровня.
+   Both rows use one width: «Тёмная/Светлая» is exactly as wide as «Русский/English». */
 .set-row .segmented {
-  width: 176px;
+  box-sizing: border-box;
+  align-self: center;
+  height: var(--control);
+  width: 168px;
 }
 
 .set-row .segmented button {
   flex: 1 1 0;
-  min-height: var(--control);
+  min-height: calc(var(--control-sm) + var(--s1));
 }
 
 /* two equal actions: same shape, same weight, one decision.
@@ -1297,11 +1303,10 @@ html[data-typing='true'] .tabs {
   position: fixed;
   left: 0;
   right: 0;
-  /* Панель шире своей коробки на нижний padding, а сама она отступает от меню на
-     --s5: между коробкой и меню выходит 20px воздуха (8px padding + 12px зазора),
-     фон панели не липнет к меню. Когда человек пишет, меню уезжает, панель встаёт
-     на его место (bottom: 0) и идёт вплотную к клавиатуре. */
-  bottom: calc(var(--tabs) + var(--s5) - env(safe-area-inset-bottom));
+  /* Панель отступает от меню на --s1, поэтому между коробкой композера и меню
+     ровно 12px: 8px нижнего padding панели плюс 4px зазора. Когда человек пишет,
+     меню уезжает, панель встаёт на его место (bottom: 0) вплотную к клавиатуре. */
+  bottom: calc(var(--tabs) + var(--s1) - env(safe-area-inset-bottom));
   z-index: 9;
   display: flex;
   flex-direction: column;
