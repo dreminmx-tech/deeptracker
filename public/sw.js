@@ -1,6 +1,6 @@
 /* deeptracker service worker — offline app shell.
    Bump CACHE_VERSION whenever the shell (index.html / icons) changes. */
-const CACHE_VERSION = 'deeptracker-v16';
+const CACHE_VERSION = 'deeptracker-v17';
 
 const CORE = [
   './',

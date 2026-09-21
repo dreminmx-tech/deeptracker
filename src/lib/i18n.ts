@@ -42,6 +42,7 @@ const ru = {
   'journal.add': 'Добавить запись',
   'journal.done': 'Готово',
   'journal.note': 'Править запись',
+  'journal.send': 'Отправить',
 
   'habits.title': 'Привычки',
   'habits.add': 'Добавить',
@@ -151,6 +152,7 @@ const en: Dict = {
   'journal.add': 'Add a note',
   'journal.done': 'Done',
   'journal.note': 'Edit note',
+  'journal.send': 'Send',
 
   'habits.title': 'Habits',
   'habits.add': 'Add',

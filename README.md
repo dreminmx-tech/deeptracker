@@ -4,8 +4,9 @@
 
 **A minimal offline habit tracker for an ADHD brain.**
 One tap per habit — there is no «how many glasses» to choose. Soft streaks, at most three
-main things a day, two numbers in the stats, and a journal that is a feed: one Enter per
-thought. No accounts, no ads, no network: everything stays in the browser.
+main things a day, two numbers in the stats, and a journal that reads like a chat with
+nobody on the other side: the newest note at the bottom, one arrow button to send.
+No accounts, no ads, no network: everything stays in the browser.
 
 **English** · [Русский](README.ru.md)
 
@@ -75,7 +76,7 @@ npm run preview  # http://127.0.0.1:4173
 - 🗓 **Yesterday is one tap** — the date in words on the left, two arrows on the right: a day back and a day forward. Any past day opens and can be edited, and there is a link back to today. No week flipping, no «which week am I on?».
 - 📆 **Weekday schedules** — «weekdays», «Mon, Wed, Fri»: a day off schedule is not a miss and does not break the streak. On the Today screen such a habit stays out of the way, and one link shows it.
 - 🎯 **The main three** — at most three habits on top, the rest below: less choice paralysis.
-- 📓 **A journal that is a feed** — one field at the top, one Enter: the thought lands in today's day with its time, newest on top and yesterday below. Every keystroke is saved as you type, so a closed app loses nothing. A note is rewritten by tapping it, and it cannot be deleted at all — which is exactly why a slip of the finger costs nothing. Any past day opens with a «+» if something needs to be added there.
+- 📓 **A journal that reads like a chat** — old days on top, today at the bottom, and the field you type in pinned right under it, with one arrow button to send. Enter makes a new line (that is what Enter is for), every keystroke is already saved, so a closed app loses nothing, and the keyboard lifts the field above itself instead of covering it. A note is rewritten by tapping it and cannot be deleted at all — which is exactly why a slip of the finger costs nothing. Any past day opens with a «+» if something needs to be added there.
 - 📊 **Stats in two numbers and seven dots** — the streak, the best streak, and the week as dots: a dot is a day, progress or not. No 30/90 windows, no thirty-bar strips, no legends: a chart you have to decode is exactly why nobody wants to open the stats tab.
 - 📐 **Dense, no walls of text** — one row pattern for every list, one shape for every control (8px radius), heights from one scale (32/40/44/56), spacing from one grid (4…32), a card always 16px inside and 12px between children. There is almost no copy in the UI: every sentence is something you read instead of closing a habit.
 - 🔵 **One blue per screen** — colour means the state of a habit, not decoration: only a checked box and the main action button are blue. Cards are read by a thin light line rather than a heavy fill, and the active tab is just a raised grey pill. No yellow at all, red is left to the «delete everything» button.

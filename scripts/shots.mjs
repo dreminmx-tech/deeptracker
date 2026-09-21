@@ -228,9 +228,8 @@ try {
       theme: 'dark',
       width: 390,
       height: 940,
-      // «+» у вчерашнего дня: поле открывается прямо в ленте
-      clickJs:
-        "document.querySelectorAll('.jday')[1]?.querySelector('.jday-head .icon-btn')?.click()",
+      // лента открывается снизу, и в поле — недописанная заметка
+      text: 'Дописать мысль про прогулку: выходить до работы, а не после.',
     },
     { name: 'journal-light', tab: 'journal', theme: 'light', width: 390, height: 940 },
     {
@@ -278,6 +277,18 @@ try {
     if (shot.clickJs) {
       await cdp.send('Runtime.evaluate', { expression: shot.clickJs });
       await sleep(400);
+    }
+
+    // Недописанная заметка: видно, что поле растёт, а кнопка отправки готова.
+    if (shot.text) {
+      await cdp.send('Runtime.evaluate', {
+        expression: `document.querySelector(${JSON.stringify(shot.textInto ?? '.jcomposer')})?.focus()`,
+      });
+      await cdp.send('Input.insertText', { text: shot.text });
+      await sleep(200);
+      // снимаем фокус: синяя обводка фокуса — не то, что видно пальцем
+      await cdp.send('Runtime.evaluate', { expression: 'document.activeElement?.blur()' });
+      await sleep(300);
     }
 
     const check = await cdp.send('Runtime.evaluate', {

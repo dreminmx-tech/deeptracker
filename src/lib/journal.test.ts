@@ -16,22 +16,22 @@ describe('the feed', () => {
     expect(journalDays(fresh(), TODAY)).toEqual([TODAY]);
   });
 
-  it('keeps the newest day on top', () => {
+  it('keeps the newest day at the bottom', () => {
     let data = commitDraft(setDraft(fresh(), BEFORE, 'позавчера'), BEFORE, AT);
     data = commitDraft(setDraft(data, YESTERDAY, 'вчера'), YESTERDAY, AT);
-    expect(journalDays(data, TODAY)).toEqual([TODAY, YESTERDAY, BEFORE]);
+    expect(journalDays(data, TODAY)).toEqual([BEFORE, YESTERDAY, TODAY]);
   });
 
-  it('keeps the newest note on top inside a day', () => {
+  it('adds a note to the end of the day, like a chat message', () => {
     let data = commitDraft(setDraft(fresh(), TODAY, 'первая'), TODAY, AT);
     data = commitDraft(setDraft(data, TODAY, 'вторая'), TODAY, AT);
-    expect(notesOn(data, TODAY).map((note) => note.text)).toEqual(['вторая', 'первая']);
+    expect(notesOn(data, TODAY).map((note) => note.text)).toEqual(['первая', 'вторая']);
   });
 
   it('counts a past day in as soon as its field is opened', () => {
     const data = setDraft(fresh(), YESTERDAY, '');
     expect(draftOn(data, YESTERDAY)).toBe('');
-    expect(journalDays(data, TODAY)).toEqual([TODAY, YESTERDAY]);
+    expect(journalDays(data, TODAY)).toEqual([YESTERDAY, TODAY]);
   });
 
   it('autosaves every keystroke instead of waiting for a button', () => {
@@ -91,7 +91,7 @@ describe('the journal in storage', () => {
 
     expect(notesOn(restored, YESTERDAY).map((note) => note.text)).toEqual(['вчерашняя мысль']);
     expect(draftOn(restored, TODAY)).toBe('пишу прямо сейчас');
-    expect(journalDays(restored, TODAY)).toEqual([TODAY, YESTERDAY]);
+    expect(journalDays(restored, TODAY)).toEqual([YESTERDAY, TODAY]);
   });
 
   it('throws away junk instead of the whole feed', () => {

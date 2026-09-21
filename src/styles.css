@@ -26,6 +26,11 @@
   --tap: var(--control); /* alias: the minimum comfortable tap target */
   --row: 56px; /* one list row */
 
+  /* the two chrome bars at the bottom: navigation, and the journal's note bar.
+     --jbar is only the starting guess — журнал меряет панель сам и уточняет */
+  --tabs: 72px;
+  --jbar: 60px;
+
   /* palette: dark, sampled from the DeepSeek platform dashboard */
   --bg: #131317;
   --surface: #1b1c20; /* inset wells: inputs, steppers, the tab bar */
@@ -164,7 +169,20 @@ p {
   max-width: var(--sheet-width);
   margin: 0 auto;
   /* the tab bar is 72px; the extra 32 keeps the last card clear of it */
-  padding: var(--s5) var(--s4) calc(104px + env(safe-area-inset-bottom));
+  padding: var(--s5) var(--s4) calc(var(--tabs) + var(--s6) + env(safe-area-inset-bottom));
+}
+
+/* Журнал: снизу ещё и панель заметки, поэтому запас считается по ней. Пока
+   открыта клавиатура, вкладки уезжают под неё, а высота клавиатуры (--kb)
+   добавляется к запасу — иначе последняя заметка осталась бы за панелью. */
+.app[data-tab='journal'] {
+  padding-bottom: calc(
+    var(--tabs) + var(--jbar) + var(--s4) + var(--kb, 0px) + env(safe-area-inset-bottom)
+  );
+}
+
+html[data-typing='true'] .app[data-tab='journal'] {
+  padding-bottom: calc(var(--jbar) + var(--s4) + var(--kb, 0px));
 }
 
 .tabs {
@@ -1139,8 +1157,9 @@ p {
 
 /* ---------- journal ---------- */
 
-/* Лента дней: сверху сегодня, ниже вчера. Дни разделяет воздух и одна волосяная
-   линия, а не карточки: страница дневника не должна выглядеть как список дел. */
+/* Лента дней, как чат: сверху старые, снизу сегодняшний. Дни разделяет воздух и
+   одна волосяная линия, а не карточки: страница дневника не должна выглядеть
+   как список дел. */
 .journal {
   display: flex;
   flex-direction: column;
@@ -1171,9 +1190,9 @@ p {
   color: var(--fg);
 }
 
-/* Поле новой заметки — тот же прямоугольник, что и любое поле в приложении,
-   только оно растёт под текст (`field-sizing` там, где браузер умеет,
-   иначе — тем же занимается JS в Composer). */
+/* Поле заметки — тот же прямоугольник, что и любое поле в приложении, только оно
+   растёт под текст (`field-sizing` там, где браузер умеет, иначе — тем же
+   занимается JS в Composer). */
 .jcomposer,
 .jnote-input {
   display: block;
@@ -1192,6 +1211,65 @@ p {
 
 .jcomposer::placeholder {
   color: var(--muted);
+}
+
+/* Панель заметки внизу экрана: местная копия нижней навигации — та же ширина,
+   та же линия сверху, тот же цвет страницы. Стоит ровно над вкладками, а когда
+   открыта клавиатура (data-typing) — на их месте, поднятая на --kb. */
+.jbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabs) + env(safe-area-inset-bottom));
+  z-index: 9;
+  max-width: var(--sheet-width);
+  margin: 0 auto;
+  padding: var(--s2) var(--s4);
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  transform: translateY(calc(-1 * var(--kb, 0px)));
+}
+
+html[data-typing='true'] .jbar {
+  bottom: 0;
+}
+
+.jcomposer-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.jcomposer-row .jcomposer {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Кнопка отправки: единственный синий на экране журнала и только когда есть что
+   отправлять — пустая заметка ничего не делает, поэтому и не зовёт. */
+.jsend {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  color: var(--muted);
+  background: var(--surface-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.jsend[data-ready='true'] {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.jsend:disabled {
+  cursor: default;
 }
 
 .jnotes {
@@ -1250,7 +1328,7 @@ p {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(72px + env(safe-area-inset-bottom));
+  bottom: calc(var(--tabs) + env(safe-area-inset-bottom));
   z-index: 30;
   display: flex;
   align-items: center;

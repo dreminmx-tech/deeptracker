@@ -1,6 +1,6 @@
 /**
- * Журнал: короткие заметки по дням. Мысль пишется за один Enter, живёт в тот день,
- * когда она пришла, и лежит в ленте сверху — над вчерашними.
+ * Журнал: короткие заметки по дням. Мысль пишется в поле снизу и встаёт в конец
+ * сегодняшнего дня — как сообщение в чате, только собеседника нет.
  *
  * Никаких папок, тегов, поиска и удаления: всё это — трение перед тем, как записать
  * строчку. Единственная защита от промаха — заметку нельзя стереть подчистую,
@@ -20,7 +20,7 @@ function note(text: string, createdAt: string): JournalNote {
   return { id: uid('n'), text, createdAt };
 }
 
-/** Заметки дня, новые сверху. */
+/** Заметки дня, старые сверху: лента читается как чат, новые внизу. */
 export function notesOn(data: AppData, key: DateKey): JournalNote[] {
   return data.journal[key] ?? [];
 }
@@ -35,14 +35,14 @@ function hasContent(data: AppData, key: DateKey, today: DateKey): boolean {
 }
 
 /**
- * Дни ленты: сегодня, дни с заметками и дни с открытым полем. Сверху новые, так
- * что сегодняшняя заметка всегда первая — искать её не нужно.
+ * Дни ленты: сегодня, дни с заметками и дни с открытым полем. Снизу новые, так
+ * что сегодняшний день всегда последний — и поле заметки стоит под ним.
  */
 export function journalDays(data: AppData, today: DateKey = todayKey()): DateKey[] {
   const keys = new Set<DateKey>([today, ...Object.keys(data.journal), ...Object.keys(data.drafts)]);
   return [...keys]
     .filter((key) => isValidKey(key) && hasContent(data, key, today))
-    .sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
 /** Каждое нажатие клавиши — сразу в данные: закрытое приложение не теряет мысль. */
@@ -50,7 +50,7 @@ export function setDraft(data: AppData, key: DateKey, text: string): AppData {
   return { ...data, drafts: { ...data.drafts, [key]: text.slice(0, NOTE_MAX) } };
 }
 
-/** Enter: пустое поле просто закрывается, текст становится заметкой сверху дня. */
+/** Отправка: пустое поле просто закрывается, текст встаёт в конец дня. */
 export function commitDraft(
   data: AppData,
   key: DateKey,
@@ -63,7 +63,10 @@ export function commitDraft(
   return {
     ...data,
     drafts,
-    journal: { ...data.journal, [key]: [note(text.slice(0, NOTE_MAX), at), ...notesOn(data, key)] },
+    journal: {
+      ...data.journal,
+      [key]: [...notesOn(data, key), note(text.slice(0, NOTE_MAX), at)],
+    },
   };
 }
 

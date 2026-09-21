@@ -111,17 +111,19 @@ describe('views render', () => {
     expect(html).not.toContain('0/6');
   });
 
-  it('renders the journal as a feed of days, newest on top', () => {
+  it('renders the journal as a feed of days, newest at the bottom', () => {
     seedStorage(withJournal());
     const html = render(<JournalView />);
 
-    // внутри дня новые заметки сверху, и сегодняшний день выше вчерашнего
-    expect(html.indexOf('Вторая мысль')).toBeLessThan(html.indexOf('Первая мысль'));
-    expect(html.indexOf('Первая мысль')).toBeLessThan(html.indexOf('Вчерашняя мысль'));
+    // как в чате: старые заметки выше, новые ниже, и сегодняшний день последний
+    expect(html.indexOf('Первая мысль')).toBeLessThan(html.indexOf('Вторая мысль'));
+    expect(html.indexOf('Вчерашняя мысль')).toBeLessThan(html.indexOf('Вторая мысль'));
     // у заметки видно время, а не только текст
     expect(html).toContain('class="jnote-time"');
-    // поле для новой заметки открыто только у сегодняшнего дня
+    // поле с кнопкой отправки одно: панель внизу экрана
     expect(html.match(/class="jcomposer"/g)).toHaveLength(1);
+    expect(html).toContain('class="jbar"');
+    expect(html).toContain('aria-label="Отправить"');
     expect(html).toContain('aria-label="Добавить запись"');
     expect(html).toContain('data-today="true"');
     // заметку можно править, но нельзя удалить
@@ -133,7 +135,7 @@ describe('views render', () => {
     const today = todayKey();
     seedStorage(setDraft(withJournal(), addDays(today, -1), 'Дописываю вчера'));
     const html = render(<JournalView />);
-    // два открытых поля: сегодняшнее и вчерашнее, и текст виден в обоих
+    // два открытых поля: панель внизу и поле в прошлом дне — текст виден в обоих
     expect(html.match(/class="jcomposer"/g)).toHaveLength(2);
     expect(html).toContain('Дописываю вчера');
   });

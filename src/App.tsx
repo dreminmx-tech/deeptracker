@@ -70,7 +70,7 @@ function Shell() {
   }
 
   return (
-    <div className="app">
+    <div className="app" data-tab={tab}>
       <main key={day}>
         {tab === 'today' ? <TodayView onGoToHabits={() => selectTab('habits')} /> : null}
         {tab === 'habits' ? <HabitsView /> : null}
