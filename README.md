@@ -15,11 +15,11 @@ No accounts, no ads, no network: everything stays in the browser.
 [![Deploy](https://github.com/dreminmx-tech/deeptracker/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/dreminmx-tech/deeptracker/actions/workflows/deploy.yml)
 [![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square&labelColor=141418)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-offline--first-0070f3?style=flat-square&labelColor=141418)](docs/technical.md#pwa)
-[![Tests](https://img.shields.io/badge/tests-67%20passing-22c55e?style=flat-square&labelColor=141418)](docs/technical.md#tests)
+[![Tests](https://img.shields.io/badge/tests-72%20passing-22c55e?style=flat-square&labelColor=141418)](docs/technical.md#tests)
 [![React](https://img.shields.io/badge/React-19-0070f3?style=flat-square&labelColor=141418)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7-0070f3?style=flat-square&labelColor=141418)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8-0070f3?style=flat-square&labelColor=141418)](https://vite.dev)
-[![Bundle](https://img.shields.io/badge/bundle-85%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
+[![Bundle](https://img.shields.io/badge/bundle-86%20kB%20gzip-333538?style=flat-square&labelColor=141418)](docs/technical.md#build)
 
 <table>
   <tr>
@@ -52,7 +52,7 @@ Locally — three commands:
 ```bash
 npm install
 npm run dev      # http://127.0.0.1:5173
-npm test         # 67 tests: pure logic + every screen rendered
+npm test         # 72 tests: pure logic + every screen rendered
 ```
 
 Build and preview the production bundle:
@@ -76,7 +76,7 @@ npm run preview  # http://127.0.0.1:4173
 - 🗓 **Yesterday is one tap** — the date in words on the left, two arrows on the right: a day back and a day forward. Any past day opens and can be edited, and there is a link back to today. No week flipping, no «which week am I on?».
 - 📆 **Weekday schedules** — «weekdays», «Mon, Wed, Fri»: a day off schedule is not a miss and does not break the streak. On the Today screen such a habit stays out of the way, and one link shows it.
 - 🎯 **The main three** — at most three habits on top, the rest below: less choice paralysis.
-- 📓 **A journal that reads like a chat** — old days on top, today at the bottom, and the field you type in pinned right under it, with one arrow button to send. Enter makes a new line (that is what Enter is for), every keystroke is already saved, so a closed app loses nothing, and the keyboard lifts the field above itself instead of covering it. A note is rewritten by tapping it and cannot be deleted at all — which is exactly why a slip of the finger costs nothing. Any past day opens with a «+» if something needs to be added there.
+- 📓 **A journal that reads like a chat** — old days on top, today at the bottom, and a rounded field pinned under it with a round send button inside, right where your thumb is. Enter makes a new line (that is what Enter is for), every keystroke is already saved, and the keyboard lifts the field above itself instead of covering it. Tap any note to rewrite it right in that field or delete it with the bin — nothing irreversible happens by accident. The bottom menu gets out of the way while you write.
 - 📊 **Stats in two numbers and seven dots** — the streak, the best streak, and the week as dots: a dot is a day, progress or not. No 30/90 windows, no thirty-bar strips, no legends: a chart you have to decode is exactly why nobody wants to open the stats tab.
 - 📐 **Dense, no walls of text** — one row pattern for every list, one shape for every control (8px radius), heights from one scale (32/40/44/56), spacing from one grid (4…32), a card always 16px inside and 12px between children. There is almost no copy in the UI: every sentence is something you read instead of closing a habit.
 - 🔵 **One blue per screen** — colour means the state of a habit, not decoration: only a checked box and the main action button are blue. Cards are read by a thin light line rather than a heavy fill, and the active tab is just a raised grey pill. No yellow at all, red is left to the «delete everything» button.

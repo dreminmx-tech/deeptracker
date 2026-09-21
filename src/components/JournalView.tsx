@@ -1,71 +1,127 @@
-import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, Check, Plus } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
+import { ArrowUp, Check, Plus, Trash2 } from 'lucide-react';
 import type { Dict } from '../lib/i18n';
 import type { JournalNote, Lang } from '../types';
 import { useStore } from '../store';
 import { t } from '../lib/i18n';
 import { formatDay, formatTime, todayKey, type DateKey } from '../lib/date';
-import { NOTE_MAX, commitDraft, draftOn, editNote, journalDays, notesOn, setDraft } from '../lib/journal';
+import {
+  NOTE_MAX,
+  commitDraft,
+  draftOn,
+  editNote,
+  journalDays,
+  notesOn,
+  removeNote,
+  setDraft,
+  unfinishedDay,
+} from '../lib/journal';
 import { useKeyboardInset } from '../lib/useKeyboardInset';
 
 const ICON = 19;
 /** Выше этого поле заметки не растёт — иначе панель съедает экран. */
 const FIELD_MAX = 132;
 
+/** Куда пишет поле: в день или в конкретную заметку. */
+type ComposerState = { kind: 'write'; day: DateKey } | { kind: 'edit'; day: DateKey; id: string };
+
+/** Тап по кнопке не должен закрывать клавиатуру: иначе её придётся поднимать заново. */
+function keepFocus(event: ReactPointerEvent) {
+  event.preventDefault();
+}
+
 interface ComposerProps {
   value: string;
-  placeholder: string;
-  label: string;
-  sendLabel: string;
-  /** Поле открылось по тапу — значит, курсор и клавиатура нужны сразу. */
-  focus?: boolean;
+  mode: 'write' | 'edit';
+  dict: Dict;
+  fieldRef: RefObject<HTMLTextAreaElement | null>;
   onChange: (text: string) => void;
   onSend: () => void;
+  onDone: () => void;
+  onRemove: () => void;
+  onWriting: (writing: boolean) => void;
 }
 
 /**
- * Поле заметки и кнопка отправки. Enter здесь — обычный Enter: в заметке бывает
- * несколько строк, и отбирать у него перенос было ошибкой. Отправляет кнопка.
+ * Композер: одна скруглённая коробка во всю ширину, кнопки внутри у правого
+ * нижнего края. Enter — обычный Enter, в заметке бывает несколько строк.
  */
-function Composer({ value, placeholder, label, sendLabel, focus, onChange, onSend }: ComposerProps) {
-  const ref = useRef<HTMLTextAreaElement>(null);
+function Composer({
+  value,
+  mode,
+  dict,
+  fieldRef,
+  onChange,
+  onSend,
+  onDone,
+  onRemove,
+  onWriting,
+}: ComposerProps) {
   const ready = value.trim().length > 0;
 
-  // Поле растёт под заметку, а не скроллится внутри себя.
+  // Поле растёт под текст; когда текст перестал помещаться, показываем его конец,
+  // иначе каретка уезжает вниз, а на экране остаются первые строки.
   useEffect(() => {
-    const field = ref.current;
+    const field = fieldRef.current;
     if (!field) return;
     field.style.height = 'auto';
     field.style.height = `${Math.min(field.scrollHeight, FIELD_MAX)}px`;
-  }, [value]);
+    if (field.scrollHeight > FIELD_MAX) field.scrollTop = field.scrollHeight;
+  }, [fieldRef, value]);
 
   return (
-    <div className="jcomposer-row">
+    <div className="jcomposer-box" data-mode={mode}>
       <textarea
-        ref={ref}
+        ref={fieldRef}
         className="jcomposer"
         rows={1}
         value={value}
         maxLength={NOTE_MAX}
-        placeholder={placeholder}
-        aria-label={label}
-        autoFocus={focus}
+        placeholder={dict['journal.placeholder']}
+        aria-label={dict['journal.placeholder']}
         onChange={(event) => onChange(event.target.value)}
+        onFocus={() => onWriting(true)}
+        onBlur={() => onWriting(false)}
       />
-      <button
-        type="button"
-        className="jsend"
-        data-ready={ready ? 'true' : 'false'}
-        aria-label={sendLabel}
-        title={sendLabel}
-        disabled={!ready}
-        // Тап по кнопке не должен закрывать клавиатуру: иначе после каждой
-        // заметки её пришлось бы поднимать заново.
-        onPointerDown={(event) => event.preventDefault()}
-        onClick={onSend}
-      >
-        <ArrowUp size={ICON} strokeWidth={1.8} aria-hidden="true" />
-      </button>
+
+      {mode === 'edit' ? (
+        <>
+          <button
+            type="button"
+            className="jcircle jremove"
+            aria-label={dict['journal.delete']}
+            title={dict['journal.delete']}
+            onPointerDown={keepFocus}
+            onClick={onRemove}
+          >
+            <Trash2 size={ICON} strokeWidth={1.8} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="jcircle jdone"
+            data-ready="true"
+            aria-label={dict['journal.done']}
+            title={dict['journal.done']}
+            onPointerDown={keepFocus}
+            onClick={onDone}
+          >
+            <Check size={ICON} strokeWidth={1.8} aria-hidden="true" />
+          </button>
+        </>
+      ) : (
+        <button
+          type="button"
+          className="jcircle jsend"
+          data-ready={ready ? 'true' : 'false'}
+          aria-label={dict['journal.send']}
+          title={dict['journal.send']}
+          disabled={!ready}
+          onPointerDown={keepFocus}
+          onClick={onSend}
+        >
+          <ArrowUp size={ICON} strokeWidth={1.8} aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }
@@ -73,51 +129,27 @@ function Composer({ value, placeholder, label, sendLabel, focus, onChange, onSen
 interface NoteProps {
   note: JournalNote;
   lang: Lang;
+  editing: boolean;
   editLabel: string;
-  onSave: (text: string) => void;
+  onEdit: () => void;
 }
 
-/**
- * Одна заметка: время и текст. Тап по тексту — правка на месте,
- * тап мимо — сохранить. Пустой текст не сохраняется: удаления здесь нет.
- */
-function Note({ note, lang, editLabel, onSave }: NoteProps) {
-  const [text, setText] = useState<string | null>(null);
-  const time = (
-    <time className="jnote-time" dateTime={note.createdAt}>
-      {formatTime(note.createdAt, lang)}
-    </time>
-  );
-
-  if (text === null) {
-    return (
-      <li className="jnote-item">
-        <button type="button" className="jnote" aria-label={editLabel} onClick={() => setText(note.text)}>
-          {time}
-          <span className="jnote-text">{note.text}</span>
-        </button>
-      </li>
-    );
-  }
-
-  function commit() {
-    if (text !== null) onSave(text);
-    setText(null);
-  }
-
+/** Одна заметка: время и текст. Тап поднимает её в поле внизу — там и правят. */
+function Note({ note, lang, editing, editLabel, onEdit }: NoteProps) {
   return (
     <li className="jnote-item">
-      {time}
-      <textarea
-        className="jnote-input"
-        value={text}
-        rows={2}
-        maxLength={NOTE_MAX}
+      <button
+        type="button"
+        className="jnote"
+        data-editing={editing ? 'true' : 'false'}
         aria-label={editLabel}
-        autoFocus
-        onChange={(event) => setText(event.target.value)}
-        onBlur={commit}
-      />
+        onClick={onEdit}
+      >
+        <time className="jnote-time" dateTime={note.createdAt}>
+          {formatTime(note.createdAt, lang)}
+        </time>
+        <span className="jnote-text">{note.text}</span>
+      </button>
     </li>
   );
 }
@@ -127,40 +159,33 @@ interface DayProps {
   today: DateKey;
   lang: Lang;
   dict: Dict;
+  composer: ComposerState;
+  onWrite: (day: DateKey) => void;
+  onEdit: (day: DateKey, id: string) => void;
 }
 
-/** Один день ленты: дата, заметки по порядку и — у прошлого дня — поле для новой. */
-function Day({ day, today, lang, dict }: DayProps) {
-  const { data, update } = useStore();
-  const [tapped, setTapped] = useState(false);
+/** Один день ленты: дата и заметки по порядку. Поле для новых живёт внизу экрана. */
+function Day({ day, today, lang, dict, composer, onWrite, onEdit }: DayProps) {
+  const { data } = useStore();
   const isToday = day === today;
   const notes = notesOn(data, day);
-  const draft = draftOn(data, day);
-  const open = !isToday && draft !== undefined;
+  const targeting = composer.kind === 'write' && composer.day === day;
   const addLabel = dict['journal.add'];
 
   return (
-    <section className="jday" data-today={isToday ? 'true' : 'false'}>
+    <section className="jday" data-today={isToday ? 'true' : 'false'} data-target={targeting ? 'true' : 'false'}>
       <div className="jday-head">
         <p className="label">{formatDay(day, lang)}</p>
-        {/* Сегодняшнее поле живёт в панели внизу. В прошлый день его открывает
-            один тап: «+» — открыть, галочка — закрыть, дописав заметку. */}
+        {/* «+» нацеливает поле на этот день, галочка возвращает его к сегодняшнему */}
         {isToday ? null : (
           <button
             type="button"
             className="icon-btn"
-            aria-label={open ? dict['journal.done'] : addLabel}
-            title={open ? dict['journal.done'] : addLabel}
-            onClick={() => {
-              if (open) {
-                update((current) => commitDraft(current, day));
-                return;
-              }
-              setTapped(true);
-              update((current) => setDraft(current, day, ''));
-            }}
+            aria-label={targeting ? dict['journal.done'] : addLabel}
+            title={targeting ? dict['journal.done'] : addLabel}
+            onClick={() => onWrite(targeting ? today : day)}
           >
-            {open ? (
+            {targeting ? (
               <Check size={ICON} strokeWidth={1.8} aria-hidden="true" />
             ) : (
               <Plus size={ICON} strokeWidth={1.8} aria-hidden="true" />
@@ -169,18 +194,6 @@ function Day({ day, today, lang, dict }: DayProps) {
         )}
       </div>
 
-      {open ? (
-        <Composer
-          value={draft ?? ''}
-          placeholder={dict['journal.placeholder']}
-          label={dict['journal.placeholder']}
-          sendLabel={dict['journal.send']}
-          focus={tapped}
-          onChange={(text) => update((current) => setDraft(current, day, text))}
-          onSend={() => update((current) => commitDraft(current, day))}
-        />
-      ) : null}
-
       {notes.length > 0 ? (
         <ul className="jnotes">
           {notes.map((note) => (
@@ -188,8 +201,9 @@ function Day({ day, today, lang, dict }: DayProps) {
               key={note.id}
               note={note}
               lang={lang}
+              editing={composer.kind === 'edit' && composer.id === note.id}
               editLabel={dict['journal.note']}
-              onSave={(text) => update((current) => editNote(current, day, note.id, text))}
+              onEdit={() => onEdit(day, note.id)}
             />
           ))}
         </ul>
@@ -200,19 +214,44 @@ function Day({ day, today, lang, dict }: DayProps) {
 
 /**
  * Журнал — это лента, как чат: сверху старые дни, снизу сегодняшний, а под ним
- * поле заметки. Открыл вкладку — ты уже внизу, там, где пишешь.
+ * поле заметки. Писать, править и удалять — из одного поля внизу.
  */
 export default function JournalView() {
   const { data, update } = useStore();
   const lang = data.settings.lang;
   const dict = t(lang);
   const today = todayKey();
-  const days = journalDays(data, today);
-  const todayNotes = notesOn(data, today).length;
 
+  const [composer, setComposer] = useState<ComposerState>(() => ({
+    kind: 'write',
+    day: unfinishedDay(data, today),
+  }));
+  const [writing, setWriting] = useState(false);
+  // Текст правки живёт здесь: поле должно уметь оставаться пустым, а в данных
+  // пустая заметка не сохраняется.
+  const [editText, setEditText] = useState('');
+
+  const fieldRef = useRef<HTMLTextAreaElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
+  const wanted = useRef(false);
   const opened = useRef(false);
-  const inset = useKeyboardInset();
+  const inset = useKeyboardInset(writing);
+
+  // День-цель всегда в ленте, даже если в нём ещё ни одной заметки: иначе «+»
+  // у пустого дня не имел бы куда деться.
+  const days = useMemo(() => {
+    const list = journalDays(data, today);
+    if (list.includes(composer.day)) return list;
+    return [...list, composer.day].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  }, [data, today, composer.day]);
+
+  const edited = composer.kind === 'edit' ? notesOn(data, composer.day).find((note) => note.id === composer.id) : undefined;
+  const value =
+    composer.kind === 'edit'
+      ? edited
+        ? editText
+        : ''
+      : (draftOn(data, composer.day) ?? '');
 
   /** Лента всегда открывается снизу: там последняя заметка и поле. */
   function toEnd(smooth = false) {
@@ -238,6 +277,17 @@ export default function JournalView() {
     };
   }, []);
 
+  // Курсор ставится после того, как поле получило новый текст.
+  useEffect(() => {
+    if (!wanted.current) return;
+    wanted.current = false;
+    const field = fieldRef.current;
+    if (!field) return;
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+  }, [composer]);
+
+  const todayNotes = notesOn(data, today).length;
   useEffect(() => {
     if (!opened.current) {
       opened.current = true;
@@ -252,22 +302,93 @@ export default function JournalView() {
     if (inset > 0) toEnd(true);
   }, [inset]);
 
+  /** «+» у дня: пишем в него. Галочка у дня возвращает поле к сегодняшнему дню. */
+  function writeTo(day: DateKey) {
+    wanted.current = true;
+    setComposer({ kind: 'write', day });
+  }
+
+  function startEdit(day: DateKey, id: string) {
+    const note = notesOn(data, day).find((item) => item.id === id);
+    if (!note) return;
+    setEditText(note.text);
+    wanted.current = true;
+    setComposer({ kind: 'edit', day, id });
+  }
+
+  function finish() {
+    setComposer({ kind: 'write', day: today });
+    fieldRef.current?.blur();
+  }
+
+  function change(text: string) {
+    if (composer.kind === 'edit') {
+      setEditText(text);
+      // Пустое поле в данные не пишем: иначе заметка исчезла бы прямо во время набора.
+      if (text.trim()) update((current) => editNote(current, composer.day, composer.id, text));
+      return;
+    }
+    update((current) => setDraft(current, composer.day, text));
+  }
+
+  function done() {
+    if (composer.kind !== 'edit') return;
+    const { day, id } = composer;
+    const text = editText.trim();
+    update((current) => (text ? editNote(current, day, id, editText) : removeNote(current, day, id)));
+    finish();
+  }
+
+  function remove() {
+    if (composer.kind !== 'edit') return;
+    const { day, id } = composer;
+    update((current) => removeNote(current, day, id));
+    finish();
+  }
+
   return (
     <>
       <div className="journal">
         {days.map((day) => (
-          <Day key={day} day={day} today={today} lang={lang} dict={dict} />
+          <Day
+            key={day}
+            day={day}
+            today={today}
+            lang={lang}
+            dict={dict}
+            composer={composer}
+            onWrite={writeTo}
+            onEdit={startEdit}
+          />
         ))}
       </div>
 
       <div className="jbar" ref={barRef}>
+        {composer.kind === 'edit' ? (
+          <div className="jbar-note">
+            <p className="label">
+              {dict['journal.editing']} {formatTime(edited?.createdAt ?? '', lang)}
+            </p>
+          </div>
+        ) : composer.day !== today ? (
+          <div className="jbar-note">
+            <p className="label">{formatDay(composer.day, lang)}</p>
+            <button type="button" className="link" onClick={() => writeTo(today)}>
+              {dict['today.today']}
+            </button>
+          </div>
+        ) : null}
+
         <Composer
-          value={draftOn(data, today) ?? ''}
-          placeholder={dict['journal.placeholder']}
-          label={dict['journal.placeholder']}
-          sendLabel={dict['journal.send']}
-          onChange={(text) => update((current) => setDraft(current, today, text))}
-          onSend={() => update((current) => commitDraft(current, today))}
+          value={value}
+          mode={composer.kind}
+          dict={dict}
+          fieldRef={fieldRef}
+          onChange={change}
+          onSend={() => update((current) => commitDraft(current, composer.day))}
+          onDone={done}
+          onRemove={remove}
+          onWriting={setWriting}
         />
       </div>
     </>

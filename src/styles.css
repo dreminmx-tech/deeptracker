@@ -78,6 +78,8 @@
   /* shape scale */
   --radius: 12px;
   --radius-sm: 8px;
+  /* композер журнала: скруглённая «коробка чата» и её круглые кнопки */
+  --radius-lg: 20px;
   --sheet-width: 560px;
 }
 
@@ -198,6 +200,15 @@ html[data-typing='true'] .app[data-tab='journal'] {
   padding: var(--s2) var(--s3) calc(var(--s2) + env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--line);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Пока человек пишет, меню не мешает: оно уезжает, а его место занимает панель
+   заметки (data-typing ставит журнал, см. useKeyboardInset). */
+html[data-typing='true'] .tabs {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(100%);
 }
 
 .tabs button {
@@ -1157,24 +1168,18 @@ html[data-typing='true'] .app[data-tab='journal'] {
 
 /* ---------- journal ---------- */
 
-/* Лента дней, как чат: сверху старые, снизу сегодняшний. Дни разделяет воздух и
-   одна волосяная линия, а не карточки: страница дневника не должна выглядеть
-   как список дел. */
+/* Лента дней, как чат: сверху старые, снизу сегодняшний. Ни одной разделительной
+   линии — дни и заметки разделяет только воздух, а страницу держат даты. */
 .journal {
   display: flex;
   flex-direction: column;
-  gap: var(--s4);
+  gap: var(--s6);
 }
 
 .jday {
   display: flex;
   flex-direction: column;
   gap: var(--s3);
-}
-
-.jday + .jday {
-  padding-top: var(--s5);
-  border-top: 1px solid var(--line);
 }
 
 .jday-head {
@@ -1185,113 +1190,23 @@ html[data-typing='true'] .app[data-tab='journal'] {
   min-height: var(--icon);
 }
 
-/* Сегодняшняя дата — единственное тёмное слово в ленте: точка отсчёта. */
-.jday[data-today='true'] .label {
+/* Светлых слов в ленте два: сегодняшняя дата и дата, в которую пишет поле.
+   Это точки отсчёта, всё остальное — серое. */
+.jday[data-today='true'] .label,
+.jday[data-target='true'] .label {
   color: var(--fg);
 }
 
-/* Поле заметки — тот же прямоугольник, что и любое поле в приложении, только оно
-   растёт под текст (`field-sizing` там, где браузер умеет, иначе — тем же
-   занимается JS в Composer). */
-.jcomposer,
-.jnote-input {
-  display: block;
-  width: 100%;
-  min-height: var(--tap);
-  padding: var(--s3);
-  font-size: var(--t-md);
-  line-height: 1.45;
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  field-sizing: content;
-  resize: none;
-  overflow-y: auto;
-}
-
-.jcomposer::placeholder {
-  color: var(--muted);
-}
-
-/* Панель заметки внизу экрана: местная копия нижней навигации — та же ширина,
-   та же линия сверху, тот же цвет страницы. Стоит ровно над вкладками, а когда
-   открыта клавиатура (data-typing) — на их месте, поднятая на --kb. */
-.jbar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: calc(var(--tabs) + env(safe-area-inset-bottom));
-  z-index: 9;
-  max-width: var(--sheet-width);
-  margin: 0 auto;
-  padding: var(--s2) var(--s4);
-  background: var(--bg);
-  border-top: 1px solid var(--line);
-  transform: translateY(calc(-1 * var(--kb, 0px)));
-}
-
-html[data-typing='true'] .jbar {
-  bottom: 0;
-}
-
-.jcomposer-row {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--s2);
-  min-width: 0;
-}
-
-.jcomposer-row .jcomposer {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Кнопка отправки: единственный синий на экране журнала и только когда есть что
-   отправлять — пустая заметка ничего не делает, поэтому и не зовёт. */
-.jsend {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  width: var(--tap);
-  height: var(--tap);
-  padding: 0;
-  color: var(--muted);
-  background: var(--surface-3);
-  border: 0;
-  border-radius: var(--radius-sm);
-  transition: background 0.12s ease, color 0.12s ease;
-}
-
-.jsend[data-ready='true'] {
-  color: var(--accent-ink);
-  background: var(--accent);
-}
-
-.jsend:disabled {
-  cursor: default;
-}
-
 .jnotes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.jnote-item {
-  padding: var(--s3) 0;
-}
-
-/* первая заметка дня прижимается к полю, а не висит в воздухе */
-.jnote-item:first-child {
-  padding-top: 0;
-}
-
-.jnote-item + .jnote-item {
-  border-top: 1px solid var(--line);
-}
-
-/* Вся заметка — одна кнопка: попасть по ней легко, а тап открывает правку. */
+/* Вся заметка — одна кнопка: попасть по ней легко, тап поднимает её в поле. */
 .jnote {
   display: grid;
   align-content: center;
@@ -1310,6 +1225,11 @@ html[data-typing='true'] .jbar {
   font-variant-numeric: tabular-nums;
 }
 
+/* Заметка, которая сейчас лежит в поле, помечена тем же светлым цветом. */
+.jnote[data-editing='true'] .jnote-time {
+  color: var(--fg);
+}
+
 .jnote-text {
   font-size: var(--t-md);
   line-height: 1.45;
@@ -1320,6 +1240,112 @@ html[data-typing='true'] .jbar {
 @media (hover: hover) {
   .jnote:hover .jnote-text {
     opacity: 0.75;
+  }
+}
+
+/* Панель заметки внизу экрана. Стоит над вкладками, а пока человек пишет — на их
+   месте, поднятая на высоту клавиатуры (--kb). Края держат safe-area, поэтому на
+   телефоне с вырезом поле не липнет к самому краю. */
+.jbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabs) + env(safe-area-inset-bottom));
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  max-width: var(--sheet-width);
+  margin: 0 auto;
+  padding: var(--s2) calc(var(--s3) + env(safe-area-inset-left)) var(--s2)
+    calc(var(--s3) + env(safe-area-inset-right));
+  background: var(--bg);
+  transform: translateY(calc(-1 * var(--kb, 0px)));
+}
+
+html[data-typing='true'] .jbar {
+  bottom: 0;
+}
+
+/* Строка над полем: что правишь или в какой день пишешь. */
+.jbar-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: 0 var(--s2) 0 var(--s3);
+}
+
+.jbar-note .link {
+  align-self: center;
+}
+
+/* Композер: одна скруглённая коробка во всю ширину панели, кнопки внутри неё
+   у правого нижнего края. Поле внутри прозрачное — рамку несёт коробка. */
+.jcomposer-box {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s2);
+  min-height: calc(var(--s2) + var(--icon));
+  padding: var(--s1);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+}
+
+.jcomposer {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--icon);
+  max-height: 132px;
+  padding: var(--s2) var(--s3);
+  font-size: var(--t-md);
+  line-height: 1.45;
+  background: none;
+  border: 0;
+  resize: none;
+  overflow-y: auto;
+}
+
+.jcomposer::placeholder {
+  color: var(--muted);
+}
+
+/* Круглые кнопки внутри коробки: отправка, «готово», корзина. */
+.jcircle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon);
+  height: var(--icon);
+  padding: 0;
+  color: var(--muted);
+  background: var(--surface-3);
+  border: 0;
+  border-radius: 999px;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+/* Отправка и «готово» — единственный синий на экране журнала, и отправка синеет
+   только когда есть что отправлять: пустая заметка ничего не делает. */
+.jcircle[data-ready='true'] {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.jcircle:disabled {
+  cursor: default;
+}
+
+/* Корзина — единственное красное и только она: удаление заметки. */
+.jremove {
+  color: var(--danger);
+}
+
+@media (hover: hover) {
+  .jremove:hover {
+    background: var(--danger-soft);
   }
 }
 

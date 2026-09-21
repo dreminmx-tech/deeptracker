@@ -120,24 +120,32 @@ describe('views render', () => {
     expect(html.indexOf('Вчерашняя мысль')).toBeLessThan(html.indexOf('Вторая мысль'));
     // у заметки видно время, а не только текст
     expect(html).toContain('class="jnote-time"');
-    // поле с кнопкой отправки одно: панель внизу экрана
+    // поле одно: скруглённая коробка внизу экрана, кнопка отправки внутри неё
     expect(html.match(/class="jcomposer"/g)).toHaveLength(1);
     expect(html).toContain('class="jbar"');
+    expect(html).toContain('class="jcomposer-box" data-mode="write"');
+    expect(html).toMatch(/class="jcomposer-box" data-mode="write"[\s\S]*class="jcircle jsend"/);
     expect(html).toContain('aria-label="Отправить"');
     expect(html).toContain('aria-label="Добавить запись"');
     expect(html).toContain('data-today="true"');
-    // заметку можно править, но нельзя удалить
+    // правка и удаление живут в поле и появляются только вместе с заметкой
     expect(html).toContain('aria-label="Править запись"');
-    expect(html).not.toContain('Удалить');
+    expect(html).not.toContain('aria-label="Удалить заметку"');
+    // никаких разделительных линий в разметке и никаких полей в ленте
+    expect(html).not.toContain('jnote-input');
+    expect(html).not.toContain('jcomposer-row');
   });
 
   it('never hides what is already typed, even in a past day', () => {
     const today = todayKey();
     seedStorage(setDraft(withJournal(), addDays(today, -1), 'Дописываю вчера'));
     const html = render(<JournalView />);
-    // два открытых поля: панель внизу и поле в прошлом дне — текст виден в обоих
-    expect(html.match(/class="jcomposer"/g)).toHaveLength(2);
+    // поле одно и оно целится в недописанный день: текст на виду, день помечен
+    expect(html.match(/class="jcomposer"/g)).toHaveLength(1);
     expect(html).toContain('Дописываю вчера');
+    expect(html).toContain('data-target="true"');
+    expect(html).toContain('class="jbar-note"');
+    expect(html).toContain('>Сегодня<');
   });
 
   it('keeps yesterday one tap away, whatever yesterday looked like', () => {

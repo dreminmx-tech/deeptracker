@@ -8,39 +8,44 @@ import { useEffect, useState } from 'react';
  * iOS Safari окно не укорачивает, поэтому считаем по `visualViewport` и поднимаем
  * панель руками — иначе она остаётся под клавиатурой и писать вслепую.
  *
- * Хук живёт ровно столько, сколько открыт журнал: на других вкладках клавиатура
- * ничего не двигает, и `--kb` там не нужен.
+ * `active` — в поле заметки стоит курсор. Пока это так, на `<html>` висит
+ * `data-typing`: нижнее меню уезжает, панель встаёт на его место. На других
+ * вкладках клавиатура ничего не двигает, поэтому хук живёт только в журнале.
  */
 const KEYBOARD_MIN = 60;
 
-export function useKeyboardInset(): number {
+export function useKeyboardInset(active: boolean): number {
   const [inset, setInset] = useState(0);
 
   useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) return;
     const root = document.documentElement;
+    if (!active) {
+      setInset(0);
+      root.style.removeProperty('--kb');
+      delete root.dataset.typing;
+      return;
+    }
 
+    root.dataset.typing = 'true';
+    const viewport = window.visualViewport;
     const measure = () => {
-      const covered = window.innerHeight - viewport.height - viewport.offsetTop;
-      const next = covered > KEYBOARD_MIN ? Math.round(covered) : 0;
+      const covered = window.innerHeight - (viewport?.height ?? 0) - (viewport?.offsetTop ?? 0);
+      const next = viewport && covered > KEYBOARD_MIN ? Math.round(covered) : 0;
       setInset(next);
       // Панель читает --kb и поднимается на эту высоту (см. .jbar в styles.css).
       root.style.setProperty('--kb', `${next}px`);
-      if (next > 0) root.dataset.typing = 'true';
-      else delete root.dataset.typing;
     };
 
     measure();
-    viewport.addEventListener('resize', measure);
-    viewport.addEventListener('scroll', measure);
+    viewport?.addEventListener('resize', measure);
+    viewport?.addEventListener('scroll', measure);
     return () => {
-      viewport.removeEventListener('resize', measure);
-      viewport.removeEventListener('scroll', measure);
+      viewport?.removeEventListener('resize', measure);
+      viewport?.removeEventListener('scroll', measure);
       root.style.removeProperty('--kb');
       delete root.dataset.typing;
     };
-  }, []);
+  }, [active]);
 
   return inset;
 }

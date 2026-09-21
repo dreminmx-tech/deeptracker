@@ -1,10 +1,10 @@
 /**
  * Журнал: короткие заметки по дням. Мысль пишется в поле снизу и встаёт в конец
- * сегодняшнего дня — как сообщение в чате, только собеседника нет.
+ * дня — как сообщение в чате, только собеседника нет.
  *
- * Никаких папок, тегов, поиска и удаления: всё это — трение перед тем, как записать
- * строчку. Единственная защита от промаха — заметку нельзя стереть подчистую,
- * поэтому случайное «выделить всё и удалить» ничего не ломает.
+ * Никаких папок, тегов и поиска: это всё трение перед тем, как записать строчку.
+ * Удаление есть, но случайно его не нажать: корзина живёт в поле и только тогда,
+ * когда заметка уже открыта в нём.
  *
  * Чистая логика: ни React, ни DOM.
  */
@@ -47,7 +47,22 @@ export function journalDays(data: AppData, today: DateKey = todayKey()): DateKey
 
 /** Каждое нажатие клавиши — сразу в данные: закрытое приложение не теряет мысль. */
 export function setDraft(data: AppData, key: DateKey, text: string): AppData {
-  return { ...data, drafts: { ...data.drafts, [key]: text.slice(0, NOTE_MAX) } };
+  const drafts = { ...data.drafts };
+  // Пустое поле — не черновик: хранить нечего, и день в ленте занимать нечем.
+  if (text.trim()) drafts[key] = text.slice(0, NOTE_MAX);
+  else delete drafts[key];
+  return { ...data, drafts };
+}
+
+/**
+ * День, в который не дописали. Композер целится сюда при открытии вкладки: иначе
+ * вчерашняя недописанная мысль осталась бы в хранилище невидимой.
+ */
+export function unfinishedDay(data: AppData, today: DateKey = todayKey()): DateKey {
+  const pending = Object.keys(data.drafts)
+    .filter((key) => isValidKey(key) && (data.drafts[key] ?? '').trim().length > 0)
+    .sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
+  return pending[0] ?? today;
 }
 
 /** Отправка: пустое поле просто закрывается, текст встаёт в конец дня. */
@@ -71,8 +86,8 @@ export function commitDraft(
 }
 
 /**
- * Правка заметки. Пустой текст не сохраняется и заметку не убирает: удаления в
- * журнале нет, поэтому стёртое подчистую просто возвращается на место.
+ * Правка заметки. Пустой текст не сохраняется — заметку убирает `removeNote`,
+ * которую зовёт корзина в поле (или галочка на пустом тексте).
  */
 export function editNote(data: AppData, key: DateKey, id: string, text: string): AppData {
   const notes = notesOn(data, key);
@@ -85,4 +100,15 @@ export function editNote(data: AppData, key: DateKey, id: string, text: string):
       [key]: notes.map((item) => (item.id === id ? { ...item, text: trimmed } : item)),
     },
   };
+}
+
+/** Удаление заметки: день без заметок уходит из ленты вместе с ней. */
+export function removeNote(data: AppData, key: DateKey, id: string): AppData {
+  const notes = notesOn(data, key);
+  const left = notes.filter((item) => item.id !== id);
+  if (left.length === notes.length) return data;
+  const journal = { ...data.journal };
+  if (left.length > 0) journal[key] = left;
+  else delete journal[key];
+  return { ...data, journal };
 }

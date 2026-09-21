@@ -2,7 +2,17 @@ import { describe, expect, it } from 'vitest';
 import type { AppData } from '../types';
 import { freshData, normalizeData } from './storage';
 import { addDays, todayKey } from './date';
-import { NOTE_MAX, commitDraft, draftOn, editNote, journalDays, notesOn, setDraft } from './journal';
+import {
+  NOTE_MAX,
+  commitDraft,
+  draftOn,
+  editNote,
+  journalDays,
+  notesOn,
+  removeNote,
+  setDraft,
+  unfinishedDay,
+} from './journal';
 
 const TODAY = todayKey();
 const YESTERDAY = addDays(TODAY, -1);
@@ -28,10 +38,18 @@ describe('the feed', () => {
     expect(notesOn(data, TODAY).map((note) => note.text)).toEqual(['первая', 'вторая']);
   });
 
-  it('counts a past day in as soon as its field is opened', () => {
-    const data = setDraft(fresh(), YESTERDAY, '');
-    expect(draftOn(data, YESTERDAY)).toBe('');
-    expect(journalDays(data, TODAY)).toEqual([YESTERDAY, TODAY]);
+  it('does not let an empty field occupy a day', () => {
+    const data = setDraft(fresh(), YESTERDAY, '   ');
+    expect(draftOn(data, YESTERDAY)).toBeUndefined();
+    expect(journalDays(data, TODAY)).toEqual([TODAY]);
+  });
+
+  it('points at the day that was left unfinished', () => {
+    expect(unfinishedDay(fresh(), TODAY)).toBe(TODAY);
+    const yesterday = setDraft(fresh(), YESTERDAY, 'не дописал');
+    expect(unfinishedDay(yesterday, TODAY)).toBe(YESTERDAY);
+    const both = setDraft(yesterday, BEFORE, 'и тут не дописал');
+    expect(unfinishedDay(both, TODAY)).toBe(YESTERDAY);
   });
 
   it('autosaves every keystroke instead of waiting for a button', () => {
@@ -71,10 +89,11 @@ describe('editing a note', () => {
     expect(notesOn(next, TODAY)[0]).toMatchObject({ id, text: 'уже не черновик' });
   });
 
-  it('refuses to erase a note: the journal has no delete', () => {
+  it('refuses to save an empty text: a note is deleted, not blanked', () => {
     const { data, id } = withNote();
     expect(editNote(data, TODAY, id, '   ')).toBe(data);
     expect(editNote(data, TODAY, id, '')).toBe(data);
+    expect(notesOn(data, TODAY)).toHaveLength(1);
   });
 
   it('ignores a note that is not there', () => {
@@ -83,8 +102,42 @@ describe('editing a note', () => {
   });
 });
 
+describe('deleting a note', () => {
+  it('takes exactly one note out and keeps the others in order', () => {
+    let data = commitDraft(setDraft(fresh(), TODAY, 'первая'), TODAY, AT);
+    data = commitDraft(setDraft(data, TODAY, 'вторая'), TODAY, AT);
+    const [first, second] = notesOn(data, TODAY);
+    const next = removeNote(data, TODAY, first.id);
+    expect(notesOn(next, TODAY).map((note) => note.text)).toEqual(['вторая']);
+    expect(notesOn(next, TODAY)[0].id).toBe(second.id);
+  });
+
+  it('takes the day out of the feed when its last note goes', () => {
+    let data = commitDraft(setDraft(fresh(), YESTERDAY, 'вчерашняя'), YESTERDAY, AT);
+    data = setDraft(data, TODAY, 'не дописал');
+    expect(journalDays(data, TODAY)).toEqual([YESTERDAY, TODAY]);
+
+    const next = removeNote(data, YESTERDAY, notesOn(data, YESTERDAY)[0].id);
+    expect(next.journal[YESTERDAY]).toBeUndefined();
+    expect(journalDays(next, TODAY)).toEqual([TODAY]);
+  });
+
+  it('keeps a day that still has an unsent draft', () => {
+    let data = commitDraft(setDraft(fresh(), YESTERDAY, 'вчерашняя'), YESTERDAY, AT);
+    data = setDraft(data, YESTERDAY, 'дописываю');
+    const next = removeNote(data, YESTERDAY, notesOn(data, YESTERDAY)[0].id);
+    expect(journalDays(next, TODAY)).toEqual([YESTERDAY, TODAY]);
+  });
+
+  it('ignores a note that is not there', () => {
+    const data = commitDraft(setDraft(fresh(), TODAY, 'единственная'), TODAY, AT);
+    expect(removeNote(data, TODAY, 'n_missing')).toBe(data);
+    expect(removeNote(data, YESTERDAY, 'n_missing')).toBe(data);
+  });
+});
+
 describe('the journal in storage', () => {
-  it('survives a round trip, with the open field still open and full', () => {
+  it('survives a round trip, with the unsent text still in the field', () => {
     let data = commitDraft(setDraft(fresh(), YESTERDAY, 'вчерашняя мысль'), YESTERDAY, AT);
     data = setDraft(data, TODAY, 'пишу прямо сейчас');
     const restored = normalizeData(JSON.parse(JSON.stringify(data)));
