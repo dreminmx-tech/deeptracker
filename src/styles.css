@@ -204,6 +204,19 @@ p {
   font-weight: var(--w-strong);
 }
 
+/* Пятая вкладка: на узких экранах подписи сжимаются, но не переносятся —
+   разорванное «Статисти/ка» хуже, чем минус один пункт кегля. */
+@media (max-width: 360px) {
+  .tabs {
+    gap: 0;
+  }
+
+  .tabs button {
+    padding: 0 2px;
+    font-size: 0.6875rem; /* 11 — единственный размер вне шкалы, и только здесь */
+  }
+}
+
 /* ---------- rhythm & helpers ---------- */
 
 /* between sections */
@@ -1122,6 +1135,114 @@ p {
 .dot-day {
   font-size: var(--t-xs);
   color: var(--muted);
+}
+
+/* ---------- journal ---------- */
+
+/* Лента дней: сверху сегодня, ниже вчера. Дни разделяет воздух и одна волосяная
+   линия, а не карточки: страница дневника не должна выглядеть как список дел. */
+.journal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.jday {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.jday + .jday {
+  padding-top: var(--s5);
+  border-top: 1px solid var(--line);
+}
+
+.jday-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-height: var(--icon);
+}
+
+/* Сегодняшняя дата — единственное тёмное слово в ленте: точка отсчёта. */
+.jday[data-today='true'] .label {
+  color: var(--fg);
+}
+
+/* Поле новой заметки — тот же прямоугольник, что и любое поле в приложении,
+   только оно растёт под текст (`field-sizing` там, где браузер умеет,
+   иначе — тем же занимается JS в Composer). */
+.jcomposer,
+.jnote-input {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s3);
+  font-size: var(--t-md);
+  line-height: 1.45;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  field-sizing: content;
+  resize: none;
+  overflow-y: auto;
+}
+
+.jcomposer::placeholder {
+  color: var(--muted);
+}
+
+.jnotes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.jnote-item {
+  padding: var(--s3) 0;
+}
+
+/* первая заметка дня прижимается к полю, а не висит в воздухе */
+.jnote-item:first-child {
+  padding-top: 0;
+}
+
+.jnote-item + .jnote-item {
+  border-top: 1px solid var(--line);
+}
+
+/* Вся заметка — одна кнопка: попасть по ней легко, а тап открывает правку. */
+.jnote {
+  display: grid;
+  align-content: center;
+  gap: var(--s1);
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0;
+  background: none;
+  border: 0;
+  text-align: left;
+}
+
+.jnote-time {
+  font-size: var(--t-xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.jnote-text {
+  font-size: var(--t-md);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (hover: hover) {
+  .jnote:hover .jnote-text {
+    opacity: 0.75;
+  }
 }
 
 /* ---------- toast ---------- */

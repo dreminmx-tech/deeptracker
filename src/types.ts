@@ -51,6 +51,14 @@ export interface DayLog {
   dump: DumpItem[];
 }
 
+/** One journal note: a thought with the time it was written. */
+export interface JournalNote {
+  id: string;
+  text: string;
+  /** ISO datetime — the feed shows only its time. */
+  createdAt: string;
+}
+
 export interface Settings {
   lang: Lang;
   theme: Theme;
@@ -63,6 +71,14 @@ export interface AppData {
   habits: Habit[];
   /** Keyed by local date: YYYY-MM-DD. */
   days: Record<string, DayLog>;
+  /** Journal notes per day, newest first. A day without notes is simply absent. */
+  journal: Record<string, JournalNote[]>;
+  /**
+   * The note being typed right now, per day: the key exists while the field is
+   * open, the value is what is in it (possibly nothing yet). Autosaved on every
+   * keystroke, so closing the app mid-sentence never loses the sentence.
+   */
+  drafts: Record<string, string>;
   settings: Settings;
 }
 

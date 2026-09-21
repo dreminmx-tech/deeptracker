@@ -1,19 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BarChart3, CalendarCheck, ListChecks, Settings as SettingsIcon, type LucideIcon } from 'lucide-react';
+import {
+  BarChart3,
+  CalendarCheck,
+  ListChecks,
+  NotebookPen,
+  Settings as SettingsIcon,
+  type LucideIcon,
+} from 'lucide-react';
 import { StoreProvider, useStore } from './store';
 import { ToastProvider } from './components/Toast';
 import TodayView from './components/TodayView';
 import HabitsView from './components/HabitsView';
+import JournalView from './components/JournalView';
 import StatsView from './components/StatsView';
 import SettingsView from './components/SettingsView';
 import { t } from './lib/i18n';
 import { todayKey } from './lib/date';
 
-type Tab = 'today' | 'habits' | 'stats' | 'settings';
-const TABS: Tab[] = ['today', 'habits', 'stats', 'settings'];
+type Tab = 'today' | 'habits' | 'journal' | 'stats' | 'settings';
+/** Five tabs, the journal in the middle: writing a thought is as daily as ticking a box. */
+const TABS: Tab[] = ['today', 'habits', 'journal', 'stats', 'settings'];
 const TAB_ICONS: Record<Tab, LucideIcon> = {
   today: CalendarCheck,
   habits: ListChecks,
+  journal: NotebookPen,
   stats: BarChart3,
   settings: SettingsIcon,
 };
@@ -64,6 +74,7 @@ function Shell() {
       <main key={day}>
         {tab === 'today' ? <TodayView onGoToHabits={() => selectTab('habits')} /> : null}
         {tab === 'habits' ? <HabitsView /> : null}
+        {tab === 'journal' ? <JournalView /> : null}
         {tab === 'stats' ? <StatsView /> : null}
         {tab === 'settings' ? <SettingsView /> : null}
       </main>

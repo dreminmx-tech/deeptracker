@@ -10,6 +10,7 @@ import type { HabitKind, Lang } from '../types';
 const ru = {
   'nav.today': 'Сегодня',
   'nav.habits': 'Привычки',
+  'nav.journal': 'Журнал',
   'nav.stats': 'Статистика',
   'nav.settings': 'Настройки',
 
@@ -29,13 +30,18 @@ const ru = {
   'today.showOffSchedule': 'Показать не по расписанию ({n})',
   'today.hideOffSchedule': 'Скрыть не по расписанию',
   'today.negatives': 'Не делать',
-  'today.dump': 'Мысли на сегодня',
-  'today.dumpPlaceholder': 'Что вертится в голове?',
+  'today.dump': 'Быстрые дела',
+  'today.dumpPlaceholder': 'Дело или идея',
   'today.dumpAdd': 'Добавить',
   'today.dumpClear': 'Убрать выполненные',
   'today.empty.text': 'Начни с одной.',
   'today.empty.cta': 'Создать привычку',
   'today.pinLimit': 'В «Главном» уже три привычки',
+
+  'journal.placeholder': 'Что происходит?',
+  'journal.add': 'Добавить запись',
+  'journal.done': 'Готово',
+  'journal.note': 'Править запись',
 
   'habits.title': 'Привычки',
   'habits.add': 'Добавить',
@@ -113,6 +119,7 @@ export type Dict = typeof ru;
 const en: Dict = {
   'nav.today': 'Today',
   'nav.habits': 'Habits',
+  'nav.journal': 'Log',
   'nav.stats': 'Stats',
   'nav.settings': 'Settings',
 
@@ -132,13 +139,18 @@ const en: Dict = {
   'today.showOffSchedule': 'Show off-schedule habits ({n})',
   'today.hideOffSchedule': 'Hide off-schedule habits',
   'today.negatives': "Don't do",
-  'today.dump': "Today's thoughts",
-  'today.dumpPlaceholder': 'What is spinning in your head?',
+  'today.dump': 'Quick things',
+  'today.dumpPlaceholder': 'A task or an idea',
   'today.dumpAdd': 'Add',
   'today.dumpClear': 'Clear done items',
   'today.empty.text': 'Start with one.',
   'today.empty.cta': 'Create a habit',
   'today.pinLimit': 'The main three are already full',
+
+  'journal.placeholder': "What's going on?",
+  'journal.add': 'Add a note',
+  'journal.done': 'Done',
+  'journal.note': 'Edit note',
 
   'habits.title': 'Habits',
   'habits.add': 'Add',

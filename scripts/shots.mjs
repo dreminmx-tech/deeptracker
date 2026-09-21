@@ -40,6 +40,14 @@ function shift(days) {
   return dayKey(date);
 }
 
+/** Момент времени N дней назад: у заметки в ленте видно только часы и минуты. */
+function at(days, hour, minute) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  date.setHours(hour, minute, 0, 0);
+  return date.toISOString();
+}
+
 /** Правдоподобная история за 24 дня, чтобы на скриншотах была не пустота. */
 function demoData(theme) {
   const created = new Date();
@@ -83,7 +91,24 @@ function demoData(theme) {
     ],
   };
 
-  return { version: 1, habits, days, settings: { lang: 'ru', theme } };
+  /* Журнал: несколько мыслей за сегодня, вчера и позавчера — лента не должна
+     выглядеть как одна случайная строчка. */
+  const journal = {
+    [shift(0)]: [
+      { id: 'n1', text: 'Понял, почему вчера не получилось: слишком много дел на утро.', createdAt: at(0, 21, 40) },
+      { id: 'n2', text: 'Прогулка помогает думать. Надо выходить до работы, а не после.', createdAt: at(0, 13, 5) },
+      { id: 'n3', text: 'Утром было тяжело встать, но таблетки выпил.', createdAt: at(0, 9, 12) },
+    ],
+    [shift(1)]: [
+      { id: 'n4', text: 'Лёг поздно из-за телефона. Завтра уберу его из спальни.', createdAt: at(1, 23, 20) },
+      { id: 'n5', text: 'Договорился о встрече в четверг, перенёс на утро.', createdAt: at(1, 15, 48) },
+    ],
+    [shift(3)]: [
+      { id: 'n6', text: 'Хороший день: сделал всё до обеда и остался вечер.', createdAt: at(3, 19, 2) },
+    ],
+  };
+
+  return { version: 1, habits, days, journal, drafts: {}, settings: { lang: 'ru', theme } };
 }
 
 class Cdp {
@@ -188,15 +213,26 @@ try {
       clickJs: "document.querySelector('[aria-label=\"Предыдущий день\"]')?.click()",
     },
     {
-      name: 'today-undo',
+      name: 'today-slip',
       tab: 'today',
       theme: 'dark',
       width: 390,
       height: 940,
-      // срыв у «не делать»: приложение сразу предлагает отмену
+      // у «не делать» срыв отмечается отдельной кнопкой, а не галочкой
       clickJs: "document.querySelector('.hrow-actions .row-act')?.click()",
     },
     { name: 'habits', tab: 'habits', theme: 'dark', width: 390, height: 620 },
+    {
+      name: 'journal',
+      tab: 'journal',
+      theme: 'dark',
+      width: 390,
+      height: 940,
+      // «+» у вчерашнего дня: поле открывается прямо в ленте
+      clickJs:
+        "document.querySelectorAll('.jday')[1]?.querySelector('.jday-head .icon-btn')?.click()",
+    },
+    { name: 'journal-light', tab: 'journal', theme: 'light', width: 390, height: 940 },
     {
       name: 'habit-form',
       tab: 'habits',

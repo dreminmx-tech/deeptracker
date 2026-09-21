@@ -42,6 +42,8 @@ function makeData(habit: Habit | null, days: Record<string, DayLog> = {}): AppDa
     version: 1,
     habits: habit ? [habit] : [],
     days,
+    journal: {},
+    drafts: {},
     settings: { lang: 'ru', theme: 'dark' },
   };
 }

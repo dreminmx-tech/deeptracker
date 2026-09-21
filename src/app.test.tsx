@@ -7,12 +7,14 @@ import { ToastProvider } from './components/Toast';
 import ActionSheet from './components/ActionSheet';
 import TodayView from './components/TodayView';
 import HabitsView from './components/HabitsView';
+import JournalView from './components/JournalView';
 import StatsView from './components/StatsView';
 import SettingsView from './components/SettingsView';
 import { STORAGE_KEY, type AppData } from './types';
 import { addDays, todayKey, weekdayIndex } from './lib/date';
 import { freshData } from './lib/storage';
 import { addDump, addMinutes, tapHabit } from './lib/actions';
+import { commitDraft, setDraft } from './lib/journal';
 import { getEntry, isComplete } from './lib/habits';
 
 /** Minimal localStorage so `loadData()` sees exactly the data a test wants. */
@@ -63,6 +65,16 @@ function agedHistory(): AppData {
   };
 }
 
+/** Два дня журнала: вчерашняя мысль и две сегодняшние, новые сверху. */
+function withJournal(): AppData {
+  const today = todayKey();
+  const yesterday = addDays(today, -1);
+  let data = commitDraft(setDraft(freshData('ru'), yesterday, 'Вчерашняя мысль'), yesterday);
+  data = commitDraft(setDraft(data, today, 'Первая мысль'), today);
+  data = commitDraft(setDraft(data, today, 'Вторая мысль'), today);
+  return data;
+}
+
 afterEach(() => {
   delete (globalThis as unknown as { localStorage?: Storage }).localStorage;
 });
@@ -79,16 +91,51 @@ describe('views render', () => {
     expect(html).toContain('Вода');
   });
 
-  it('renders Today as a list of checkboxes and the brain dump', () => {
+  it('puts the journal in the middle of five tabs', () => {
+    seedStorage(freshData('ru'));
+    const html = render(<App />);
+    const tabs = html.slice(html.indexOf('class="tabs"'));
+    const labels = [...tabs.matchAll(/<span>([^<]+)<\/span>/g)].map((match) => match[1]);
+    expect(labels).toEqual(['Сегодня', 'Привычки', 'Журнал', 'Статистика', 'Настройки']);
+  });
+
+  it('renders Today as a list of checkboxes and the quick things', () => {
     seedStorage(dataWithHistory());
     const html = render(<TodayView onGoToHabits={() => {}} />);
-    expect(html).toContain('Мысли на сегодня');
+    expect(html).toContain('Быстрые дела');
     expect(html).toContain('Позвонить в поликлинику');
     // привычка — это галочка: ни «сколько», ни кнопок «+ / −» в строке нет
     expect(html).toContain('class="hrow-main"');
     expect(html).not.toContain('stepper');
     expect(html).not.toContain('Просто начни');
     expect(html).not.toContain('0/6');
+  });
+
+  it('renders the journal as a feed of days, newest on top', () => {
+    seedStorage(withJournal());
+    const html = render(<JournalView />);
+
+    // внутри дня новые заметки сверху, и сегодняшний день выше вчерашнего
+    expect(html.indexOf('Вторая мысль')).toBeLessThan(html.indexOf('Первая мысль'));
+    expect(html.indexOf('Первая мысль')).toBeLessThan(html.indexOf('Вчерашняя мысль'));
+    // у заметки видно время, а не только текст
+    expect(html).toContain('class="jnote-time"');
+    // поле для новой заметки открыто только у сегодняшнего дня
+    expect(html.match(/class="jcomposer"/g)).toHaveLength(1);
+    expect(html).toContain('aria-label="Добавить запись"');
+    expect(html).toContain('data-today="true"');
+    // заметку можно править, но нельзя удалить
+    expect(html).toContain('aria-label="Править запись"');
+    expect(html).not.toContain('Удалить');
+  });
+
+  it('never hides what is already typed, even in a past day', () => {
+    const today = todayKey();
+    seedStorage(setDraft(withJournal(), addDays(today, -1), 'Дописываю вчера'));
+    const html = render(<JournalView />);
+    // два открытых поля: сегодняшнее и вчерашнее, и текст виден в обоих
+    expect(html.match(/class="jcomposer"/g)).toHaveLength(2);
+    expect(html).toContain('Дописываю вчера');
   });
 
   it('keeps yesterday one tap away, whatever yesterday looked like', () => {

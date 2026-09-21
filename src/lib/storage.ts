@@ -1,7 +1,8 @@
-import type { AppData, DayLog, DumpItem, Entry, Habit, HabitKind, Lang, Theme } from '../types';
+import type { AppData, DayLog, DumpItem, Entry, Habit, HabitKind, JournalNote, Lang, Theme } from '../types';
 import { DATA_VERSION, STORAGE_KEY } from '../types';
 import { uid } from './actions';
 import { SEED_HABITS } from './i18n';
+import { NOTE_MAX } from './journal';
 import { isValidKey } from './date';
 
 const KINDS: HabitKind[] = ['check', 'counter', 'duration', 'negative', 'flex'];
@@ -31,6 +32,8 @@ export function freshData(lang: Lang = detectLang()): AppData {
     version: DATA_VERSION,
     habits,
     days: {},
+    journal: {},
+    drafts: {},
     settings: { lang, theme: 'dark' },
   };
 }
@@ -75,6 +78,26 @@ function normalizeDump(raw: unknown): DumpItem[] {
     });
   }
   return items;
+}
+
+/** One day of the journal. Notes keep their order: the newest is already first. */
+function normalizeNotes(raw: unknown): JournalNote[] {
+  if (!Array.isArray(raw)) return [];
+  const notes: JournalNote[] = [];
+  for (const item of raw) {
+    const record = asRecord(item);
+    const text = str(record.text, NOTE_MAX);
+    if (!text) continue;
+    notes.push({
+      id: typeof record.id === 'string' && record.id ? record.id : uid('n'),
+      text,
+      createdAt:
+        typeof record.createdAt === 'string' && !Number.isNaN(Date.parse(record.createdAt))
+          ? record.createdAt
+          : new Date().toISOString(),
+    });
+  }
+  return notes;
 }
 
 /** Weekdays a habit is expected (0 = Monday). All seven or none means "every day". */
@@ -135,6 +158,22 @@ export function normalizeData(raw: unknown): AppData {
     if (Object.keys(entries).length > 0 || dump.length > 0) days[key] = { entries, dump };
   }
 
+  const rawJournal = asRecord(record.journal);
+  const journal: Record<string, JournalNote[]> = {};
+  for (const [key, value] of Object.entries(rawJournal)) {
+    if (!isValidKey(key)) continue;
+    const notes = normalizeNotes(value);
+    if (notes.length > 0) journal[key] = notes;
+  }
+
+  // A draft key means "the field for that day is open"; its text may be empty.
+  const rawDrafts = asRecord(record.drafts);
+  const drafts: Record<string, string> = {};
+  for (const [key, value] of Object.entries(rawDrafts)) {
+    if (!isValidKey(key) || typeof value !== 'string') continue;
+    drafts[key] = value.slice(0, NOTE_MAX);
+  }
+
   const settings = asRecord(record.settings);
   const lang: Lang = settings.lang === 'en' ? 'en' : 'ru';
   const theme: Theme = settings.theme === 'light' ? 'light' : 'dark';
@@ -150,6 +189,8 @@ export function normalizeData(raw: unknown): AppData {
     version: DATA_VERSION,
     habits: habitsWithOrder,
     days,
+    journal,
+    drafts,
     settings: { lang, theme, ...(lastExport ? { lastExport } : {}) },
   };
 }

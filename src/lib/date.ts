@@ -73,6 +73,13 @@ export function formatDay(key: DateKey, lang: 'ru' | 'en', withWeekday = true): 
   return new Intl.DateTimeFormat(LOCALES[lang], opts).format(d);
 }
 
+/** "14:32" — the time a journal note was written. */
+export function formatTime(iso: string, lang: 'ru' | 'en'): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat(LOCALES[lang], { hour: '2-digit', minute: '2-digit' }).format(date);
+}
+
 export function formatMonth(key: DateKey, lang: 'ru' | 'en'): string {
   return new Intl.DateTimeFormat(LOCALES[lang], { month: 'short' }).format(parseKey(key));
 }
