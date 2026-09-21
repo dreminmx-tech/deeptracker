@@ -26,6 +26,9 @@ export default function HabitsView() {
   const active = activeHabits(data);
   const archived = archivedHabits(data);
   const pinnedCount = mainHabits(data).length;
+  // «Делать» и «Не делать» — разные вопросы к себе, поэтому и разные блоки.
+  const useful = active.filter((habit) => habit.kind !== 'negative');
+  const negatives = active.filter((habit) => habit.kind === 'negative');
 
   function actionsFor(habit: Habit): SheetAction[] {
     const actions: SheetAction[] = [
@@ -99,18 +102,42 @@ export default function HabitsView() {
         </button>
       </header>
 
-      <div className="rows">
-        {active.map((habit) => (
-          <HabitRow
-            key={habit.id}
-            habit={habit}
-            pinned={habit.pinned}
-            sub={habitMeta(habit, dict, lang)}
-            onOpen={() => setOpenHabit(habit)}
-            openLabel={dict['sheet.more']}
-          />
-        ))}
-      </div>
+      {useful.length > 0 ? (
+        <section className="block">
+          <p className="label">{dict['habits.kind.check']}</p>
+          <div className="rows">
+            {useful.map((habit) => (
+              <HabitRow
+                key={habit.id}
+                habit={habit}
+                pinned={habit.pinned}
+                sub={habitMeta(habit, dict, lang)}
+                onOpenMain={() => setOpenHabit(habit)}
+                onOpen={() => setOpenHabit(habit)}
+                openLabel={dict['sheet.more']}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {negatives.length > 0 ? (
+        <section className="block">
+          <p className="label">{dict['today.negatives']}</p>
+          <div className="rows">
+            {negatives.map((habit) => (
+              <HabitRow
+                key={habit.id}
+                habit={habit}
+                sub={habitMeta(habit, dict, lang)}
+                onOpenMain={() => setOpenHabit(habit)}
+                onOpen={() => setOpenHabit(habit)}
+                openLabel={dict['sheet.more']}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {archived.length > 0 ? (
         <section className="block">
@@ -121,6 +148,7 @@ export default function HabitsView() {
                 key={habit.id}
                 habit={habit}
                 sub={habitMeta(habit, dict, lang)}
+                onOpenMain={() => setOpenHabit(habit)}
                 onOpen={() => setOpenHabit(habit)}
                 openLabel={dict['sheet.more']}
               />

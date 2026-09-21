@@ -472,7 +472,10 @@ html[data-typing='true'] .tabs {
 
 /* ---------- press feedback ---------- */
 
-/* A tap should feel like a tap — but only when the user is happy with motion. */
+/* A tap should feel like a tap — but only when the user is happy with motion.
+   Отклик на палец даёт квадрат галочки, а не текст: полупрозрачность на буквах
+   заставляла их перерисовываться на каждом кадре — на телефоне это читалось
+   как «текст мерцает» при отметке привычки. */
 @media (prefers-reduced-motion: no-preference) {
   .btn:active,
   .row-act:active,
@@ -480,8 +483,8 @@ html[data-typing='true'] .tabs {
     transform: scale(0.96);
   }
 
-  .hrow-main:active .hrow-name {
-    opacity: 0.65;
+  .hrow-main:active .box {
+    transform: scale(0.9);
   }
 
   .btn,
@@ -545,6 +548,13 @@ html[data-typing='true'] .tabs {
 .set-row .segmented button {
   flex: 1 1 0;
   min-height: var(--control);
+}
+
+/* Язык и тема — тихие строки настроек, поэтому их контрол ниже: высота как у
+   кнопки «Скачать JSON», а не как у главного действия. Правило стоит после
+   `.set-row .segmented button` — здесь порядок и решает. */
+.set-row .segmented[data-compact='true'] button {
+  min-height: var(--control-sm);
 }
 
 /* two equal actions: same shape, same weight, one decision.
@@ -677,8 +687,12 @@ html[data-typing='true'] .tabs {
   font-weight: var(--w-strong);
 }
 
+/* Выполненная привычка — тихая, но без перехода: цвет меняется одним кадром.
+   Плавная смена цвета — это перерисовка букв на каждом кадре, а именно она
+   и читалась как мерцание текста при отметке. */
 .hrow[data-done='true'] .hrow-name {
   color: var(--muted);
+  transition: none;
 }
 
 .hrow-sub {
@@ -709,10 +723,10 @@ html[data-typing='true'] .tabs {
 }
 
 @media (hover: hover) {
-  /* only the rows that actually do something light up */
+  /* only the rows that actually do something light up — цветом, без прозрачности:
+     прозрачный текст на устройстве с мышью успевал мигнуть на переходе */
   button.hrow-main:hover .hrow-name {
     color: var(--fg);
-    opacity: 0.75;
   }
 }
 
@@ -734,7 +748,7 @@ html[data-typing='true'] .tabs {
   color: var(--accent-ink);
   border: 2px solid var(--line-strong);
   border-radius: var(--radius-sm);
-  transition: background 0.12s ease, border-color 0.12s ease;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
 }
 
 .box-sm {
@@ -764,6 +778,27 @@ html[data-typing='true'] .tabs {
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
+}
+
+/* Кнопка «добавить» — круглая иконка на линии поля: та же высота, тот же край.
+   Обводка фокуса остаётся: это единственный признак, что кнопка выбрана. */
+.dump-add {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+}
+
+.dump-add:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .dump-list {
@@ -1309,6 +1344,13 @@ html[data-typing='true'] .jbar {
 
 .jcomposer::placeholder {
   color: var(--muted);
+}
+
+/* Рамку «кто в фокусе» несёт коробка композера и синяя кнопка отправки; обводка
+   самого поля только дублировала её и вылезала по краям. */
+.jcomposer,
+.jcomposer:focus-visible {
+  outline: none;
 }
 
 /* Круглые кнопки внутри коробки: отправка, «готово», корзина. */

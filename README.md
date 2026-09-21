@@ -1,6 +1,6 @@
 <div align="center">
 
-# ✅ deeptracker
+# ✅ DeepTracker
 
 **A minimal offline habit tracker for an ADHD brain.**
 One tap per habit — there is no «how many glasses» to choose. Soft streaks, at most three
@@ -75,7 +75,7 @@ npm run preview  # http://127.0.0.1:4173
 - 🪶 **Soft streaks** — «never miss twice»: one missed day does not reset progress, only two in a row do, and an open today is not a miss at all. If yesterday was empty, the app says so in one short sentence.
 - 🗓 **Yesterday is one tap** — the date in words on the left, two arrows on the right: a day back and a day forward. Any past day opens and can be edited, and there is a link back to today. No week flipping, no «which week am I on?».
 - 📆 **Weekday schedules** — «weekdays», «Mon, Wed, Fri»: a day off schedule is not a miss and does not break the streak. On the Today screen such a habit stays out of the way, and one link shows it.
-- 🎯 **The main three** — at most three habits on top, the rest below: less choice paralysis.
+- 🎯 **The main three** — at most three habits on top, the rest below: less choice paralysis. The habits screen splits them into two labelled blocks — **Do** and **Don't do** — so a ban never stands in the same row as an action, and tapping a name opens that habit's settings.
 - 📓 **A journal that reads like a chat** — old days on top, today at the bottom, and a rounded field pinned under it with a round send button inside, right where your thumb is. Enter makes a new line (that is what Enter is for), every keystroke is already saved, and the keyboard lifts the field above itself instead of covering it. Tap any note to rewrite it right in that field or delete it with the bin — nothing irreversible happens by accident. The bottom menu gets out of the way while you write.
 - 📊 **Stats in two numbers and seven dots** — the streak, the best streak, and the week as dots: a dot is a day, progress or not. No 30/90 windows, no thirty-bar strips, no legends: a chart you have to decode is exactly why nobody wants to open the stats tab.
 - 📐 **Dense, no walls of text** — one row pattern for every list, one shape for every control (8px radius), heights from one scale (32/40/44/56), spacing from one grid (4…32), a card always 16px inside and 12px between children. There is almost no copy in the UI: every sentence is something you read instead of closing a habit.
@@ -84,7 +84,7 @@ npm run preview  # http://127.0.0.1:4173
 - 🧹 **Data without chaos** — backup with two **identical** buttons (download / load), and deleting lives in a «danger zone» where only the button itself is red. The app remembers when you last downloaded a file and nudges you after three weeks: your data lives in this browser only.
 - 📴 **Fully offline** — a service worker, a manifest and icons: install it on a phone and it works on a plane.
 - 🔒 **Private by default** — no accounts, no analytics, no network; data lives in `localStorage`, backup is a JSON export.
-- 🌗 **Two themes and its own typography** — dark in DeepSeek Platform dashboard colours, light strictly black and white; Manrope self-hosted (Cyrillic + Latin), icons from Lucide. The interface is in Russian and English.
+- 🌗 **Two themes and its own typography** — dark (called Dark) in DeepSeek Platform dashboard colours, light (Light) strictly black and white; Manrope self-hosted (Cyrillic + Latin), icons from Lucide. The interface is in Russian and English.
 - 🔗 **Deep links** — `/#journal`, `/#stats`, `/#habits`, `/#settings`: bookmark a screen and open it directly.
 
 ### 🗂 The two habits there are

@@ -58,13 +58,15 @@ export default function SettingsView() {
       </header>
 
       {/* Two settings, two rows. A full-width switch for a binary choice was the
-          heaviest control in the app; now it is a label with a small switch right. */}
+          heaviest control in the app; now it is a label with a small switch right.
+          Язык и тема — не главное действие, поэтому их контрол ниже (data-compact):
+          высота как у «Скачать JSON». */}
       <section className="card">
         <h2>{dict['settings.general']}</h2>
 
         <div className="set-row">
           <span className="row-name">{dict['settings.language']}</span>
-          <div className="segmented" role="group" aria-label={dict['settings.language']}>
+          <div className="segmented" data-compact="true" role="group" aria-label={dict['settings.language']}>
             <button
               type="button"
               data-active={lang === 'ru' ? 'true' : 'false'}
@@ -84,7 +86,7 @@ export default function SettingsView() {
 
         <div className="set-row">
           <span className="row-name">{dict['settings.theme']}</span>
-          <div className="segmented" role="group" aria-label={dict['settings.theme']}>
+          <div className="segmented" data-compact="true" role="group" aria-label={dict['settings.theme']}>
             <button
               type="button"
               data-active={data.settings.theme === 'dark' ? 'true' : 'false'}

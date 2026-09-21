@@ -3,7 +3,7 @@
 Приложение — статический сайт, поэтому деплой сводится к публикации папки `dist/`.
 Ни сервера, ни базы, ни переменных окружения не нужно; хостинг бесплатный.
 
-Текущая живая версия: **https://dreminmx-tech.github.io/deeptracker/**
+Текущая живая версия (DeepTracker): **https://dreminmx-tech.github.io/deeptracker/**
 
 ## ✅ Что уже настроено в этом репозитории
 
@@ -23,12 +23,17 @@
 
 Если хочется другое имя в адресе — переименуй репозиторий: workflow и относительные пути это переживут.
 
+> **Про имя.** Приложение называется **DeepTracker**, а репозиторий и адрес остаются `deeptracker`
+> в нижнем регистре: `STORAGE_KEY = 'deeptracker.v1'`, `id` манифеста `./` и имя файла бэкапа
+> `deeptracker-YYYY-MM-DD.json` менять нельзя — иначе потеряются данные у тех, кто уже пользуется.
+> Имя в интерфейсе берётся из `index.html` (`<title>`, OG, JSON-LD) и `public/manifest.webmanifest`.
+
 ## ⚡ Вариант B — с нуля через `gh`
 
 ```bash
 git init -b main
 git add .
-git commit -m "deeptracker"
+git commit -m "DeepTracker"
 gh repo create deeptracker --public --source=. --remote=origin
 gh api -X POST repos/<user>/deeptracker/pages -f build_type=workflow
 git push -u origin main
@@ -43,7 +48,7 @@ git push -u origin main
    ```bash
    git init
    git add .
-   git commit -m "deeptracker"
+   git commit -m "DeepTracker"
    git branch -M main
    git remote add origin https://github.com/<user>/<repo>.git
    git push -u origin main

@@ -1,6 +1,6 @@
 {
-  "name": "deeptracker",
-  "short_name": "deeptracker",
+  "name": "DeepTracker",
+  "short_name": "DeepTracker",
   "description": "Minimal offline-first habit tracker for the ADHD brain. Black & white, no accounts.",
   "id": "./",
   "start_url": "./",

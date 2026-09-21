@@ -17,6 +17,11 @@ export interface HabitRowProps {
   /** Management list: opens the sheet instead. */
   onOpen?: () => void;
   openLabel?: string;
+  /**
+   * Тап по самому названию (не по квадрату): в списке привычек открывает те же
+   * настройки, что и стрелка справа — целиться в неё одну неудобно.
+   */
+  onOpenMain?: () => void;
 }
 
 /**
@@ -33,6 +38,7 @@ export default function HabitRow({
   actions,
   onOpen,
   openLabel,
+  onOpenMain,
 }: HabitRowProps) {
   const label = (
     <>
@@ -53,6 +59,18 @@ export default function HabitRow({
           onClick={onToggle}
           aria-pressed={Boolean(done)}
           aria-label={habit.name}
+        >
+          {label}
+        </button>
+      ) : onOpenMain ? (
+        /* В списке привычек строку целиком открывает настройки: квадрата для
+           отметки здесь нет, поэтому вся строка — одна кнопка. */
+        <button
+          type="button"
+          className="hrow-main"
+          onClick={onOpenMain}
+          aria-label={habit.name}
+          title={habit.name}
         >
           {label}
         </button>

@@ -109,6 +109,9 @@ describe('views render', () => {
     expect(html).not.toContain('stepper');
     expect(html).not.toContain('Просто начни');
     expect(html).not.toContain('0/6');
+    // добавить дело — круглая кнопка с плюсом, а не подпись «Добавить»
+    expect(html).toContain('class="dump-add"');
+    expect(html).toContain('aria-label="Добавить"');
   });
 
   it('renders the journal as a feed of days, newest at the bottom', () => {
@@ -186,12 +189,19 @@ describe('views render', () => {
     expect(html).not.toContain('Вчера было пусто');
   });
 
-  it('renders the habits list', () => {
+  it('renders the habits list split into «do» and «don’t do»', () => {
     seedStorage(freshData('ru'));
     const html = render(<HabitsView />);
     expect(html).toContain('Привычки');
     expect(html).toContain('Не листать телефон в постели');
-    expect(html).toContain('Добавить');
+    // «Добавить» в шапке остаётся словом: это единственное действие экрана
+    expect(html).toContain('>Добавить<');
+    // полезные и вредные — два блока, и запрет стоит после подписи «Не делать»
+    expect(html).toContain('>Делать<');
+    expect(html).toContain('>Не делать<');
+    expect(html.indexOf('>Не делать<')).toBeLessThan(html.indexOf('Не листать телефон в постели'));
+    expect(html.indexOf('Выпить таблетки')).toBeLessThan(html.indexOf('>Не делать<'));
+    expect(html.indexOf('>Делать<')).toBeLessThan(html.indexOf('Выпить таблетки'));
   });
 
   it('renders stats as two numbers, a week of dots and a list of streaks', () => {
@@ -229,6 +239,11 @@ describe('views render', () => {
     // настройки — тихие строки: подпись слева, маленький переключатель справа
     expect(html).toContain('class="set-row"');
     expect(html).toContain('class="segmented"');
+    // язык и тема — контрол высотой как «Скачать JSON», а не как главное действие
+    expect(html.match(/data-compact="true"/g)).toHaveLength(2);
+    expect(html).toContain('Dark');
+    expect(html).toContain('Light');
+    expect(html).not.toContain('Black');
     // про единственный бэкап экран говорит прямо
     expect(html).toContain('No backup yet.');
   });

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Ban, ChevronLeft, ChevronRight, Undo2, X } from 'lucide-react';
+import { Ban, ChevronLeft, ChevronRight, Plus, Undo2, X } from 'lucide-react';
 import type { Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
@@ -225,8 +225,14 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
                 aria-label={dict['today.dumpPlaceholder']}
                 onChange={(event) => setDumpText(event.target.value)}
               />
-              <button type="submit" className="btn" disabled={dumpText.trim().length === 0}>
-                {dict['today.dumpAdd']}
+              <button
+                type="submit"
+                className="dump-add"
+                aria-label={dict['today.dumpAdd']}
+                title={dict['today.dumpAdd']}
+                disabled={dumpText.trim().length === 0}
+              >
+                <Plus size={20} strokeWidth={1.8} aria-hidden="true" />
               </button>
             </form>
 
