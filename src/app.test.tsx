@@ -109,9 +109,11 @@ describe('views render', () => {
     expect(html).not.toContain('stepper');
     expect(html).not.toContain('Просто начни');
     expect(html).not.toContain('0/6');
-    // добавить дело — круглая кнопка с плюсом, а не подпись «Добавить»
-    expect(html).toContain('class="dump-add"');
+    // добавить дело — кнопка внутри поля, как отправка в композере журнала
+    expect(html).toContain('class="dump-field"');
+    expect(html).toContain('class="dump-send"');
     expect(html).toContain('aria-label="Добавить"');
+    expect(html).not.toContain('class="dump-add"');
   });
 
   it('renders the journal as a feed of days, newest at the bottom', () => {
@@ -218,6 +220,11 @@ describe('views render', () => {
     expect(html).not.toContain('class="trend"');
     expect(html).not.toContain('legend');
     expect(html).toContain('По привычкам');
+    // полезные и запреты — два разведённых блока, как на «Сегодня» и в «Привычках»
+    expect(html).toContain('>Делать<');
+    expect(html).toContain('>Не делать<');
+    expect(html.indexOf('>Не делать<')).toBeLessThan(html.indexOf('Не листать телефон в постели'));
+    expect(html.indexOf('Выпить таблетки')).toBeLessThan(html.indexOf('>Не делать<'));
   });
 
   it('renders the empty stats state without data', () => {
@@ -239,8 +246,8 @@ describe('views render', () => {
     // настройки — тихие строки: подпись слева, маленький переключатель справа
     expect(html).toContain('class="set-row"');
     expect(html).toContain('class="segmented"');
-    // язык и тема — контрол высотой как «Скачать JSON», а не как главное действие
-    expect(html.match(/data-compact="true"/g)).toHaveLength(2);
+    // язык и тема — одной высоты с кнопками данных, отдельного «компактного» размера нет
+    expect(html).not.toContain('data-compact');
     expect(html).toContain('Dark');
     expect(html).toContain('Light');
     expect(html).not.toContain('Black');

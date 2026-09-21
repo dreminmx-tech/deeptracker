@@ -172,6 +172,16 @@ p {
   margin: 0 auto;
   /* the tab bar is 72px; the extra 32 keeps the last card clear of it */
   padding: var(--s5) var(--s4) calc(var(--tabs) + var(--s6) + env(safe-area-inset-bottom));
+  /* когда браузер сам подкручивает страницу к полю «быстрых дел», нижний запас
+     учитывает и меню, и клавиатуру */
+  scroll-margin-bottom: calc(var(--tabs) + var(--s6) + env(safe-area-inset-bottom));
+}
+
+/* «Быстрые дела» — второе поле ввода в приложении. Пока в нём курсор, нижнее
+   меню уезжает и место освобождает высота клавиатуры (--kb, см. useKeyboardInset),
+   поэтому поле не оказывается под меню. */
+html[data-typing='true'] .app {
+  padding-bottom: calc(var(--kb, 0px) + var(--s5) + env(safe-area-inset-bottom));
 }
 
 /* Журнал: снизу ещё и панель заметки, поэтому запас считается по ней. Пока
@@ -550,13 +560,6 @@ html[data-typing='true'] .tabs {
   min-height: var(--control);
 }
 
-/* Язык и тема — тихие строки настроек, поэтому их контрол ниже: высота как у
-   кнопки «Скачать JSON», а не как у главного действия. Правило стоит после
-   `.set-row .segmented button` — здесь порядок и решает. */
-.set-row .segmented[data-compact='true'] button {
-  min-height: var(--control-sm);
-}
-
 /* two equal actions: same shape, same weight, one decision.
    Stacked on a phone — «Загрузить из файла» в две колонки не влезает и ломает ряд. */
 .btn-row {
@@ -770,35 +773,44 @@ html[data-typing='true'] .tabs {
   gap: var(--s2);
 }
 
-.dump-form input {
+/* Поле «быстрых дел» и кнопка внутри него: строка — одно целое, кнопка стоит
+   в правом нижнем углу поля, как отправка в композере журнала. */
+.dump-field {
+  position: relative;
   flex: 1;
   min-width: 0;
+}
+
+.dump-form input {
+  width: 100%;
   min-height: var(--tap);
-  padding: 0 var(--s3);
+  /* текст не заезжает под кнопку */
+  padding: 0 calc(var(--tap) + var(--s1)) 0 var(--s3);
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
 }
 
-/* Кнопка «добавить» — круглая иконка на линии поля: та же высота, тот же край.
-   Обводка фокуса остаётся: это единственный признак, что кнопка выбрана. */
-.dump-add {
+.dump-send {
+  position: absolute;
+  right: var(--s1);
+  bottom: var(--s1);
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: var(--tap);
-  height: var(--tap);
+  width: calc(var(--tap) - var(--s2));
+  height: calc(var(--tap) - var(--s2));
   padding: 0;
-  color: var(--fg);
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 0;
   border-radius: 999px;
 }
 
-.dump-add:disabled {
-  opacity: 0.4;
-  cursor: default;
+/* Пустое поле ничего не отправляет, поэтому и кнопки нет — место занимает
+   placeholder, а не серая кнопка. */
+.dump-send[data-ready='false'] {
+  visibility: hidden;
 }
 
 .dump-list {
@@ -1285,21 +1297,26 @@ html[data-typing='true'] .tabs {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(var(--tabs) + env(safe-area-inset-bottom));
+  /* Панель шире своей коробки на нижний padding, а сама она отступает от меню на
+     --s5: между коробкой и меню выходит 20px воздуха (8px padding + 12px зазора),
+     фон панели не липнет к меню. Когда человек пишет, меню уезжает, панель встаёт
+     на его место (bottom: 0) и идёт вплотную к клавиатуре. */
+  bottom: calc(var(--tabs) + var(--s5) - env(safe-area-inset-bottom));
   z-index: 9;
   display: flex;
   flex-direction: column;
   gap: var(--s2);
   max-width: var(--sheet-width);
   margin: 0 auto;
-  padding: var(--s2) calc(var(--s3) + env(safe-area-inset-left)) var(--s2)
-    calc(var(--s3) + env(safe-area-inset-right));
+  padding: var(--s2) calc(var(--s3) + env(safe-area-inset-left))
+    calc(var(--s2) + env(safe-area-inset-bottom)) calc(var(--s3) + env(safe-area-inset-right));
   background: var(--bg);
   transform: translateY(calc(-1 * var(--kb, 0px)));
 }
 
 html[data-typing='true'] .jbar {
   bottom: 0;
+  padding-bottom: calc(var(--s2) + env(safe-area-inset-bottom));
 }
 
 /* Строка над полем: что правишь или в какой день пишешь. */

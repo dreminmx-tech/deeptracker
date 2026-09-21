@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Ban, ChevronLeft, ChevronRight, Plus, Undo2, X } from 'lucide-react';
 import type { Habit } from '../types';
 import { useStore } from '../store';
@@ -19,6 +19,7 @@ import {
 } from '../lib/habits';
 import Checkbox from './Checkbox';
 import HabitRow from './HabitRow';
+import { useKeyboardInset } from '../lib/useKeyboardInset';
 
 interface TodayViewProps {
   onGoToHabits: () => void;
@@ -42,6 +43,18 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
   const [open, setOpen] = useState<DateKey>(initialDay ?? today);
   const [showAll, setShowAll] = useState(false);
   const [dumpText, setDumpText] = useState('');
+  // Пока курсор в поле «быстрых дел», нижнее меню уезжает: иначе оно перекрывает
+  // то, что человек печатает.
+  const [typing, setTyping] = useState(false);
+  const dumpForm = useRef<HTMLFormElement>(null);
+  const inset = useKeyboardInset(typing);
+
+  // Клавиатура поднялась — поле подкручиваем к себе, чтобы оно было видно целиком.
+  useEffect(() => {
+    if (inset > 0) {
+      dumpForm.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [inset]);
 
   const isToday = open === today;
 
@@ -211,29 +224,37 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
             <p className="label">{dict['today.dump']}</p>
             <form
               className="dump-form"
+              ref={dumpForm}
+              onFocus={() => setTyping(true)}
+              onBlur={() => setTyping(false)}
               onSubmit={(event) => {
                 event.preventDefault();
                 update((current) => addDump(current, open, dumpText));
                 setDumpText('');
               }}
             >
-              <input
-                type="text"
-                value={dumpText}
-                maxLength={280}
-                placeholder={dict['today.dumpPlaceholder']}
-                aria-label={dict['today.dumpPlaceholder']}
-                onChange={(event) => setDumpText(event.target.value)}
-              />
-              <button
-                type="submit"
-                className="dump-add"
-                aria-label={dict['today.dumpAdd']}
-                title={dict['today.dumpAdd']}
-                disabled={dumpText.trim().length === 0}
-              >
-                <Plus size={20} strokeWidth={1.8} aria-hidden="true" />
-              </button>
+              <div className="dump-field">
+                <input
+                  type="text"
+                  value={dumpText}
+                  maxLength={280}
+                  placeholder={dict['today.dumpPlaceholder']}
+                  aria-label={dict['today.dumpPlaceholder']}
+                  onChange={(event) => setDumpText(event.target.value)}
+                />
+                {/* Кнопка живёт внутри поля, как отправка в композере журнала:
+                    строка — одно целое, а не поле и отдельный круг рядом. */}
+                <button
+                  type="submit"
+                  className="dump-send"
+                  data-ready={dumpText.trim().length > 0 ? 'true' : 'false'}
+                  aria-label={dict['today.dumpAdd']}
+                  title={dict['today.dumpAdd']}
+                  disabled={dumpText.trim().length === 0}
+                >
+                  <Plus size={ICON} strokeWidth={2} aria-hidden="true" />
+                </button>
+              </div>
             </form>
 
             {log.dump.length > 0 ? (

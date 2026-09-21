@@ -50,11 +50,27 @@ export default function StatsView() {
 
   const habits = activeHabits(data);
   const actionable = habits.filter(isActionable);
+  // Как и в списке привычек: «делать» и «не делать» — два разных вопроса.
+  const useful = habits.filter((habit) => habit.kind !== 'negative');
+  const negatives = habits.filter((habit) => habit.kind === 'negative');
   const streak = overallStreak(data);
   const best = bestRun(
     quarter.map((key) => actionable.some((habit) => dayStatus(data, habit, key) === 'done')),
   );
   const anything = hasAnyData(data);
+
+  /** Одна привычка — одна строка: имя и серия. Считаем серию ровно один раз. */
+  function streakRow(habit: (typeof habits)[number]) {
+    const streakOf = softStreak(data, habit);
+    return (
+      <div key={habit.id} className="hstat hstat-one">
+        <span className="hstat-name">{habit.name}</span>
+        <span className="hstat-streak">
+          {streakOf > 0 ? fill(dict['stats.streak'], { n: streakOf }) : ''}
+        </span>
+      </div>
+    );
+  }
 
   const weekDays = week.map((key) => {
     const status = dayHeatStatus(data, actionable, key, today);
@@ -104,19 +120,22 @@ export default function StatsView() {
 
           <section className="block">
             <p className="label">{dict['stats.perHabit']}</p>
-            <div className="rows">
-              {habits.map((habit) => {
-                const streakOf = softStreak(data, habit);
-                return (
-                  <div key={habit.id} className="hstat hstat-one">
-                    <span className="hstat-name">{habit.name}</span>
-                    <span className="hstat-streak">
-                      {streakOf > 0 ? fill(dict['stats.streak'], { n: streakOf }) : ''}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+
+            {useful.length > 0 ? (
+              <div className="block">
+                <p className="label">{dict['habits.kind.check']}</p>
+                <div className="rows">{useful.map(streakRow)}</div>
+              </div>
+            ) : null}
+
+            {/* Запреты живут отдельно: у них серия — это чистые дни, и стоять
+                в одном ряду с обычными привычками они не должны. */}
+            {negatives.length > 0 ? (
+              <div className="block">
+                <p className="label">{dict['today.negatives']}</p>
+                <div className="rows">{negatives.map(streakRow)}</div>
+              </div>
+            ) : null}
           </section>
         </>
       )}
