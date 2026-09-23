@@ -76,11 +76,15 @@ function Shell() {
   return (
     <div className="app" data-tab={tab}>
       <main key={day}>
-        {tab === 'today' ? <TodayView onGoToHabits={() => selectTab('habits')} /> : null}
-        {tab === 'habits' ? <HabitsView /> : null}
-        {tab === 'journal' ? <JournalView /> : null}
-        {tab === 'stats' ? <StatsView /> : null}
-        {tab === 'settings' ? <SettingsView /> : null}
+        {/* Каждый экран — свой столбец: у журнала внутри прокручивается лента,
+            а панель заметки стоит под ней, вне прокрутки. */}
+        <div className="stack">
+          {tab === 'today' ? <TodayView onGoToHabits={() => selectTab('habits')} /> : null}
+          {tab === 'habits' ? <HabitsView /> : null}
+          {tab === 'journal' ? <JournalView /> : null}
+          {tab === 'stats' ? <StatsView /> : null}
+          {tab === 'settings' ? <SettingsView /> : null}
+        </div>
       </main>
 
       <nav className="tabs">

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
 import { ArrowUp, Check, Plus, Trash2 } from 'lucide-react';
 import type { Dict } from '../lib/i18n';
 import type { JournalNote, Lang } from '../types';
@@ -257,32 +257,36 @@ export default function JournalView() {
   /**
    * Лента всегда открывается снизу: там последняя заметка и поле.
    *
-   * Целимся не «в конец окна», а в конец ленты: снизу у неё запас под панель
-   * (`--jbar`), и прокрутка «в самый низ» оставляла бы заметку высоко над
-   * композером. Пока в поле курсор, прокручивается само окно ленты
-   * (`html[data-typing] .app`) — браузер зажимает прокрутку страницы по
-   * layout-вьюпорту, который клавиатуру не учитывает.
+   * Прокручивается `main` внутри колонки (см. `.app` в styles.css), а не окно:
+   * поэтому и цель — его `scrollHeight`. Считаем до конца содержимого, а не «до
+   * конца окна»: прокрутка ниже просто не нужна, а `scrollTop = scrollHeight`
+   * ставит ленту ровно на последнюю строку.
    */
   function toEnd(smooth = false) {
-    const app = document.querySelector('.app');
-    const behavior: ScrollBehavior = smooth ? 'smooth' : 'auto';
-    if (app && app.scrollHeight > app.clientHeight) {
-      app.scrollTo({ top: app.scrollHeight, behavior });
+    const scroller = document.querySelector('.jfeed');
+    if (scroller instanceof HTMLElement) {
+      // Присваиваем `scrollTop`, а не `scrollTo`: на телефоне браузер зажимает
+      // `scrollTo` по layout-вьюпорту, а прямое присваивание доезжает до конца.
+      scroller.scrollTop = scroller.scrollHeight;
       return;
     }
-    window.scrollTo({ top: document.documentElement.scrollHeight, behavior });
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
   }
 
-  // Высота панели переменная (поле растёт под текст), поэтому запас снизу считает
-  // она сама, а не константа в CSS. Этот эффект идёт первым: прокрутка вниз должна
-  // знать настоящую высоту панели, иначе лента останавливается на пару пикселей выше.
-  useEffect(() => {
+  // Высота панели переменная (поле растёт под текст, строка над полем появляется
+  // и исчезает), поэтому запас снизу у ленты считает сама панель — по её полной
+  // высоте. Одна высота на всё приложение: панель и запас не могут разойтись,
+  // потому что считаются по одному и тому же числу.
+  useLayoutEffect(() => {
     const bar = barRef.current;
-    if (!bar || typeof ResizeObserver === 'undefined') return;
+    if (!bar) return;
     const root = document.documentElement;
     const apply = () =>
       root.style.setProperty('--jbar', `${Math.round(bar.getBoundingClientRect().height)}px`);
     apply();
+    if (typeof ResizeObserver === 'undefined') {
+      return () => root.style.removeProperty('--jbar');
+    }
     const observer = new ResizeObserver(apply);
     observer.observe(bar);
     return () => {
@@ -332,26 +336,20 @@ export default function JournalView() {
     window.setTimeout(() => rememberLayout('клавиатура открыта, устоялось'), 700);
   }
 
-  // Пока идёт набор, лента — своё окно (`html[data-typing] .app`): оно меняет
-  // высоту вместе с клавиатурой, а его содержимое — вместе с растущим полем.
-  // Одного `inset` мало: окно становится прокручиваемым уже после того, как
-  // эффект отработал, и прокрутить тогда ещё нечего. Поэтому следим за самим
-  // окном — и держим ленту внизу, пока оно меняется.
+  // Поле выросло под текст или заметка появилась — лента снова доезжает до конца.
+  // Следим за её окном: высота меняется вместе с клавиатурой и панелью.
   useEffect(() => {
-    const app = document.querySelector('.app');
-    if (!app || typeof ResizeObserver === 'undefined') return;
+    const scroller = document.querySelector('.jfeed');
+    if (!(scroller instanceof HTMLElement)) return;
     const pin = () => {
-      if (app.scrollHeight > app.clientHeight) app.scrollTop = app.scrollHeight;
+      if (scroller.scrollHeight > scroller.clientHeight) scroller.scrollTop = scroller.scrollHeight;
     };
     pin();
-    const frame = window.requestAnimationFrame(pin);
+    if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(pin);
-    observer.observe(app);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
-  }, []);
+    observer.observe(scroller);
+    return () => observer.disconnect();
+  }, [value]);
 
   /** «+» у дня: пишем в него. Галочка у дня возвращает поле к сегодняшнему дню. */
   function writeTo(day: DateKey) {
@@ -399,19 +397,21 @@ export default function JournalView() {
 
   return (
     <>
-      <div className="journal">
-        {days.map((day) => (
-          <Day
-            key={day}
-            day={day}
-            today={today}
-            lang={lang}
-            dict={dict}
-            composer={composer}
-            onWrite={writeTo}
-            onEdit={startEdit}
-          />
-        ))}
+      <div className="jfeed">
+        <div className="journal">
+          {days.map((day) => (
+            <Day
+              key={day}
+              day={day}
+              today={today}
+              lang={lang}
+              dict={dict}
+              composer={composer}
+              onWrite={writeTo}
+              onEdit={startEdit}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="jbar" ref={barRef}>

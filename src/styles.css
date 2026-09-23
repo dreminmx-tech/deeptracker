@@ -167,74 +167,95 @@ p {
 
 /* ---------- shell ---------- */
 
+/*
+ Оболочка — одна колонка высотой в экран: сверху прокручиваемое содержимое,
+ снизу меню, а в журнале ещё и панель заметки между ними. Панель и меню не
+ «висят» над содержимым, а стоят его продолжением, поэтому накрыть последнюю
+ заметку не могут — раньше панель была `fixed` поверх ленты, а запас снизу считался
+ формулой из высот, которую мерил JS. На телефоне этот замер соврал, и заметка
+ уехала под панель.
+*/
 .app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh; /* динамическая высота: клавиатура укорачивает окно сама */
   max-width: var(--sheet-width);
   margin: 0 auto;
-  /* the tab bar is 72px; the extra 32 keeps the last card clear of it */
-  padding: var(--s5) var(--s4) calc(var(--tabs) + var(--s6) + env(safe-area-inset-bottom));
-  /* когда браузер сам подкручивает страницу к полю «быстрых дел», нижний запас
-     учитывает и меню, и клавиатуру */
-  scroll-margin-bottom: calc(var(--tabs) + var(--s6) + env(safe-area-inset-bottom));
 }
 
-/* «Быстрые дела» — второе поле ввода в приложении. Пока в нём курсор, запас снизу
-   держит место под меню: клавиатуру из окна уже вычла его высота (--vv). */
-html[data-typing='true'] .app {
-  padding-bottom: calc(var(--s5) + var(--tabs) + env(safe-area-inset-bottom));
-}
-
-/*
- Пока клавиатура на экране, лента становится своим окном высотой в видимую часть
- экрана (--vv, см. useKeyboardInset). Это не украшение, а единственный способ
- показать последнюю заметку: браузер зажимает прокрутку страницы по layout-вьюпорту,
- а он под клавиатурой не меняется — страница считает, что уже внизу, и на высоту
- клавиатуры не доезжает (последняя строка остаётся за панелью). Своё окно меряется
- по visualViewport, поэтому зажим считается правильно. Нижние полосы как были
- `fixed`, так и остаются: они и так стоят по видимой части экрана.
-*/
-html[data-typing='true'] .app {
-  position: fixed;
-  inset: 0 0 auto;
-  height: var(--vv, 100vh);
+/* Содержимое вкладки: колонка `.stack` внутри, воздух между блоками — её.
+   Поля страницы живут здесь: 24px сверху, 16px по бокам, снизу воздух до меню.
+   У журнала прокручивается не это, а лента внутри (см. `.jfeed`), поэтому там
+   ни прокрутки, ни полей. */
+.app > main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: var(--s5) var(--s4) var(--s3);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
 
-/* Поднятые полосы внутри окна уже стоят на месте: окно само кончается там, где
-   начинается клавиатура, а `translateY(-kb)` увёл бы их на две высоты сразу. */
-html[data-typing='true'] .jbar,
-html[data-typing='true'] .tabs {
-  transform: none;
+.app[data-tab='journal'] > main {
+  padding: 0;
+  overflow: hidden;
 }
 
-/* Журнал: снизу ещё и панель заметки, поэтому запас считается по ней, а высота
-   клавиатуры добавляется сверху. Зазор до панели — тот же `--s2`, что и под
-   коробкой: воздух над композером и под ним одинаковый, и последняя заметка
-   никогда не прячется за панель. */
-.app[data-tab='journal'] {
-  padding-bottom: calc(
-    var(--tabs) + var(--jbar) + var(--s2) + var(--kb, 0px) + env(safe-area-inset-bottom)
-  );
+/* Лента журнала прокручивается внутри своего окна, а панель заметки стоит под
+   ней, внизу колонки. Отступы — у самого окна, чтобы под прокруткой не оставалось
+   полосы, по которой лента «проезжает» без текста. */
+.app[data-tab='journal'] > main > .stack {
+  gap: 0;
+  overflow: hidden;
 }
 
-/* Нижние полосы уезжают за экран вместе с клавиатурой (--kb), а не прячутся:
-   меню остаётся видимым и рабочим, пока человек печатает. */
+.jfeed {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  /* Запас снизу = высота панели плюс её воздух сверху (`--s1`): тогда последняя
+     заметка при прокрутке до конца встаёт ровно в 12px над рамкой коробки — тот
+     же воздух, что и до меню. Проверено замером на телефоне и в e2e. */
+  padding: var(--s5) var(--s4) calc(var(--jbar, 60px) + var(--s1));
+}
+
+/* Клавиатура на телефоне может накрывать окно целиком, не уменьшая его: тогда
+   про неё знает только браузер — он подкручивает к полю с курсором. Говорим ему
+   оставить снизу место под полосы, чтобы поле не оказалось под клавиатурой. */
+.jbar,
 .tabs {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  scroll-margin-bottom: calc(var(--tabs) + var(--s6) + env(safe-area-inset-bottom));
+}
+
+/* Клавиатура толкает полосы вверх — это нужно только там, где она не режет окно
+   (--kb больше нуля). Поднятая на её высоту колонка оставляет полосы над ней. */
+html[data-typing='true'] .tabs,
+html[data-typing='true'] .jbar {
+  transform: translateY(calc(-1 * var(--kb, 0px)));
+}
+
+/* Нижние полосы. Они не «висят» над лентой, а стоят её продолжением в колонке
+   (`.app` — flex-колонка высотой в экран), поэтому накрыть содержимое не могут.
+   На узком экране ширина у них своя, поэтому ширина — не вся колонка. */
+.tabs {
+  position: relative;
   z-index: 10;
   display: flex;
+  flex: 0 0 auto;
   gap: var(--s1);
+  align-self: center;
+  width: 100%;
   max-width: var(--sheet-width);
-  margin: 0 auto;
   padding: var(--s2) var(--s3) calc(var(--s2) + env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--line);
   transition: transform 0.15s ease;
-  transform: translateY(calc(-1 * var(--kb, 0px)));
 }
 
 .tabs button {
@@ -1301,7 +1322,9 @@ html[data-typing='true'] .tabs {
 /* ---------- journal ---------- */
 
 /* Лента дней, как чат: сверху старые, снизу сегодняшний. Ни одной разделительной
-   линии — дни и заметки разделяет только воздух, а страницу держат даты. */
+   линии — дни и заметки разделяет только воздух, а страницу держат даты.
+   Сама лента не прокручивается: её окно — `.jfeed`, а панель заметки и меню стоят
+   ниже в колонке (см. `.app`), поэтому накрыть последнюю заметку им нечем. */
 .journal {
   display: flex;
   flex-direction: column;
@@ -1382,21 +1405,21 @@ html[data-typing='true'] .tabs {
    Зазор до меню — отдельный слой (`.jbar-gap`), а не padding: `env(safe-area)`
    в панели и в меню складывался бы, и на телефоне с вырезом воздух превращался
    бы в 32px вместо 12. */
+/* Панель заметки: последняя полоса в колонке, сразу над меню — поэтому она и не
+   может накрыть последнюю заметку. Зазор до меню — отдельный слой (`.jbar-gap`),
+   а не padding: `env(safe-area)` в панели и в меню складывался бы, и на телефоне
+   с вырезом воздух превращался бы в 32px вместо 12. */
 .jbar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  /* Низ панели — ровно верх меню: вкладки выше 72px, когда снизу есть вырез. */
-  bottom: var(--tabs);
+  position: relative;
   z-index: 9;
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
+  align-self: center;
+  width: 100%;
   max-width: var(--sheet-width);
-  margin: 0 auto;
   background: var(--bg);
-  /* Обе нижние полосы держатся на одной переменной: клавиатура поднимает их
-     вместе, и меню остаётся видимым над ней. */
-  transform: translateY(calc(-1 * var(--kb, 0px)));
+  transition: transform 0.15s ease;
 }
 
 /* Воздух между коробкой композера и меню: ровно --s3, без safe-area. */
@@ -1404,11 +1427,14 @@ html[data-typing='true'] .tabs {
   height: var(--s3);
 }
 
+/* Воздух над коробкой композера: `--s3` — тот же размер, что и до меню, поэтому
+   лента, поле и меню стоят на одном ритме. Сверху отступа нет: запас снизу у
+   ленты (`padding-bottom` у `main`) уже равен высоте панели. */
 .jbar-inner {
   display: flex;
   flex-direction: column;
   gap: var(--s2);
-  padding: var(--s1) calc(var(--s3) + env(safe-area-inset-left)) 0
+  padding: 0 calc(var(--s3) + env(safe-area-inset-left)) 0
     calc(var(--s3) + env(safe-area-inset-right));
 }
 
