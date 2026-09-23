@@ -26,6 +26,7 @@ export function useKeyboardInset(active: boolean): number {
       setInset(0);
       wasOpen.current = false;
       root.style.removeProperty('--kb');
+      root.style.removeProperty('--vv');
       delete root.dataset.typing;
       return;
     }
@@ -45,6 +46,9 @@ export function useKeyboardInset(active: boolean): number {
       setInset(next);
       // Панель читает --kb и поднимается на эту высоту (см. .jbar в styles.css).
       root.style.setProperty('--kb', `${next}px`);
+      // Высота видимой части окна: на неё укорачивается лента, чтобы последняя
+      // заметка всё равно оказалась выше клавиатуры (см. html[data-typing] .app).
+      root.style.setProperty('--vv', `${Math.round(viewport?.height ?? window.innerHeight)}px`);
       if (closed && field instanceof HTMLElement && document.activeElement === field) field.blur();
     };
 
@@ -55,6 +59,7 @@ export function useKeyboardInset(active: boolean): number {
       viewport?.removeEventListener('resize', measure);
       viewport?.removeEventListener('scroll', measure);
       root.style.removeProperty('--kb');
+      root.style.removeProperty('--vv');
       delete root.dataset.typing;
     };
   }, [active]);

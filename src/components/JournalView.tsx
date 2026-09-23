@@ -253,10 +253,31 @@ export default function JournalView() {
         : ''
       : (draftOn(data, composer.day) ?? '');
 
-  /** Лента всегда открывается снизу: там последняя заметка и поле. */
+  /**
+   * Лента всегда открывается снизу: там последняя заметка и поле.
+   *
+   * Считаем по ближайшему прокручиваемому окну: пока в поле курсор, это окно
+   * самой ленты (`html[data-typing] .app`), без клавиатуры — страница. Через
+   * `scrollIntoView` не годится: он тянет вниз и панель, и меню, которые как раз
+   * и стоят внизу экрана.
+   */
+  /**
+   * Лента всегда открывается снизу: там последняя заметка и поле.
+   *
+   * Целимся не «в конец окна», а в последнюю строку: снизу у ленты запас под
+   * панель, и прокрутка до конца оставляла бы заметку высоко над композером —
+   * посреди пустого экрана. Считаем по самой панели, а не по числам запаса:
+   * панель знает, где она оказалась, а формула — только то, какой должна была
+   * быть.
+   */
   function toEnd(smooth = false) {
-    const top = document.documentElement.scrollHeight;
-    window.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
+    const app = document.querySelector('.app');
+    const behavior: ScrollBehavior = smooth ? 'smooth' : 'auto';
+    if (app && app.scrollHeight > app.clientHeight) {
+      app.scrollTo({ top: app.scrollHeight, behavior });
+      return;
+    }
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior });
   }
 
   // Высота панели переменная (поле растёт под текст), поэтому запас снизу считает
@@ -289,18 +310,43 @@ export default function JournalView() {
 
   const todayNotes = notesOn(data, today).length;
   useEffect(() => {
-    if (!opened.current) {
-      opened.current = true;
-      toEnd();
-      return;
-    }
-    toEnd(true);
+    // Первое открытие — без плавности: лента должна стоять внизу сразу, а не
+    // доезжать туда на глазах. Дальше новая заметка доезжает плавно.
+    toEnd(opened.current);
+    opened.current = true;
   }, [todayNotes]);
 
   // Клавиатура съела пол-экрана — последняя заметка всё равно должна быть видна.
+  // Прокрутку отпускаем без плавности: вместе с поднимающейся клавиатурой
+  // плавный ход читается как рывок, а показать надо сразу.
   useEffect(() => {
-    if (inset > 0) toEnd(true);
+    if (inset <= 0) return;
+    toEnd();
+    // Окну нужно стать прокручиваемым: в тот же кадр прокручивать ещё нечего.
+    const frame = window.requestAnimationFrame(() => toEnd());
+    return () => window.cancelAnimationFrame(frame);
   }, [inset]);
+
+  // Пока идёт набор, лента — своё окно (`html[data-typing] .app`): оно меняет
+  // высоту вместе с клавиатурой, а его содержимое — вместе с растущим полем.
+  // Одного `inset` мало: окно становится прокручиваемым уже после того, как
+  // эффект отработал, и прокрутить тогда ещё нечего. Поэтому следим за самим
+  // окном — и держим ленту внизу, пока оно меняется.
+  useEffect(() => {
+    const app = document.querySelector('.app');
+    if (!app || typeof ResizeObserver === 'undefined') return;
+    const pin = () => {
+      if (app.scrollHeight > app.clientHeight) app.scrollTop = app.scrollHeight;
+    };
+    pin();
+    const frame = window.requestAnimationFrame(pin);
+    const observer = new ResizeObserver(pin);
+    observer.observe(app);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
 
   /** «+» у дня: пишем в него. Галочка у дня возвращает поле к сегодняшнему дню. */
   function writeTo(day: DateKey) {

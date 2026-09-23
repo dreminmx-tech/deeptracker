@@ -177,18 +177,44 @@ p {
   scroll-margin-bottom: calc(var(--tabs) + var(--s6) + env(safe-area-inset-bottom));
 }
 
-/* «Быстрые дела» — второе поле ввода в приложении. Пока в нём курсор, нижнее
-   меню уезжает и место освобождает высота клавиатуры (--kb, см. useKeyboardInset),
-   поэтому поле не оказывается под меню. */
+/* «Быстрые дела» — второе поле ввода в приложении. Пока в нём курсор, запас снизу
+   держит место под меню: клавиатуру из окна уже вычла его высота (--vv). */
 html[data-typing='true'] .app {
-  padding-bottom: calc(var(--kb, 0px) + var(--s5) + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--s5) + var(--tabs) + env(safe-area-inset-bottom));
 }
 
-/* Журнал: снизу ещё и панель заметки, поэтому запас считается по ней, а клавиатура
-   (--kb) добавляется сверху — иначе последняя заметка осталась бы за панелью. */
+/*
+ Пока клавиатура на экране, лента становится своим окном высотой в видимую часть
+ экрана (--vv, см. useKeyboardInset). Это не украшение, а единственный способ
+ показать последнюю заметку: браузер зажимает прокрутку страницы по layout-вьюпорту,
+ а он под клавиатурой не меняется — страница считает, что уже внизу, и на высоту
+ клавиатуры не доезжает (последняя строка остаётся за панелью). Своё окно меряется
+ по visualViewport, поэтому зажим считается правильно. Нижние полосы как были
+ `fixed`, так и остаются: они и так стоят по видимой части экрана.
+*/
+html[data-typing='true'] .app {
+  position: fixed;
+  inset: 0 0 auto;
+  height: var(--vv, 100vh);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Поднятые полосы внутри окна уже стоят на месте: окно само кончается там, где
+   начинается клавиатура, а `translateY(-kb)` увёл бы их на две высоты сразу. */
+html[data-typing='true'] .jbar,
+html[data-typing='true'] .tabs {
+  transform: none;
+}
+
+/* Журнал: снизу ещё и панель заметки, поэтому запас считается по ней, а высота
+   клавиатуры добавляется сверху. Зазор до панели — тот же `--s2`, что и под
+   коробкой: воздух над композером и под ним одинаковый, и последняя заметка
+   никогда не прячется за панель. */
 .app[data-tab='journal'] {
   padding-bottom: calc(
-    var(--tabs) + var(--jbar) + var(--s4) + var(--kb, 0px) + env(safe-area-inset-bottom)
+    var(--tabs) + var(--jbar) + var(--s2) + var(--kb, 0px) + env(safe-area-inset-bottom)
   );
 }
 
@@ -1373,16 +1399,16 @@ html[data-typing='true'] .app {
   transform: translateY(calc(-1 * var(--kb, 0px)));
 }
 
-/* Воздух между коробкой композера и меню: ровно --s1, без safe-area. */
+/* Воздух между коробкой композера и меню: ровно --s3, без safe-area. */
 .jbar-gap {
-  height: var(--s1);
+  height: var(--s3);
 }
 
 .jbar-inner {
   display: flex;
   flex-direction: column;
   gap: var(--s2);
-  padding: var(--s2) calc(var(--s3) + env(safe-area-inset-left)) 0
+  padding: var(--s1) calc(var(--s3) + env(safe-area-inset-left)) 0
     calc(var(--s3) + env(safe-area-inset-right));
 }
 
