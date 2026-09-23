@@ -412,6 +412,9 @@ export default function JournalView() {
             />
           ))}
         </div>
+        {/* Воздух между последней заметкой и композером: отдельным слоем, потому
+            что padding у прокручиваемого окна не гарантирует зазор внизу. */}
+        <div className="jfeed-end" aria-hidden="true" />
       </div>
 
       <div className="jbar" ref={barRef}>
