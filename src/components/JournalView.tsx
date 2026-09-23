@@ -17,6 +17,7 @@ import {
   unfinishedDay,
 } from '../lib/journal';
 import { useKeyboardInset } from '../lib/useKeyboardInset';
+import { rememberLayout } from '../lib/diagnostics';
 
 const ICON = 19;
 /** Выше этого поле заметки не растёт — иначе панель съедает экран. */
@@ -256,19 +257,11 @@ export default function JournalView() {
   /**
    * Лента всегда открывается снизу: там последняя заметка и поле.
    *
-   * Считаем по ближайшему прокручиваемому окну: пока в поле курсор, это окно
-   * самой ленты (`html[data-typing] .app`), без клавиатуры — страница. Через
-   * `scrollIntoView` не годится: он тянет вниз и панель, и меню, которые как раз
-   * и стоят внизу экрана.
-   */
-  /**
-   * Лента всегда открывается снизу: там последняя заметка и поле.
-   *
-   * Целимся не «в конец окна», а в последнюю строку: снизу у ленты запас под
-   * панель, и прокрутка до конца оставляла бы заметку высоко над композером —
-   * посреди пустого экрана. Считаем по самой панели, а не по числам запаса:
-   * панель знает, где она оказалась, а формула — только то, какой должна была
-   * быть.
+   * Целимся не «в конец окна», а в конец ленты: снизу у неё запас под панель
+   * (`--jbar`), и прокрутка «в самый низ» оставляла бы заметку высоко над
+   * композером. Пока в поле курсор, прокручивается само окно ленты
+   * (`html[data-typing] .app`) — браузер зажимает прокрутку страницы по
+   * layout-вьюпорту, который клавиатуру не учитывает.
    */
   function toEnd(smooth = false) {
     const app = document.querySelector('.app');
@@ -326,6 +319,18 @@ export default function JournalView() {
     const frame = window.requestAnimationFrame(() => toEnd());
     return () => window.cancelAnimationFrame(frame);
   }, [inset]);
+
+  /**
+   * Человек начал печатать: рядом со шрифтом снимаем замер вёрстки — он нужен
+   * при открытой клавиатуре, а в настройках её уже не будет. Два снимка: сразу
+   * и когда раскладка устоялась (см. `lib/diagnostics.ts`).
+   */
+  function markWriting(writing: boolean) {
+    setWriting(writing);
+    if (!writing) return;
+    rememberLayout('клавиатура открыта');
+    window.setTimeout(() => rememberLayout('клавиатура открыта, устоялось'), 700);
+  }
 
   // Пока идёт набор, лента — своё окно (`html[data-typing] .app`): оно меняет
   // высоту вместе с клавиатурой, а его содержимое — вместе с растущим полем.
@@ -435,7 +440,7 @@ export default function JournalView() {
             onSend={() => update((current) => commitDraft(current, composer.day))}
             onDone={done}
             onRemove={remove}
-            onWriting={setWriting}
+            onWriting={markWriting}
           />
         </div>
         {/* Воздух до меню отдельным слоем: safe-area его не трогает. */}
