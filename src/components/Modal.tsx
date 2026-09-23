@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { X } from 'lucide-react';
+import { useBackButton } from '../lib/useBackButton';
 
 interface ModalProps {
   title: string;
@@ -22,6 +23,9 @@ export default function Modal({ title, onClose, children, footer, closeLabel }: 
       document.body.style.overflow = previous;
     };
   }, [onClose]);
+
+  // «Назад» на Android закрывает шторку, а не приложение: закрытие — второе нажатие.
+  useBackButton(true, 'dialog', onClose);
 
   return (
     <div className="overlay" onClick={onClose}>

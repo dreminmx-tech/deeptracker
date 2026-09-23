@@ -16,6 +16,7 @@ import StatsView from './components/StatsView';
 import SettingsView from './components/SettingsView';
 import { t } from './lib/i18n';
 import { todayKey } from './lib/date';
+import { useTypingLayer } from './lib/useBackButton';
 
 type Tab = 'today' | 'habits' | 'journal' | 'stats' | 'settings';
 /** Five tabs, the journal in the middle: writing a thought is as daily as ticking a box. */
@@ -69,6 +70,9 @@ function Shell() {
     }
   }
 
+  // «Назад» на Android уводит клавиатуру, а не закрывает приложение: закрытие —
+  // это второе нажатие, когда поверх экрана уже ничего нет.
+  useTypingLayer();
   return (
     <div className="app" data-tab={tab}>
       <main key={day}>

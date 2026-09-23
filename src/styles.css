@@ -184,19 +184,16 @@ html[data-typing='true'] .app {
   padding-bottom: calc(var(--kb, 0px) + var(--s5) + env(safe-area-inset-bottom));
 }
 
-/* Журнал: снизу ещё и панель заметки, поэтому запас считается по ней. Пока
-   открыта клавиатура, вкладки уезжают под неё, а высота клавиатуры (--kb)
-   добавляется к запасу — иначе последняя заметка осталась бы за панелью. */
+/* Журнал: снизу ещё и панель заметки, поэтому запас считается по ней, а клавиатура
+   (--kb) добавляется сверху — иначе последняя заметка осталась бы за панелью. */
 .app[data-tab='journal'] {
   padding-bottom: calc(
     var(--tabs) + var(--jbar) + var(--s4) + var(--kb, 0px) + env(safe-area-inset-bottom)
   );
 }
 
-html[data-typing='true'] .app[data-tab='journal'] {
-  padding-bottom: calc(var(--jbar) + var(--s4) + var(--kb, 0px));
-}
-
+/* Нижние полосы уезжают за экран вместе с клавиатурой (--kb), а не прячутся:
+   меню остаётся видимым и рабочим, пока человек печатает. */
 .tabs {
   position: fixed;
   left: 0;
@@ -210,15 +207,8 @@ html[data-typing='true'] .app[data-tab='journal'] {
   padding: var(--s2) var(--s3) calc(var(--s2) + env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--line);
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-/* Пока человек пишет, меню не мешает: оно уезжает, а его место занимает панель
-   заметки (data-typing ставит журнал, см. useKeyboardInset). */
-html[data-typing='true'] .tabs {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(100%);
+  transition: transform 0.15s ease;
+  transform: translateY(calc(-1 * var(--kb, 0px)));
 }
 
 .tabs button {
@@ -1359,32 +1349,41 @@ html[data-typing='true'] .tabs {
   }
 }
 
-/* Панель заметки внизу экрана. Стоит над вкладками, а пока человек пишет — на их
-   месте, поднятая на высоту клавиатуры (--kb). Края держат safe-area, поэтому на
-   телефоне с вырезом поле не липнет к самому краю. */
+/* Панель заметки внизу экрана. Всегда стоит над вкладками, а не на их месте:
+   меню не должно исчезать, пока человек пишет, — иначе его не вернуть ничем,
+   кроме ухода со вкладки. Клавиатуру компенсирует `--kb` ниже, поэтому панель
+   и меню поднимаются вместе и остаются над ней.
+   Зазор до меню — отдельный слой (`.jbar-gap`), а не padding: `env(safe-area)`
+   в панели и в меню складывался бы, и на телефоне с вырезом воздух превращался
+   бы в 32px вместо 12. */
 .jbar {
   position: fixed;
   left: 0;
   right: 0;
-  /* Панель отступает от меню на --s1, поэтому между коробкой композера и меню
-     ровно 12px: 8px нижнего padding панели плюс 4px зазора. Когда человек пишет,
-     меню уезжает, панель встаёт на его место (bottom: 0) вплотную к клавиатуре. */
-  bottom: calc(var(--tabs) + var(--s1) - env(safe-area-inset-bottom));
+  /* Низ панели — ровно верх меню: вкладки выше 72px, когда снизу есть вырез. */
+  bottom: var(--tabs);
   z-index: 9;
   display: flex;
   flex-direction: column;
-  gap: var(--s2);
   max-width: var(--sheet-width);
   margin: 0 auto;
-  padding: var(--s2) calc(var(--s3) + env(safe-area-inset-left))
-    calc(var(--s2) + env(safe-area-inset-bottom)) calc(var(--s3) + env(safe-area-inset-right));
   background: var(--bg);
+  /* Обе нижние полосы держатся на одной переменной: клавиатура поднимает их
+     вместе, и меню остаётся видимым над ней. */
   transform: translateY(calc(-1 * var(--kb, 0px)));
 }
 
-html[data-typing='true'] .jbar {
-  bottom: 0;
-  padding-bottom: calc(var(--s2) + env(safe-area-inset-bottom));
+/* Воздух между коробкой композера и меню: ровно --s1, без safe-area. */
+.jbar-gap {
+  height: var(--s1);
+}
+
+.jbar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s2) calc(var(--s3) + env(safe-area-inset-left)) 0
+    calc(var(--s3) + env(safe-area-inset-right));
 }
 
 /* Строка над полем: что правишь или в какой день пишешь. */

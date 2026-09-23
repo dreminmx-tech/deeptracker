@@ -208,9 +208,9 @@ describe('views render', () => {
     expect(html.indexOf('>Делать<')).toBeLessThan(html.indexOf('Выпить таблетки'));
     // у запрета в строке часы: таймер «держусь» вместо стрелки «Действия»,
     // и он только у запретов — у полезных привычек время не спрашивают
-    expect(html).toContain('aria-label="Держусь"');
-    expect(html.indexOf('aria-label="Держусь"')).toBeGreaterThan(html.indexOf('>Не делать<'));
-    expect(html.match(/aria-label="Держусь"/g)).toHaveLength(1);
+    expect(html).toContain('aria-label="Сдержаться"');
+    expect(html.indexOf('aria-label="Сдержаться"')).toBeGreaterThan(html.indexOf('>Не делать<'));
+    expect(html.match(/aria-label="Сдержаться"/g)).toHaveLength(1);
   });
 
   it('gives the duration timer only to a «don’t do» habit', () => {
@@ -229,10 +229,10 @@ describe('views render', () => {
 
     seedStorage(freshData('ru'));
     const running = render(<UrgePanel habit={habit} endAt={Date.now() + 15 * 60_000} slipped={false} {...handlers} />);
-    expect(running).toContain('Держусь · 15 мин');
+    expect(running).toContain('Сдержаться · 15 мин');
     expect(running).toContain('role="timer"');
     expect(running).toContain('15:00');
-    expect(running).toContain('Держался');
+    expect(running).toContain('Сдержался');
     expect(running).toContain('Всё равно сорвался');
     // закрыть панель без отметки можно, но это не кнопка рядом с главной
     expect(running).toContain('Закрыть');

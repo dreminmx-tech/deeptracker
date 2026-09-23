@@ -364,32 +364,36 @@ export default function JournalView() {
       </div>
 
       <div className="jbar" ref={barRef}>
-        {composer.kind === 'edit' ? (
-          <div className="jbar-note">
-            <p className="label">
-              {dict['journal.editing']} {formatTime(edited?.createdAt ?? '', lang)}
-            </p>
-          </div>
-        ) : composer.day !== today ? (
-          <div className="jbar-note">
-            <p className="label">{formatDay(composer.day, lang)}</p>
-            <button type="button" className="link" onClick={() => writeTo(today)}>
-              {dict['today.today']}
-            </button>
-          </div>
-        ) : null}
+        <div className="jbar-inner">
+          {composer.kind === 'edit' ? (
+            <div className="jbar-note">
+              <p className="label">
+                {dict['journal.editing']} {formatTime(edited?.createdAt ?? '', lang)}
+              </p>
+            </div>
+          ) : composer.day !== today ? (
+            <div className="jbar-note">
+              <p className="label">{formatDay(composer.day, lang)}</p>
+              <button type="button" className="link" onClick={() => writeTo(today)}>
+                {dict['today.today']}
+              </button>
+            </div>
+          ) : null}
 
-        <Composer
-          value={value}
-          mode={composer.kind}
-          dict={dict}
-          fieldRef={fieldRef}
-          onChange={change}
-          onSend={() => update((current) => commitDraft(current, composer.day))}
-          onDone={done}
-          onRemove={remove}
-          onWriting={setWriting}
-        />
+          <Composer
+            value={value}
+            mode={composer.kind}
+            dict={dict}
+            fieldRef={fieldRef}
+            onChange={change}
+            onSend={() => update((current) => commitDraft(current, composer.day))}
+            onDone={done}
+            onRemove={remove}
+            onWriting={setWriting}
+          />
+        </div>
+        {/* Воздух до меню отдельным слоем: safe-area его не трогает. */}
+        <div className="jbar-gap" aria-hidden="true" />
       </div>
     </>
   );
