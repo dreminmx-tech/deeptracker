@@ -8,6 +8,7 @@ import { updateSettings } from '../lib/actions';
 import { hasAnyData } from '../lib/habits';
 import { APP_VERSION } from '../lib/version';
 import { useInstallPrompt } from '../lib/useInstallPrompt';
+import { copyDiagnostics } from '../lib/diagnostics';
 import Modal from './Modal';
 import { useToast } from './Toast';
 
@@ -167,6 +168,14 @@ export default function SettingsView() {
       </section>
 
       <p className="muted small center">{fill(dict['settings.version'], { v: APP_VERSION })}</p>
+
+      {/* Ниже — не для человека, а для разбора полётов: размеры считает браузер
+          на телефоне, и без его чисел правки вёрстки превращаются в догадки. */}
+      <div className="center">
+        <button type="button" className="link" onClick={() => void copyDiagnostics(notify, dict['settings.diagnoseCopied'])}>
+          {dict['settings.diagnose']}
+        </button>
+      </div>
 
       {confirmWipe ? (
         <Modal

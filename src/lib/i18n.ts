@@ -124,6 +124,8 @@ const ru = {
   'settings.about': 'О приложении',
   'settings.aboutText': 'Данные только в этом браузере. Ничего никуда не отправляется.',
   'settings.version': 'Версия {v}',
+  'settings.diagnose': 'Замер вёрстки',
+  'settings.diagnoseCopied': 'Замер скопирован',
 
   'common.close': 'Закрыть',
   'common.cancel': 'Отмена',
@@ -247,6 +249,8 @@ const en: Dict = {
   'settings.about': 'About',
   'settings.aboutText': 'Data lives in this browser only. Nothing is sent anywhere.',
   'settings.version': 'Version {v}',
+  'settings.diagnose': 'Layout reading',
+  'settings.diagnoseCopied': 'Reading copied',
 
   'common.close': 'Close',
   'common.cancel': 'Cancel',
