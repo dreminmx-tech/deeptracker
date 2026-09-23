@@ -3,11 +3,13 @@ import { Archive, ArchiveRestore, ArrowDown, ArrowUp, Pencil, Plus, Star, StarOf
 import type { Habit } from '../types';
 import { useStore } from '../store';
 import { t } from '../lib/i18n';
+import { todayKey } from '../lib/date';
 import { moveHabit, toggleArchive, togglePin } from '../lib/actions';
 import { activeHabits, archivedHabits, isActionable, mainHabits } from '../lib/habits';
 import ActionSheet, { type SheetAction } from './ActionSheet';
 import HabitForm from './HabitForm';
 import HabitRow from './HabitRow';
+import { UrgeRow, useUrgeTimer } from './UrgeTimer';
 import { useToast } from './Toast';
 import { habitMeta } from './habitText';
 
@@ -22,6 +24,8 @@ export default function HabitsView() {
   const [openHabit, setOpenHabit] = useState<Habit | null>(null);
   const [editing, setEditing] = useState<Habit | null>(null);
   const [creating, setCreating] = useState(false);
+  /** Один таймер «держусь» на список: он нужен и здесь, а не только на «Сегодня». */
+  const urge = useUrgeTimer();
 
   const active = activeHabits(data);
   const archived = archivedHabits(data);
@@ -126,11 +130,13 @@ export default function HabitsView() {
           <p className="label">{dict['today.negatives']}</p>
           <div className="rows">
             {negatives.map((habit) => (
-              <HabitRow
+              /* Часы вместо стрелки: пока идёт тяга, человеку нужно время, а
+                 «Действия» всегда достаются тапом по названию. */
+              <UrgeRow
                 key={habit.id}
                 habit={habit}
-                sub={habitMeta(habit, dict, lang)}
-                onOpenMain={() => setOpenHabit(habit)}
+                day={todayKey()}
+                timer={urge}
                 onOpen={() => setOpenHabit(habit)}
                 openLabel={dict['sheet.more']}
               />

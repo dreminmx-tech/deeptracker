@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { t } from '../lib/i18n';
 import { WEEKDAY_ORDER, weekdayName } from '../lib/date';
 import { deleteHabit, saveHabit, toggleArchive, type HabitInput } from '../lib/actions';
+import { RESIST_MINUTES, resistMinutes } from '../lib/timer';
 import Modal from './Modal';
 
 interface HabitFormProps {
@@ -25,6 +26,7 @@ export default function HabitForm({ habit, onClose }: HabitFormProps) {
   const [name, setName] = useState(habit?.name ?? '');
   const [kind, setKind] = useState<HabitKind>(habit?.kind === 'negative' ? 'negative' : 'check');
   const [days, setDays] = useState<number[]>(habit?.days ?? [0, 1, 2, 3, 4, 5, 6]);
+  const [resist, setResist] = useState<number>(() => resistMinutes(habit ?? {}));
   const [pinned, setPinned] = useState(habit?.pinned ?? false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -38,7 +40,7 @@ export default function HabitForm({ habit, onClose }: HabitFormProps) {
 
   function save() {
     if (!canSave) return;
-    const input: HabitInput = { name, kind, days, pinned };
+    const input: HabitInput = { name, kind, days, pinned, resist };
     update((current) => saveHabit(current, input, habit?.id));
     onClose();
   }
@@ -110,6 +112,27 @@ export default function HabitForm({ habit, onClose }: HabitFormProps) {
           ))}
         </div>
       </div>
+
+      {kind === 'negative' ? (
+        /* У «не делать» есть только один вопрос с числом: сколько держаться,
+           когда накрыло. Пять минут по умолчанию — потому что перетерпеть пять
+           минут может каждый, и этого обычно хватает, чтобы тяга отпустила. */
+        <div className="field">
+          <span className="field-label">{dict['urge.duration']}</span>
+          <div className="segmented segmented-wide" role="group">
+            {RESIST_MINUTES.map((minutes) => (
+              <button
+                key={minutes}
+                type="button"
+                data-active={resist === minutes ? 'true' : 'false'}
+                onClick={() => setResist(minutes)}
+              >
+                {minutes}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <label className="switch">
         <input type="checkbox" checked={pinned} onChange={(event) => setPinned(event.target.checked)} />

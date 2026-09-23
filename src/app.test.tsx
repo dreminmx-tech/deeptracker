@@ -7,6 +7,8 @@ import { ToastProvider } from './components/Toast';
 import ActionSheet from './components/ActionSheet';
 import TodayView from './components/TodayView';
 import HabitsView from './components/HabitsView';
+import HabitForm from './components/HabitForm';
+import { UrgePanel } from './components/UrgeTimer';
 import JournalView from './components/JournalView';
 import StatsView from './components/StatsView';
 import SettingsView from './components/SettingsView';
@@ -204,6 +206,49 @@ describe('views render', () => {
     expect(html.indexOf('>Не делать<')).toBeLessThan(html.indexOf('Не листать телефон в постели'));
     expect(html.indexOf('Выпить таблетки')).toBeLessThan(html.indexOf('>Не делать<'));
     expect(html.indexOf('>Делать<')).toBeLessThan(html.indexOf('Выпить таблетки'));
+    // у запрета в строке часы: таймер «держусь» вместо стрелки «Действия»,
+    // и он только у запретов — у полезных привычек время не спрашивают
+    expect(html).toContain('aria-label="Держусь"');
+    expect(html.indexOf('aria-label="Держусь"')).toBeGreaterThan(html.indexOf('>Не делать<'));
+    expect(html.match(/aria-label="Держусь"/g)).toHaveLength(1);
+  });
+
+  it('gives the duration timer only to a «don’t do» habit', () => {
+    seedStorage(freshData('ru'));
+    expect(render(<HabitForm habit={null} onClose={() => {}} />)).not.toContain('Длительность');
+
+    const { habits } = freshData('ru');
+    const guard = habits.find((habit) => habit.kind === 'negative');
+    if (!guard) throw new Error('a «don’t do» seed is missing');
+    expect(render(<HabitForm habit={guard} onClose={() => {}} />)).toContain('Длительность');
+  });
+
+  it('renders the urge panel with the remaining time and one main step', () => {
+    const habit = { ...freshData('ru').habits[4], resist: 15 };
+    const handlers = { onHold: () => {}, onSlip: () => {}, onClean: () => {}, onClose: () => {}, onQuiet: () => {} };
+
+    seedStorage(freshData('ru'));
+    const running = render(<UrgePanel habit={habit} endAt={Date.now() + 15 * 60_000} slipped={false} {...handlers} />);
+    expect(running).toContain('Держусь · 15 мин');
+    expect(running).toContain('role="timer"');
+    expect(running).toContain('15:00');
+    expect(running).toContain('Держался');
+    expect(running).toContain('Всё равно сорвался');
+    // закрыть панель без отметки можно, но это не кнопка рядом с главной
+    expect(running).toContain('Закрыть');
+    // одна главная кнопка на панель: синяя ровно одна
+    expect(running.match(/btn-primary/g)).toHaveLength(1);
+
+    // время вышло — панель говорит об этом словами, а не нулями
+    const over = render(<UrgePanel habit={habit} endAt={Date.now() - 1000} slipped={false} {...handlers} />);
+    expect(over).toContain('Время вышло');
+    expect(over).toContain('0:00');
+
+    // срыв уже отмечен: предлагается вернуть «чисто», а не сорваться снова
+    const slipped = render(<UrgePanel habit={habit} endAt={Date.now() + 60_000} slipped={true} {...handlers} />);
+    expect(slipped).toContain('Вернуть «чисто»');
+    expect(slipped).not.toContain('Всё равно сорвался');
+    expect(slipped.match(/btn-primary/g)).toBeNull();
   });
 
   it('renders stats as two numbers, a week of dots and a list of streaks', () => {

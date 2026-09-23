@@ -3,6 +3,7 @@ import { DATA_VERSION, STORAGE_KEY } from '../types';
 import { uid } from './actions';
 import { SEED_HABITS } from './i18n';
 import { NOTE_MAX } from './journal';
+import { RESIST_MINUTES } from './timer';
 import { isValidKey } from './date';
 
 const KINDS: HabitKind[] = ['check', 'counter', 'duration', 'negative', 'flex'];
@@ -119,6 +120,7 @@ function normalizeHabit(raw: unknown, index: number): Habit | null {
   const name = str(record.name, 80);
   if (!name) return null;
   const kind = KINDS.includes(record.kind as HabitKind) ? (record.kind as HabitKind) : 'check';
+  const resist = num(record.resist);
   return {
     id: typeof record.id === 'string' && record.id ? record.id : uid(),
     name,
@@ -129,6 +131,7 @@ function normalizeHabit(raw: unknown, index: number): Habit | null {
     step: num(record.step),
     days: normalizeDays(record.days),
     tiny: str(record.tiny, 120),
+    resist: kind === 'negative' && resist && RESIST_MINUTES.includes(resist) ? resist : undefined,
     pinned: record.pinned === true,
     archived: record.archived === true,
     createdAt: typeof record.createdAt === 'string' ? record.createdAt : new Date().toISOString(),

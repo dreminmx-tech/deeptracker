@@ -60,7 +60,7 @@ function demoData(theme) {
     { id: 'h2', name: 'Вода', kind: 'check', pinned: true, createdAt, order: 1 },
     { id: 'h3', name: 'Прогулка', kind: 'check', pinned: true, createdAt, order: 2 },
     { id: 'h4', name: 'Спорт', kind: 'check', createdAt, order: 3 },
-    { id: 'h5', name: 'Не листать телефон в постели', kind: 'negative', createdAt, order: 4 },
+    { id: 'h5', name: 'Не листать телефон в постели', kind: 'negative', resist: 5, createdAt, order: 4 },
     { id: 'h6', name: 'Бассейн', kind: 'check', days: [0, 2, 4], createdAt, order: 5 },
   ];
 
@@ -213,13 +213,13 @@ try {
       clickJs: "document.querySelector('[aria-label=\"Предыдущий день\"]')?.click()",
     },
     {
-      name: 'today-slip',
+      name: 'today-urge',
       tab: 'today',
       theme: 'dark',
       width: 390,
       height: 940,
-      // у «не делать» срыв отмечается отдельной кнопкой, а не галочкой
-      clickJs: "document.querySelector('.hrow-actions .row-act')?.click()",
+      // у «не делать» в строке часы: таймер «держусь» заменяет отметку срыва
+      clickJs: "document.querySelectorAll('.block .row-act')[0]?.click()",
     },
     { name: 'habits', tab: 'habits', theme: 'dark', width: 390, height: 620 },
     {

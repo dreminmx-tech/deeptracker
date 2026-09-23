@@ -76,6 +76,19 @@ const ru = {
   'sheet.pin': 'Показывать в главных',
   'sheet.unpin': 'Убрать из главных',
 
+  // Таймер «держусь». Держим коротко: пока идёт тяга, читать нечего.
+  'urge.start': 'Держусь',
+  'urge.hold': 'Держусь',
+  'urge.min': 'мин',
+  'urge.left': 'Осталось',
+  'urge.over': 'Время вышло',
+  'urge.held': 'Держался',
+  'urge.slipped': 'Всё равно сорвался',
+  'urge.slippedDone': 'Срыв отмечен',
+  'urge.cleanDone': 'Снова «чисто»',
+  'urge.close': 'Закрыть',
+  'urge.duration': 'Длительность',
+
   'stats.title': 'Статистика',
   'stats.overall': 'Дней подряд с делами',
   'stats.overallBest': 'Лучшая серия: {n}',
@@ -187,6 +200,18 @@ const en: Dict = {
   'sheet.down': 'Move down',
   'sheet.pin': 'Show in the main three',
   'sheet.unpin': 'Remove from the main three',
+
+  'urge.start': 'Hold on',
+  'urge.hold': 'Holding on',
+  'urge.min': 'min',
+  'urge.left': 'Left',
+  'urge.over': "Time's up",
+  'urge.held': 'Held on',
+  'urge.slipped': 'Slipped anyway',
+  'urge.slippedDone': 'Slip logged',
+  'urge.cleanDone': 'Clean again',
+  'urge.close': 'Close',
+  'urge.duration': 'Duration',
 
   'stats.title': 'Stats',
   'stats.overall': 'Days in a row with progress',

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Ban, ChevronLeft, ChevronRight, Plus, Undo2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import type { Habit } from '../types';
 import { useStore } from '../store';
 import { fill, t } from '../lib/i18n';
@@ -19,6 +19,7 @@ import {
 } from '../lib/habits';
 import Checkbox from './Checkbox';
 import HabitRow from './HabitRow';
+import { UrgeRow, useUrgeTimer } from './UrgeTimer';
 import { useKeyboardInset } from '../lib/useKeyboardInset';
 
 interface TodayViewProps {
@@ -48,6 +49,8 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
   const [typing, setTyping] = useState(false);
   const dumpForm = useRef<HTMLFormElement>(null);
   const inset = useKeyboardInset(typing);
+  /** Один таймер «держусь» на экран: тяга идёт к одной привычке. */
+  const urge = useUrgeTimer();
 
   // Клавиатура поднялась — поле подкручиваем к себе, чтобы оно было видно целиком.
   useEffect(() => {
@@ -91,37 +94,19 @@ export default function TodayView({ onGoToHabits, initialDay }: TodayViewProps) 
         ? dict['today.atRisk']
         : null;
 
-  /** The only inline action left: «сорвался» on a don't-do habit. */
-  function actionsFor(habit: Habit): ReactNode {
-    if (habit.kind !== 'negative') return null;
-    const slipped = (getEntry(data, open, habit.id)?.value ?? 0) > 0;
-    const label = slipped ? dict['sheet.slipUndo'] : dict['sheet.slip'];
-    return (
-      <button
-        type="button"
-        className="row-act"
-        data-active={slipped ? 'true' : 'false'}
-        aria-label={label}
-        title={label}
-        onClick={() => update((current) => tapHabit(current, habit.id, open))}
-      >
-        {slipped ? <Undo2 size={ICON} strokeWidth={1.8} /> : <Ban size={ICON} strokeWidth={1.8} />}
-      </button>
-    );
-  }
-
+  /**
+   * «Не делать» в строке несёт часы: пока идёт тяга, человеку нужно время, а не
+   * ещё один квадрат для отметки. Срыв и «держусь» пишутся из панели под строкой.
+   */
   function row(habit: Habit) {
-    const isNegative = habit.kind === 'negative';
+    if (habit.kind === 'negative') return <UrgeRow key={habit.id} habit={habit} day={open} timer={urge} />;
     return (
       <HabitRow
         key={habit.id}
         habit={habit}
         pinned={habit.pinned}
         done={isComplete(habit, getEntry(data, open, habit.id))}
-        onToggle={
-          isNegative ? undefined : () => update((current) => tapHabit(current, habit.id, open))
-        }
-        actions={actionsFor(habit)}
+        onToggle={() => update((current) => tapHabit(current, habit.id, open))}
       />
     );
   }

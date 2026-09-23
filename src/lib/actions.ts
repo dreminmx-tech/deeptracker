@@ -2,6 +2,7 @@ import type { AppData, DumpItem, Entry, Habit, HabitKind, Settings } from '../ty
 import type { DateKey } from './date';
 import { todayKey } from './date';
 import { canPinMore, emptyDay, getEntry, isComplete, isCounted, stepOf, targetOf } from './habits';
+import { RESIST_MINUTES } from './timer';
 
 export function uid(prefix = 'h'): string {
   return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -175,6 +176,8 @@ export interface HabitInput {
   /** Weekdays the habit is expected, 0 = Monday. Empty or all seven = every day. */
   days?: number[];
   tiny?: string;
+  /** negative: длина таймера «держусь» в минутах. */
+  resist?: number;
   pinned?: boolean;
 }
 
@@ -192,6 +195,12 @@ function normalizeDays(days?: number[]): number[] | undefined {
   return clean.length === 0 || clean.length >= 7 ? undefined : clean;
 }
 
+/** Длительность таймера: только для «не делать» и только из списка разрешённых. */
+function negativeResist(kind: HabitKind, resist?: number): number | undefined {
+  if (kind !== 'negative' || !resist || !RESIST_MINUTES.includes(resist)) return undefined;
+  return resist;
+}
+
 /** Creates a habit when `id` is omitted, otherwise updates it in place. */
 export function saveHabit(data: AppData, input: HabitInput, id?: string): AppData {
   const name = input.name.trim().slice(0, 80) || '—';
@@ -204,6 +213,8 @@ export function saveHabit(data: AppData, input: HabitInput, id?: string): AppDat
     step: input.kind === 'counter' ? Math.max(1, Math.round(input.step ?? 1)) : undefined,
     days: normalizeDays(input.days),
     tiny: input.tiny?.trim().slice(0, 120) || undefined,
+    // Длительность таймера есть только у «не делать» и только из списка.
+    resist: negativeResist(input.kind, input.resist),
     pinned: input.pinned,
     archived: false,
   };

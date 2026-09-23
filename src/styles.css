@@ -529,15 +529,22 @@ html[data-typing='true'] .tabs {
   font-weight: var(--w-strong);
 }
 
-/* The two halves of «Делать / Не делать» — единственный выбор в форме привычки. */
+/* The two halves of «Делать / Не делать» — единственный выбор в форме привычки.
+   Контрол ровно 44px, как у кнопок рядом: высоту несёт контейнер, внутренняя
+   кнопка ниже на padding и рамку (36 + 3 + 3 + 1 + 1), иначе контрол выходил бы
+   на 8px выше соседей — та же арифметика, что у переключателей в настройках. */
 .segmented-wide {
   display: flex;
+  box-sizing: border-box;
   align-self: stretch;
+  height: var(--control);
 }
 
+/* Кнопки внутри могут быть и числом: в ряду «5 · 10 · 15 · 30» подпись не нужна. */
 .segmented-wide button {
   flex: 1;
-  min-height: var(--control);
+  min-width: 0;
+  min-height: calc(var(--control-sm) + var(--s1));
 }
 
 /* settings: one label, one control, on the line of a list row */
@@ -741,6 +748,62 @@ html[data-typing='true'] .tabs {
 
 .hrow-static {
   cursor: default;
+}
+
+/* ---------- таймер «держусь» (привычки «не делать») ---------- */
+
+/* Панель стоит под своей строкой внутри `.rows` и занимает всю ширину списка:
+   строку она не ломает, а продолжает — тем же фоном и той же линейкой сверху.
+   Три строки: подпись, цифры, кнопки — и ни одной колонки, которую нужно
+   делить с соседом, поэтому на узком экране здесь нечему переноситься. */
+.urge {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+}
+
+.urge-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+/* Цифры — самое важное на экране, пока идёт тяга: крупные и ровные.
+   `tabular-nums` держит ширину секунд, иначе подпись дёргается каждую секунду. */
+.urge-time {
+  font-size: var(--t-3xl);
+  font-weight: var(--w-strong);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.urge[data-over='true'] .urge-time {
+  color: var(--accent);
+}
+
+.urge-time:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+/* «Сорвался» и «Закрыть» — мелкие строки справа: они не спорят с кнопкой над
+   ними и не мешают попасть по ней. */
+.urge-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s4);
+}
+
+.urge-foot .link {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
 }
 
 /* ---------- checkbox ---------- */

@@ -23,6 +23,11 @@ export interface Habit {
   days?: number[];
   /** The 2-minute "just start" version of the habit. */
   tiny?: string;
+  /**
+   * negative: how long the "holding on" timer runs when an urge hits, in minutes.
+   * Missing means the default; the urge timer is the only place it is used.
+   */
+  resist?: number;
   /** Shown in the "top 3" block on the Today screen. */
   pinned?: boolean;
   archived?: boolean;
